@@ -1,0 +1,49 @@
+{
+  "v": 1,
+  "id": "L6_fuzz371",
+  "note": "Seeded fuzz.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#9c0fae",
+      "terrainB": "#0eb8e5",
+      "edge": "#cd8b14"
+    },
+    "patternId": "thorn",
+    "edgeSeed": 88368,
+    "outlineWidth": 4,
+    "bandSteps": 5,
+    "hardEdgeB": false,
+    "transparentB": false,
+    "bandBias": -0.75,
+    "customShadesHex": null,
+    "patternNoise": [
+      "blue"
+    ],
+    "patternNoiseSeed": 24232,
+    "patternNoiseStrength": 0.35000000000000003,
+    "ribbonAlgo": "along_octagonal",
+    "ribbonAmount": 0.75,
+    "ribbonPeriod": 1,
+    "ribbonShades": 3,
+    "ribbonInvert": false,
+    "customRibbonHex": null,
+    "textureAlgoA": "stone_floor",
+    "textureAlgoB": "brick_wall",
+    "textureAmountA": 0.05,
+    "textureAmountB": 0.8500000000000001,
+    "textureShadesA": 4,
+    "textureShadesB": 2,
+    "textureSeedA": 39370,
+    "textureSeedB": 7740,
+    "cellScaleA": 3,
+    "cellScaleB": 5,
+    "rippleScaleA": 7,
+    "rippleScaleB": 3,
+    "geoScaleA": 6,
+    "geoScaleB": 6,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  }
+}

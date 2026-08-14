@@ -1,0 +1,67 @@
+{
+  "v": 1,
+  "id": "L6_fuzz413",
+  "note": "Seeded fuzz.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#0a4d1b",
+      "terrainB": "#e88c8f",
+      "edge": "#0e190d"
+    },
+    "patternId": "thorn",
+    "edgeSeed": 78667,
+    "outlineWidth": 2,
+    "bandSteps": 4,
+    "hardEdgeB": false,
+    "transparentB": false,
+    "bandBias": -0.8500000000000001,
+    "customShadesHex": null,
+    "patternNoise": [
+      "white"
+    ],
+    "patternNoiseSeed": 78140,
+    "patternNoiseStrength": 1.4000000000000001,
+    "ribbonAlgo": "grain",
+    "ribbonAmount": 0.8,
+    "ribbonPeriod": 3,
+    "ribbonShades": 1,
+    "ribbonInvert": false,
+    "customRibbonHex": null,
+    "textureAlgoA": "paving",
+    "textureAlgoB": "brick_bond",
+    "textureAmountA": 0.7000000000000001,
+    "textureAmountB": 0.25,
+    "textureShadesA": 1,
+    "textureShadesB": 4,
+    "textureSeedA": 24829,
+    "textureSeedB": 30273,
+    "cellScaleA": 6,
+    "cellScaleB": 5,
+    "rippleScaleA": 6,
+    "rippleScaleB": 3,
+    "geoScaleA": 7,
+    "geoScaleB": 3,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  },
+  "overrides": {
+    "noiseTargets": [
+      "terrainA",
+      "terrainB"
+    ],
+    "noiseColours": {
+      "b": {
+        "r": 61,
+        "g": 132,
+        "b": 247
+      },
+      "edge": {
+        "r": 236,
+        "g": 181,
+        "b": 66
+      }
+    }
+  }
+}

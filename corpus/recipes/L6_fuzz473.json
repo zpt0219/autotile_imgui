@@ -1,0 +1,55 @@
+{
+  "v": 1,
+  "id": "L6_fuzz473",
+  "note": "Seeded fuzz.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#944fef",
+      "terrainB": "#e86080",
+      "edge": "#7e68f2"
+    },
+    "patternId": "coast",
+    "edgeSeed": 74231,
+    "outlineWidth": 2,
+    "bandSteps": 5,
+    "hardEdgeB": false,
+    "transparentB": false,
+    "bandBias": 0.55,
+    "customShadesHex": null,
+    "patternNoise": [
+      "white",
+      "ordered"
+    ],
+    "patternNoiseSeed": 90646,
+    "patternNoiseStrength": 1,
+    "ribbonAlgo": "along_breeze_block",
+    "ribbonAmount": 0.55,
+    "ribbonPeriod": 8,
+    "ribbonShades": 4,
+    "ribbonInvert": true,
+    "customRibbonHex": null,
+    "textureAlgoA": "none",
+    "textureAlgoB": "paving3",
+    "textureAmountA": 0.35000000000000003,
+    "textureAmountB": 0.65,
+    "textureShadesA": 3,
+    "textureShadesB": 3,
+    "textureSeedA": 39566,
+    "textureSeedB": 38709,
+    "cellScaleA": 4,
+    "cellScaleB": 6,
+    "rippleScaleA": 4,
+    "rippleScaleB": 4,
+    "geoScaleA": 2,
+    "geoScaleB": 2,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  },
+  "overrides": {
+    "noiseTargets": [
+      "edge"
+    ]
+  }
+}

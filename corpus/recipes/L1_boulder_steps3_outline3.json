@@ -1,0 +1,47 @@
+{
+  "v": 1,
+  "id": "L1_boulder_steps3_outline3",
+  "note": "boulder at 3 band steps, 3px outline.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#3a7fc9",
+      "terrainB": "#5da832",
+      "edge": "#e8d5a0"
+    },
+    "patternId": "boulder",
+    "edgeSeed": 0,
+    "outlineWidth": 3,
+    "bandSteps": 3,
+    "hardEdgeB": false,
+    "transparentB": false,
+    "bandBias": 0,
+    "customShadesHex": null,
+    "patternNoise": [],
+    "patternNoiseSeed": 1234,
+    "patternNoiseStrength": 0.15,
+    "ribbonAlgo": "none",
+    "ribbonAmount": 0.25,
+    "ribbonPeriod": 4,
+    "ribbonShades": 2,
+    "ribbonInvert": false,
+    "customRibbonHex": null,
+    "textureAlgoA": "none",
+    "textureAlgoB": "none",
+    "textureAmountA": 0.35,
+    "textureAmountB": 0.35,
+    "textureShadesA": 2,
+    "textureShadesB": 2,
+    "textureSeedA": 1,
+    "textureSeedB": 1,
+    "cellScaleA": 3,
+    "cellScaleB": 3,
+    "rippleScaleA": 4,
+    "rippleScaleB": 4,
+    "geoScaleA": 1,
+    "geoScaleB": 1,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  }
+}

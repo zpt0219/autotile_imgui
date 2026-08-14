@@ -1,0 +1,21 @@
+# Build trees
+build*/
+out/
+imgui*.ini
+
+# FetchContent downloads (imgui, glfw, tinyfd, doctest)
+third_party/_deps/
+
+# Verifier output
+diff/
+__pycache__/
+*.pyc
+
+# Editor
+.vscode/
+.idea/
+compile_commands.json
+
+# NOT ignored, on purpose:
+#   corpus/   - 8 MB of ground truth. It is the test suite; it belongs in git.
+#   reference/ - the porting specification.

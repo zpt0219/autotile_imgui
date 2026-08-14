@@ -1,0 +1,49 @@
+{
+  "v": 1,
+  "id": "L6_fuzz448",
+  "note": "Seeded fuzz.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#70839d",
+      "terrainB": "#efbe7d",
+      "edge": "#7c5ca6"
+    },
+    "patternId": "wave",
+    "edgeSeed": 91128,
+    "outlineWidth": 3,
+    "bandSteps": 3,
+    "hardEdgeB": false,
+    "transparentB": true,
+    "bandBias": -0.7000000000000001,
+    "customShadesHex": null,
+    "patternNoise": [
+      "ordered"
+    ],
+    "patternNoiseSeed": 40342,
+    "patternNoiseStrength": 0.15000000000000002,
+    "ribbonAlgo": "none",
+    "ribbonAmount": 0.30000000000000004,
+    "ribbonPeriod": 6,
+    "ribbonShades": 3,
+    "ribbonInvert": false,
+    "customRibbonHex": null,
+    "textureAlgoA": "cobbles2",
+    "textureAlgoB": "paving3",
+    "textureAmountA": 0.35000000000000003,
+    "textureAmountB": 0.5,
+    "textureShadesA": 4,
+    "textureShadesB": 3,
+    "textureSeedA": 8746,
+    "textureSeedB": 76246,
+    "cellScaleA": 6,
+    "cellScaleB": 5,
+    "rippleScaleA": 6,
+    "rippleScaleB": 7,
+    "geoScaleA": 5,
+    "geoScaleB": 4,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  }
+}

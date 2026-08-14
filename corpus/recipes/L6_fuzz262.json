@@ -1,0 +1,61 @@
+{
+  "v": 1,
+  "id": "L6_fuzz262",
+  "note": "Seeded fuzz.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#89baa3",
+      "terrainB": "#bfb656",
+      "edge": "#a3b0a0"
+    },
+    "patternId": "moss",
+    "edgeSeed": 82390,
+    "outlineWidth": 1,
+    "bandSteps": 4,
+    "hardEdgeB": false,
+    "transparentB": true,
+    "bandBias": 0.5,
+    "customShadesHex": null,
+    "patternNoise": [],
+    "patternNoiseSeed": 85217,
+    "patternNoiseStrength": 0.45,
+    "ribbonAlgo": "along_stone_floor",
+    "ribbonAmount": 0.1,
+    "ribbonPeriod": 7,
+    "ribbonShades": 4,
+    "ribbonInvert": true,
+    "customRibbonHex": null,
+    "textureAlgoA": "brick_bond",
+    "textureAlgoB": "water",
+    "textureAmountA": 0.2,
+    "textureAmountB": 0.7000000000000001,
+    "textureShadesA": 3,
+    "textureShadesB": 4,
+    "textureSeedA": 78910,
+    "textureSeedB": 11665,
+    "cellScaleA": 2,
+    "cellScaleB": 2,
+    "rippleScaleA": 3,
+    "rippleScaleB": 8,
+    "geoScaleA": 2,
+    "geoScaleB": 5,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  },
+  "overrides": {
+    "noiseColours": {
+      "b": {
+        "r": 225,
+        "g": 112,
+        "b": 176
+      },
+      "edge": {
+        "r": 85,
+        "g": 214,
+        "b": 198
+      }
+    }
+  }
+}

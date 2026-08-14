@@ -1,0 +1,50 @@
+{
+  "v": 1,
+  "id": "L6_fuzz121",
+  "note": "Seeded fuzz.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#424a48",
+      "terrainB": "#9dcbd2",
+      "edge": "#ed4669"
+    },
+    "patternId": "moss",
+    "edgeSeed": 12903,
+    "outlineWidth": 4,
+    "bandSteps": 3,
+    "hardEdgeB": false,
+    "transparentB": false,
+    "bandBias": 0.05,
+    "customShadesHex": null,
+    "patternNoise": [
+      "blue",
+      "ordered"
+    ],
+    "patternNoiseSeed": 55840,
+    "patternNoiseStrength": 0.4,
+    "ribbonAlgo": "ticks",
+    "ribbonAmount": 0.8,
+    "ribbonPeriod": 2,
+    "ribbonShades": 4,
+    "ribbonInvert": true,
+    "customRibbonHex": null,
+    "textureAlgoA": "ripple_diag",
+    "textureAlgoB": "ordered",
+    "textureAmountA": 0.9,
+    "textureAmountB": 0.35000000000000003,
+    "textureShadesA": 3,
+    "textureShadesB": 4,
+    "textureSeedA": 15018,
+    "textureSeedB": 41599,
+    "cellScaleA": 4,
+    "cellScaleB": 6,
+    "rippleScaleA": 3,
+    "rippleScaleB": 2,
+    "geoScaleA": 7,
+    "geoScaleB": 8,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "v": 1,
+  "id": "L6_fuzz484",
+  "note": "Seeded fuzz.",
+  "recipe": {
+    "roleHex": {
+      "terrainA": "#29f701",
+      "terrainB": "#195426",
+      "edge": "#864108"
+    },
+    "patternId": "square",
+    "edgeSeed": 69224,
+    "outlineWidth": 2,
+    "bandSteps": 4,
+    "hardEdgeB": true,
+    "transparentB": false,
+    "bandBias": -0.15000000000000002,
+    "customShadesHex": null,
+    "patternNoise": [
+      "ordered"
+    ],
+    "patternNoiseSeed": 96902,
+    "patternNoiseStrength": 0.65,
+    "ribbonAlgo": "wave",
+    "ribbonAmount": 0.30000000000000004,
+    "ribbonPeriod": 6,
+    "ribbonShades": 4,
+    "ribbonInvert": true,
+    "customRibbonHex": null,
+    "textureAlgoA": "white",
+    "textureAlgoB": "brick_floor",
+    "textureAmountA": 0.45,
+    "textureAmountB": 0.9,
+    "textureShadesA": 1,
+    "textureShadesB": 3,
+    "textureSeedA": 57774,
+    "textureSeedB": 29803,
+    "cellScaleA": 6,
+    "cellScaleB": 4,
+    "rippleScaleA": 3,
+    "rippleScaleB": 7,
+    "geoScaleA": 2,
+    "geoScaleB": 1,
+    "customTexHex": {
+      "terrainA": null,
+      "terrainB": null
+    }
+  },
+  "overrides": {
+    "noiseTargets": [
+      "terrainA",
+      "terrainB"
+    ]
+  }
+}
