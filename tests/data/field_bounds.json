@@ -1,0 +1,4655 @@
+[
+  {
+    "pattern": "square",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "square",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "square",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 74,
+    "minDistance": 0.5,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 74,
+    "minDistance": 0.5,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 78,
+    "minDistance": 0.5,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 74,
+    "minDistance": 0.5,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 62,
+    "minDistance": 0.5,
+    "maxDistance": 15.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 78,
+    "minDistance": 0.5,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 74,
+    "minDistance": 0.5,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 78,
+    "minDistance": 0.5,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 78,
+    "minDistance": 0.5,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "sharp",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 87,
+    "minDistance": 0.5,
+    "maxDistance": 21.75
+  },
+  {
+    "pattern": "sharp",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "sharp",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 85,
+    "minDistance": 3,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 85,
+    "minDistance": 3.5,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "rounded",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 85,
+    "maxIndex": 85,
+    "minDistance": 21.25,
+    "maxDistance": 21.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 48,
+    "minDistance": 0,
+    "maxDistance": 12
+  },
+  {
+    "pattern": "bold",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 60,
+    "minDistance": 0,
+    "maxDistance": 15
+  },
+  {
+    "pattern": "bold",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 60,
+    "minDistance": 0,
+    "maxDistance": 15
+  },
+  {
+    "pattern": "bold",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "bold",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 60,
+    "minDistance": 0,
+    "maxDistance": 15
+  },
+  {
+    "pattern": "bold",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 60,
+    "minDistance": 1,
+    "maxDistance": 15
+  },
+  {
+    "pattern": "bold",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "bold",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 75,
+    "minDistance": 1,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "bold",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 60,
+    "minDistance": 0,
+    "maxDistance": 15
+  },
+  {
+    "pattern": "bold",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "bold",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 60,
+    "minDistance": 1,
+    "maxDistance": 15
+  },
+  {
+    "pattern": "bold",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 75,
+    "minDistance": 1,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "bold",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "bold",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 75,
+    "minDistance": 1,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "bold",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 75,
+    "minDistance": 1,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "bold",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 84,
+    "minDistance": 1,
+    "maxDistance": 21
+  },
+  {
+    "pattern": "bold",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "bold",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 67,
+    "minDistance": 0,
+    "maxDistance": 16.75
+  },
+  {
+    "pattern": "jagged",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 69,
+    "minDistance": 0,
+    "maxDistance": 17.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 71,
+    "minDistance": 0,
+    "maxDistance": 17.75
+  },
+  {
+    "pattern": "jagged",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 75,
+    "minDistance": 0,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "jagged",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 69,
+    "minDistance": 0,
+    "maxDistance": 17.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 71,
+    "minDistance": 0.5,
+    "maxDistance": 17.75
+  },
+  {
+    "pattern": "jagged",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 78,
+    "minDistance": 0,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "jagged",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 86,
+    "minDistance": 0.5,
+    "maxDistance": 21.5
+  },
+  {
+    "pattern": "jagged",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 75,
+    "minDistance": 0,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "jagged",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 78,
+    "minDistance": 0,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "jagged",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 80,
+    "minDistance": 0,
+    "maxDistance": 20
+  },
+  {
+    "pattern": "jagged",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 87,
+    "minDistance": 0.5,
+    "maxDistance": 21.75
+  },
+  {
+    "pattern": "jagged",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 84,
+    "minDistance": 0,
+    "maxDistance": 21
+  },
+  {
+    "pattern": "jagged",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "jagged",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "gravel",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 67,
+    "minDistance": 0,
+    "maxDistance": 16.75
+  },
+  {
+    "pattern": "gravel",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 68,
+    "minDistance": 0,
+    "maxDistance": 17
+  },
+  {
+    "pattern": "gravel",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 79,
+    "minDistance": 0,
+    "maxDistance": 19.75
+  },
+  {
+    "pattern": "gravel",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 69,
+    "minDistance": 0,
+    "maxDistance": 17.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 69,
+    "minDistance": 0,
+    "maxDistance": 17.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 78,
+    "minDistance": 0,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "gravel",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 81,
+    "minDistance": 0,
+    "maxDistance": 20.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "gravel",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 76,
+    "minDistance": 0,
+    "maxDistance": 19
+  },
+  {
+    "pattern": "gravel",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "gravel",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 80,
+    "minDistance": 0,
+    "maxDistance": 20
+  },
+  {
+    "pattern": "gravel",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 77,
+    "minDistance": 0,
+    "maxDistance": 19.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 78,
+    "minDistance": 0,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "gravel",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 84,
+    "minDistance": 0,
+    "maxDistance": 21
+  },
+  {
+    "pattern": "gravel",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "gravel",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 49,
+    "minDistance": 0,
+    "maxDistance": 12.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 76,
+    "minDistance": 0,
+    "maxDistance": 19
+  },
+  {
+    "pattern": "boulder",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 67,
+    "minDistance": 0,
+    "maxDistance": 16.75
+  },
+  {
+    "pattern": "boulder",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 76,
+    "minDistance": 0,
+    "maxDistance": 19
+  },
+  {
+    "pattern": "boulder",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 74,
+    "minDistance": 0,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "boulder",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 76,
+    "minDistance": 2.5,
+    "maxDistance": 19
+  },
+  {
+    "pattern": "boulder",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 74,
+    "minDistance": 0,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "boulder",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 81,
+    "minDistance": 3,
+    "maxDistance": 20.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 68,
+    "minDistance": 0,
+    "maxDistance": 17
+  },
+  {
+    "pattern": "boulder",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 76,
+    "minDistance": 0,
+    "maxDistance": 19
+  },
+  {
+    "pattern": "boulder",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 68,
+    "minDistance": 3.5,
+    "maxDistance": 17
+  },
+  {
+    "pattern": "boulder",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 82,
+    "minDistance": 3.5,
+    "maxDistance": 20.5
+  },
+  {
+    "pattern": "boulder",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 74,
+    "minDistance": 0,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "boulder",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 81,
+    "minDistance": 2.5,
+    "maxDistance": 20.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 81,
+    "minDistance": 3.5,
+    "maxDistance": 20.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 89,
+    "minDistance": 2.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 89,
+    "minDistance": 2.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 89,
+    "minDistance": 2.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "boulder",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 64,
+    "minDistance": 0,
+    "maxDistance": 16
+  },
+  {
+    "pattern": "thorn",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 71,
+    "minDistance": 0,
+    "maxDistance": 17.75
+  },
+  {
+    "pattern": "thorn",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 78,
+    "minDistance": 0,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "thorn",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 68,
+    "minDistance": 0,
+    "maxDistance": 17
+  },
+  {
+    "pattern": "thorn",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 71,
+    "minDistance": 1,
+    "maxDistance": 17.75
+  },
+  {
+    "pattern": "thorn",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 80,
+    "minDistance": 0,
+    "maxDistance": 20
+  },
+  {
+    "pattern": "thorn",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 87,
+    "minDistance": 1,
+    "maxDistance": 21.75
+  },
+  {
+    "pattern": "thorn",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 71,
+    "minDistance": 0,
+    "maxDistance": 17.75
+  },
+  {
+    "pattern": "thorn",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 82,
+    "minDistance": 0,
+    "maxDistance": 20.5
+  },
+  {
+    "pattern": "thorn",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 72,
+    "minDistance": 0,
+    "maxDistance": 18
+  },
+  {
+    "pattern": "thorn",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 73,
+    "minDistance": 2.5,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 80,
+    "minDistance": 0,
+    "maxDistance": 20
+  },
+  {
+    "pattern": "thorn",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 89,
+    "minDistance": 2.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 89,
+    "minDistance": 2.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 16,
+    "maxIndex": 89,
+    "minDistance": 4,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 10,
+    "maxIndex": 89,
+    "minDistance": 2.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 14,
+    "maxIndex": 89,
+    "minDistance": 3.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "thorn",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 50,
+    "minDistance": 0,
+    "maxDistance": 12.5
+  },
+  {
+    "pattern": "coast",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 59,
+    "minDistance": 0,
+    "maxDistance": 14.75
+  },
+  {
+    "pattern": "coast",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 61,
+    "minDistance": 0,
+    "maxDistance": 15.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 65,
+    "minDistance": 0,
+    "maxDistance": 16.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 65,
+    "minDistance": 0,
+    "maxDistance": 16.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 1,
+    "maxIndex": 65,
+    "minDistance": 0.25,
+    "maxDistance": 16.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 72,
+    "minDistance": 0,
+    "maxDistance": 18
+  },
+  {
+    "pattern": "coast",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 1,
+    "maxIndex": 72,
+    "minDistance": 0.25,
+    "maxDistance": 18
+  },
+  {
+    "pattern": "coast",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 63,
+    "minDistance": 0,
+    "maxDistance": 15.75
+  },
+  {
+    "pattern": "coast",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "coast",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 63,
+    "minDistance": 0,
+    "maxDistance": 15.75
+  },
+  {
+    "pattern": "coast",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 75,
+    "minDistance": 0,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "coast",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "coast",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 78,
+    "minDistance": 1,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "coast",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 77,
+    "minDistance": 0,
+    "maxDistance": 19.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 83,
+    "minDistance": 3,
+    "maxDistance": 20.75
+  },
+  {
+    "pattern": "coast",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 1,
+    "maxIndex": 89,
+    "minDistance": 0.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 1,
+    "maxIndex": 89,
+    "minDistance": 0.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 1,
+    "maxIndex": 89,
+    "minDistance": 0.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 4,
+    "maxIndex": 89,
+    "minDistance": 1,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 12,
+    "maxIndex": 89,
+    "minDistance": 3,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "coast",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 64,
+    "minDistance": 0,
+    "maxDistance": 16
+  },
+  {
+    "pattern": "moss",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 68,
+    "minDistance": 0,
+    "maxDistance": 17
+  },
+  {
+    "pattern": "moss",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 80,
+    "minDistance": 0,
+    "maxDistance": 20
+  },
+  {
+    "pattern": "moss",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 68,
+    "minDistance": 0,
+    "maxDistance": 17
+  },
+  {
+    "pattern": "moss",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 74,
+    "minDistance": 0,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "moss",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 80,
+    "minDistance": 0,
+    "maxDistance": 20
+  },
+  {
+    "pattern": "moss",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 72,
+    "minDistance": 0,
+    "maxDistance": 18
+  },
+  {
+    "pattern": "moss",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 78,
+    "minDistance": 0,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "moss",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 74,
+    "minDistance": 0,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "moss",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 86,
+    "minDistance": 0,
+    "maxDistance": 21.5
+  },
+  {
+    "pattern": "moss",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 78,
+    "minDistance": 0,
+    "maxDistance": 19.5
+  },
+  {
+    "pattern": "moss",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 87,
+    "minDistance": 0,
+    "maxDistance": 21.75
+  },
+  {
+    "pattern": "moss",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 3,
+    "maxIndex": 89,
+    "minDistance": 0.75,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 3,
+    "maxIndex": 89,
+    "minDistance": 0.75,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 2,
+    "maxIndex": 89,
+    "minDistance": 0.5,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 8,
+    "maxIndex": 89,
+    "minDistance": 2,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "moss",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 0,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 39,
+    "minDistance": 0,
+    "maxDistance": 9.75
+  },
+  {
+    "pattern": "billow",
+    "mask": 1,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 56,
+    "minDistance": 0,
+    "maxDistance": 14
+  },
+  {
+    "pattern": "billow",
+    "mask": 2,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 3,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 4,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 56,
+    "minDistance": 0,
+    "maxDistance": 14
+  },
+  {
+    "pattern": "billow",
+    "mask": 5,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 59,
+    "minDistance": 0,
+    "maxDistance": 14.75
+  },
+  {
+    "pattern": "billow",
+    "mask": 6,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 66,
+    "minDistance": 0,
+    "maxDistance": 16.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 7,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 74,
+    "minDistance": 0,
+    "maxDistance": 18.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 8,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 9,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 10,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 11,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 12,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 13,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 70,
+    "minDistance": 0,
+    "maxDistance": 17.5
+  },
+  {
+    "pattern": "billow",
+    "mask": 14,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 73,
+    "minDistance": 0,
+    "maxDistance": 18.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 15,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 75,
+    "minDistance": 0,
+    "maxDistance": 18.75
+  },
+  {
+    "pattern": "billow",
+    "mask": 19,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 23,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 27,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 31,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 38,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 39,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 46,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 47,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 55,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 63,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 76,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 77,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 78,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 79,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 95,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 110,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 111,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 127,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 137,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 139,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 141,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 143,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 155,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 159,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 175,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 191,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 205,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 207,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 223,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 239,
+    "length": 1024,
+    "minIndex": 0,
+    "maxIndex": 89,
+    "minDistance": 0,
+    "maxDistance": 22.25
+  },
+  {
+    "pattern": "billow",
+    "mask": 255,
+    "length": 1024,
+    "minIndex": 89,
+    "maxIndex": 89,
+    "minDistance": 22.25,
+    "maxDistance": 22.25
+  }
+]

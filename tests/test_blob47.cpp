@@ -7,35 +7,69 @@
 #include <cstring>
 #include <algorithm>
 
-TEST_CASE("T2.1 Pattern Data integrity and decoded distance field boundaries") {
-    const std::vector<std::string> patterns = {
-        "square", "sharp", "rounded", "wave", "jagged", "gravel",
-        "boulder", "thorn", "coast", "moss", "billow"
-    };
+static std::ifstream open_repo_file(const std::string& relative) {
+    // The test binary is run from the build tree or the repo root depending on
+    // whether it came from ctest or by hand.
+    std::ifstream f(relative);
+    if (!f.is_open()) f.open("../" + relative);
+    if (!f.is_open()) f.open("../../" + relative);
+    return f;
+}
 
-    std::vector<float> decoded(1024);
+// T2.1's gate wants the decoded field's min/max checked against values read out
+// of the TS, not merely against a plausible range. tests/data/field_bounds.json
+// is parsed straight from reference/generated.ts by
+// tests/data/dump_reference_vectors.js, so these expectations belong to the
+// specification rather than to this port.
+TEST_CASE("T2.1 Decoded field bounds match reference/generated.ts exactly") {
+    std::ifstream file = open_repo_file("tests/data/field_bounds.json");
+    REQUIRE(file.is_open());
 
-    for (const auto& pat : patterns) {
-        for (uint8_t mask : atm::BLOB47_MASKS) {
-            const char* field = atm::pattern_data::get_field_string(pat, mask);
-            INFO("Checking pattern " << pat << " mask " << (int)mask);
-            REQUIRE(field != nullptr);
-            size_t len = std::strlen(field);
-            CHECK(len == 1024);
+    nlohmann::json bounds;
+    file >> bounds;
+    REQUIRE(bounds.is_array());
+    // 11 patterns in GENERATED_FIELDS x 47 masks.
+    REQUIRE(bounds.size() == 517);
 
-            // Decode field string into distance values
-            for (size_t i = 0; i < 1024; ++i) {
-                decoded[i] = atm::pattern_data::char_to_value(field[i]) * atm::pattern_data::FIELD_STEP;
-            }
+    for (const auto& item : bounds) {
+        const std::string pattern = item["pattern"].get<std::string>();
+        const int mask = item["mask"].get<int>();
+        INFO("pattern " << pattern << " mask " << mask);
 
-            float min_val = *std::min_element(decoded.begin(), decoded.end());
-            float max_val = *std::max_element(decoded.begin(), decoded.end());
+        const char* field = atm::pattern_data::get_field_string(pattern, mask);
+        REQUIRE(field != nullptr);
 
-            // 90 field digits at 0.25px step cover 0..22.25px distance field
-            CHECK(min_val >= 0.0f);
-            CHECK(max_val <= 22.5f);
-            CHECK(max_val >= min_val);
+        const size_t len = std::strlen(field);
+        CHECK(len == item["length"].get<size_t>());
+
+        int min_idx = 255, max_idx = -1;
+        for (size_t i = 0; i < len; ++i) {
+            const int v = atm::pattern_data::char_to_value(field[i]);
+            if (v < min_idx) min_idx = v;
+            if (v > max_idx) max_idx = v;
         }
+
+        CHECK(min_idx == item["minIndex"].get<int>());
+        CHECK(max_idx == item["maxIndex"].get<int>());
+
+        const float step = atm::pattern_data::FIELD_STEP;
+        CHECK(min_idx * step == doctest::Approx(item["minDistance"].get<float>()));
+        CHECK(max_idx * step == doctest::Approx(item["maxDistance"].get<float>()));
+    }
+}
+
+// blob47Pattern.ts:207 is `wave: GENERATED_FIELDS.rounded` — 'wave' is a valid
+// PatternId with no fields of its own, while 'bold' has fields and is not a
+// valid PatternId. Both halves of that oddity are load-bearing; assert the
+// aliasing rather than trusting it.
+TEST_CASE("T2.1 'wave' aliases the rounded field set, per blob47Pattern.ts") {
+    for (uint8_t mask : atm::BLOB47_MASKS) {
+        const char* wave = atm::pattern_data::get_field_string("wave", mask);
+        const char* rounded = atm::pattern_data::get_field_string("rounded", mask);
+        INFO("mask " << (int)mask);
+        REQUIRE(wave != nullptr);
+        REQUIRE(rounded != nullptr);
+        CHECK(std::strcmp(wave, rounded) == 0);
     }
 }
 

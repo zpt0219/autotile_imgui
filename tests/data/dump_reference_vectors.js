@@ -261,4 +261,77 @@ for (let x = 0; x < 16; x += 3) {
 
 fs.writeFileSync(path.join(__dirname, 'noise_vectors.json'), JSON.stringify(noiseVectors, null, 2));
 
+// =========================================================================
+// 4. Stored-field bounds, read straight out of reference/generated.ts
+//
+// Unlike the sections above, nothing here is retyped: the field strings are
+// parsed out of the reference file itself and decoded with FIELD_CHARS as
+// blob47Pattern.ts defines it (printable ASCII 35..126 less ' and \). What
+// lands in field_bounds.json is therefore a property of the specification,
+// not of anything this repo wrote — which is the whole point of the T2.1
+// gate. Regenerate with:  node tests/data/dump_reference_vectors.js
+// =========================================================================
+const FIELD_CHARS = (() => {
+  let s = '';
+  for (let c = 35; c <= 126; c++) {
+    if (c === 39 || c === 92) continue;
+    s += String.fromCharCode(c);
+  }
+  return s;
+})();
+
+const CHAR_VALUE = (() => {
+  const t = new Array(128).fill(0);
+  for (let i = 0; i < FIELD_CHARS.length; i++) t[FIELD_CHARS.charCodeAt(i)] = i;
+  return t;
+})();
+
+const FIELD_STEP = 0.25;
+
+const generatedPath = path.join(__dirname, '..', '..', 'reference', 'generated.ts');
+const generatedSrc = fs.readFileSync(generatedPath, 'utf8');
+
+// `  <pattern>: {` opens a block; `    <mask>: '<1024 chars>',` is one entry.
+const fieldBounds = [];
+let currentPattern = null;
+for (const line of generatedSrc.split(/\r?\n/)) {
+  const patMatch = line.match(/^\s{2}([A-Za-z_][A-Za-z0-9_]*):\s*\{\s*$/);
+  if (patMatch) { currentPattern = patMatch[1]; continue; }
+  if (/^\s{2}\},?\s*$/.test(line)) { currentPattern = null; continue; }
+  if (!currentPattern) continue;
+
+  const maskMatch = line.match(/^\s{4}(\d+):\s*'([^']*)'/);
+  if (!maskMatch) continue;
+
+  const mask = parseInt(maskMatch[1], 10);
+  const field = maskMatch[2];
+  if (field.length !== 1024) {
+    throw new Error(`${currentPattern} mask ${mask}: expected 1024 chars, got ${field.length}`);
+  }
+
+  let minIdx = Infinity, maxIdx = -Infinity;
+  for (let i = 0; i < field.length; i++) {
+    const v = CHAR_VALUE[field.charCodeAt(i)];
+    if (v < minIdx) minIdx = v;
+    if (v > maxIdx) maxIdx = v;
+  }
+
+  fieldBounds.push({
+    pattern: currentPattern,
+    mask,
+    length: field.length,
+    minIndex: minIdx,
+    maxIndex: maxIdx,
+    minDistance: minIdx * FIELD_STEP,
+    maxDistance: maxIdx * FIELD_STEP,
+  });
+}
+
+if (fieldBounds.length === 0) {
+  throw new Error('parsed no fields out of reference/generated.ts - the format changed');
+}
+
+fs.writeFileSync(path.join(__dirname, 'field_bounds.json'), JSON.stringify(fieldBounds, null, 2));
+console.log(`field_bounds.json: ${fieldBounds.length} (pattern, mask) entries from reference/generated.ts`);
+
 console.log('Successfully regenerated all reference vector json files with exact recipe values!');
