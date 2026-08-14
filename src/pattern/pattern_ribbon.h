@@ -8,6 +8,8 @@
 
 namespace atm {
 
+bool ribbon_uses_invert(const std::string& id);
+
 int ribbon_shade_at(
     const std::string& id,
     double s,

@@ -50,14 +50,27 @@ file(GLOB_RECURSE DESKTOP_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
 
+set(TINYFD_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/../third_party/tinyfd/tinyfiledialogs.c"
+)
+
 add_executable(autotile_mixer
     ${DESKTOP_SOURCES}
+    ${TINYFD_SOURCES}
 )
+
+# Silence warnings on vendored tinyfd C source
+if(MSVC)
+    set_source_files_properties(${TINYFD_SOURCES} PROPERTIES COMPILE_FLAGS "/w")
+else()
+    set_source_files_properties(${TINYFD_SOURCES} PROPERTIES COMPILE_FLAGS "-w")
+endif()
 
 target_include_directories(autotile_mixer PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/../src
     ${CMAKE_CURRENT_SOURCE_DIR}/../third_party
+    ${CMAKE_CURRENT_SOURCE_DIR}/../third_party/tinyfd
     ${imgui_SOURCE_DIR}
     ${imgui_SOURCE_DIR}/backends
     ${glfw_SOURCE_DIR}/include

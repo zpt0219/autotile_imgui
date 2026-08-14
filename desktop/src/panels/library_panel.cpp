@@ -3,6 +3,7 @@
 #include "command/library_command.h"
 #include "codec/recipe_codec.h"
 #include "codec/zip_import.h"
+#include "file_dialog.h"
 #include <imgui.h>
 #include <algorithm>
 #include <cstring>
@@ -13,33 +14,50 @@ void LibraryPanel::draw(ViewModel& vm) {
     if (!open_) return;
 
     if (ImGui::Begin("Recipe Library", &open_)) {
+        bool use_zh = vm.use_zh;
+
         // Toolbar
-        if (ImGui::Button("+ New")) {
+        if (ImGui::Button(use_zh ? "+ 新配方" : "+ New")) {
             vm.show_new_recipe_modal = true;
             vm.new_recipe_name_buffer = "New Recipe";
         }
         ImGui::SameLine();
-        if (ImGui::Button("Import Code")) {
+        if (ImGui::Button(use_zh ? "导入代码" : "Import Code")) {
             vm.show_import_share_modal = true;
             vm.import_share_code_buffer.clear();
             vm.import_share_error.clear();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Import ZIP")) {
-            show_import_zip_modal_ = true;
-            import_zip_path_buffer_[0] = 0;
-            import_zip_error_.clear();
+        if (ImGui::Button(use_zh ? "导入 ZIP" : "Import ZIP")) {
+            auto path = fd::open_file("Import Recipe ZIP Archive", "", { "*.zip" }, "ZIP Archives (*.zip)");
+            if (path.has_value()) {
+                auto zip_res = atm::import_recipes_from_zip(*path);
+                if (zip_res.success) {
+                    for (const auto& entry : zip_res.entries) {
+                        vm.execute_command(std::make_unique<atm::AddRecipeCommand>(entry.recipe, entry.name));
+                    }
+                    vm.log("Imported " + std::to_string(zip_res.entries.size()) + " recipes from " + *path, "INFO");
+                } else {
+                    std::string err = zip_res.errors.empty() ? "Failed to import ZIP archive" : zip_res.errors[0];
+                    vm.log(err, "ERROR");
+                }
+            }
+        }
+
+        ImGui::SameLine(0, 15.0f);
+        if (ImGui::Button(is_grid_view_ ? (use_zh ? "列表视图 [≡]" : "List [≡]") : (use_zh ? "网格视图 [⊞]" : "Grid [⊞]"))) {
+            is_grid_view_ = !is_grid_view_;
         }
 
         ImGui::Separator();
 
         // Search Filter
         ImGui::SetNextItemWidth(-1);
-        ImGui::InputTextWithHint("##Search", "Search recipes...", search_filter_, sizeof(search_filter_));
+        ImGui::InputTextWithHint("##Search", use_zh ? "搜索配方..." : "Search recipes...", search_filter_, sizeof(search_filter_));
 
         ImGui::Separator();
 
-        // Recipe List
+        // Recipe List / Grid
         auto* lib = vm.handler().library();
         auto* selected = vm.handler().selected_recipe();
         std::string filter_str(search_filter_);
@@ -47,9 +65,8 @@ void LibraryPanel::draw(ViewModel& vm) {
 
         ImGui::BeginChild("RecipeListChild", ImVec2(0, 0), true);
         if (lib) {
-            for (size_t i = 0; i < lib->entries().size(); ++i) {
-                const auto& entry = lib->entries()[i];
-
+            std::vector<atm::RecipeEntry*> filtered_entries;
+            for (const auto& entry : lib->entries()) {
                 if (!filter_str.empty()) {
                     std::string lower_name = entry->name;
                     std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
@@ -57,40 +74,117 @@ void LibraryPanel::draw(ViewModel& vm) {
                         continue;
                     }
                 }
+                filtered_entries.push_back(entry.get());
+            }
 
-                bool is_selected = (selected && selected->hash == entry->hash);
+            if (!is_grid_view_) {
+                // List View
+                for (auto* entry : filtered_entries) {
+                    bool is_selected = (selected && selected->hash == entry->hash);
 
-                ImGui::PushID(entry->hash.c_str());
+                    ImGui::PushID(entry->hash.c_str());
 
-                // Selectable item
-                std::string label = entry->name + " (" + entry->recipe.patternId + ")";
-                if (ImGui::Selectable(label.c_str(), is_selected)) {
-                    vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
+                    std::string label = entry->name + " (" + entry->recipe.patternId + ")";
+                    if (ImGui::Selectable(label.c_str(), is_selected)) {
+                        vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
+                    }
+
+                    // Context Menu
+                    if (ImGui::BeginPopupContextItem()) {
+                        if (ImGui::MenuItem(use_zh ? "复制副本" : "Duplicate")) {
+                            vm.execute_command(std::make_unique<atm::DuplicateRecipeCommand>(entry->hash));
+                        }
+                        if (ImGui::MenuItem(use_zh ? "重命名" : "Rename")) {
+                            renaming_hash_ = entry->hash;
+                            std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
+                            rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
+                        }
+                        if (ImGui::MenuItem(use_zh ? "复制分享代码" : "Copy Share Code")) {
+                            std::string code = atm::encode_recipe(entry->recipe);
+                            ImGui::SetClipboardText(code.c_str());
+                            vm.log("Share code copied to clipboard", "INFO");
+                        }
+                        ImGui::Separator();
+                        if (lib->entries().size() > 1 && ImGui::MenuItem(use_zh ? "删除" : "Delete", nullptr, false, true)) {
+                            vm.execute_command(std::make_unique<atm::RemoveRecipeCommand>(entry->hash));
+                        }
+                        ImGui::EndPopup();
+                    }
+
+                    ImGui::PopID();
                 }
+            } else {
+                // Grid / Thumbnail View
+                float avail_w = ImGui::GetContentRegionAvail().x;
+                int cols = std::max(1, static_cast<int>(avail_w / 115.0f));
 
-                // Context Menu
-                if (ImGui::BeginPopupContextItem()) {
-                    if (ImGui::MenuItem("Duplicate")) {
-                        vm.execute_command(std::make_unique<atm::DuplicateRecipeCommand>(entry->hash));
+                if (ImGui::BeginTable("ThumbGridTable", cols, ImGuiTableFlags_SizingFixedFit)) {
+                    for (size_t i = 0; i < filtered_entries.size(); ++i) {
+                        auto* entry = filtered_entries[i];
+                        bool is_selected = (selected && selected->hash == entry->hash);
+
+                        ImGui::TableNextColumn();
+                        ImGui::PushID(entry->hash.c_str());
+
+                        uint32_t thumb_tex = vm.thumbnail_cache().get_or_render_thumbnail(entry->hash, entry->recipe);
+
+                        ImVec2 card_sz(96, 72);
+                        ImVec4 bg_col = is_selected ? ImVec4(0.2f, 0.4f, 0.6f, 1.0f) : ImVec4(0.15f, 0.16f, 0.18f, 1.0f);
+                        ImVec4 tint_col = ImVec4(1, 1, 1, 1);
+
+                        std::string btn_id = "##Card_" + entry->hash;
+                        if (ImGui::ImageButton(
+                            btn_id.c_str(),
+                            reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(thumb_tex)),
+                            card_sz,
+                            ImVec2(0, 0), ImVec2(1, 1),
+                            bg_col, tint_col
+                        )) {
+                            vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
+                        }
+
+                        // Context Menu
+                        if (ImGui::BeginPopupContextItem()) {
+                            if (ImGui::MenuItem(use_zh ? "复制副本" : "Duplicate")) {
+                                vm.execute_command(std::make_unique<atm::DuplicateRecipeCommand>(entry->hash));
+                            }
+                            if (ImGui::MenuItem(use_zh ? "重命名" : "Rename")) {
+                                renaming_hash_ = entry->hash;
+                                std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
+                                rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
+                            }
+                            if (ImGui::MenuItem(use_zh ? "复制分享代码" : "Copy Share Code")) {
+                                std::string code = atm::encode_recipe(entry->recipe);
+                                ImGui::SetClipboardText(code.c_str());
+                                vm.log("Share code copied to clipboard", "INFO");
+                            }
+                            ImGui::Separator();
+                            if (lib->entries().size() > 1 && ImGui::MenuItem(use_zh ? "删除" : "Delete", nullptr, false, true)) {
+                                vm.execute_command(std::make_unique<atm::RemoveRecipeCommand>(entry->hash));
+                            }
+                            ImGui::EndPopup();
+                        }
+
+                        // Caption & Tooltip
+                        ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 96.0f);
+                        ImGui::TextUnformatted(entry->name.c_str());
+                        ImGui::PopTextWrapPos();
+
+                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+                            ImGui::BeginTooltip();
+                            ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", entry->name.c_str());
+                            ImGui::Separator();
+                            ImGui::Text("Pattern: %s", entry->recipe.patternId.c_str());
+                            ImGui::Text("Texture A: %s", entry->recipe.textureAlgoA.c_str());
+                            ImGui::Text("Texture B: %s", entry->recipe.textureAlgoB.c_str());
+                            ImGui::Text("Ribbon: %s", entry->recipe.ribbonAlgo.c_str());
+                            ImGui::EndTooltip();
+                        }
+
+                        ImGui::PopID();
                     }
-                    if (ImGui::MenuItem("Rename")) {
-                        renaming_hash_ = entry->hash;
-                        std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
-                        rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
-                    }
-                    if (ImGui::MenuItem("Copy Share Code")) {
-                        std::string code = atm::encode_recipe(entry->recipe);
-                        ImGui::SetClipboardText(code.c_str());
-                        vm.log("Share code copied to clipboard", "INFO");
-                    }
-                    ImGui::Separator();
-                    if (lib->entries().size() > 1 && ImGui::MenuItem("Delete", nullptr, false, true)) {
-                        vm.execute_command(std::make_unique<atm::RemoveRecipeCommand>(entry->hash));
-                    }
-                    ImGui::EndPopup();
+                    ImGui::EndTable();
                 }
-
-                ImGui::PopID();
             }
         }
         ImGui::EndChild();
@@ -101,18 +195,18 @@ void LibraryPanel::draw(ViewModel& vm) {
         }
         if (ImGui::BeginPopupModal("Create New Recipe", &vm.show_new_recipe_modal, ImGuiWindowFlags_AlwaysAutoResize)) {
             static char name_buf[128] = "New Recipe";
-            ImGui::Text("Enter recipe name:");
+            ImGui::Text("%s", use_zh ? "输入配方名称:" : "Enter recipe name:");
             ImGui::InputText("##NewName", name_buf, sizeof(name_buf));
             ImGui::Spacing();
 
-            if (ImGui::Button("Create", ImVec2(120, 0))) {
+            if (ImGui::Button(use_zh ? "创建" : "Create", ImVec2(120, 0))) {
                 atm::Recipe r = atm::get_default_recipe();
                 vm.execute_command(std::make_unique<atm::AddRecipeCommand>(r, name_buf));
                 vm.show_new_recipe_modal = false;
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            if (ImGui::Button(use_zh ? "取消" : "Cancel", ImVec2(120, 0))) {
                 vm.show_new_recipe_modal = false;
                 ImGui::CloseCurrentPopup();
             }
@@ -125,7 +219,7 @@ void LibraryPanel::draw(ViewModel& vm) {
         }
         if (ImGui::BeginPopupModal("Import Share Code", &vm.show_import_share_modal, ImGuiWindowFlags_AlwaysAutoResize)) {
             static char code_buf[1024] = { 0 };
-            ImGui::Text("Paste Base64URL share code from web tool:");
+            ImGui::Text("%s", use_zh ? "粘贴来自 Web 工具的 Base64URL 分享代码:" : "Paste Base64URL share code from web tool:");
             ImGui::InputTextMultiline("##ShareCode", code_buf, sizeof(code_buf), ImVec2(350, 80));
 
             if (!vm.import_share_error.empty()) {
@@ -133,7 +227,7 @@ void LibraryPanel::draw(ViewModel& vm) {
             }
 
             ImGui::Spacing();
-            if (ImGui::Button("Import", ImVec2(120, 0))) {
+            if (ImGui::Button(use_zh ? "导入" : "Import", ImVec2(120, 0))) {
                 auto decoded = atm::decode_recipe(code_buf);
                 if (decoded.has_value()) {
                     vm.execute_command(std::make_unique<atm::AddRecipeCommand>(*decoded, "Imported Recipe"));
@@ -146,48 +240,10 @@ void LibraryPanel::draw(ViewModel& vm) {
                 }
             }
             ImGui::SameLine();
-            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            if (ImGui::Button(use_zh ? "取消" : "Cancel", ImVec2(120, 0))) {
                 vm.show_import_share_modal = false;
                 code_buf[0] = 0;
                 vm.import_share_error.clear();
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-
-        // Modals: Import ZIP Archive
-        if (show_import_zip_modal_) {
-            ImGui::OpenPopup("Import ZIP Archive");
-        }
-        if (ImGui::BeginPopupModal("Import ZIP Archive", &show_import_zip_modal_, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Enter path to exported .zip file:");
-            ImGui::InputText("##ZipPath", import_zip_path_buffer_, sizeof(import_zip_path_buffer_));
-
-            if (!import_zip_error_.empty()) {
-                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "%s", import_zip_error_.c_str());
-            }
-
-            ImGui::Spacing();
-            if (ImGui::Button("Import##ZipBtn", ImVec2(120, 0))) {
-                auto zip_res = atm::import_recipes_from_zip(import_zip_path_buffer_);
-                if (zip_res.success) {
-                    for (const auto& entry : zip_res.entries) {
-                        vm.execute_command(std::make_unique<atm::AddRecipeCommand>(entry.recipe, entry.name));
-                    }
-                    vm.log("Imported " + std::to_string(zip_res.entries.size()) + " recipes from ZIP", "INFO");
-                    show_import_zip_modal_ = false;
-                    import_zip_path_buffer_[0] = 0;
-                    import_zip_error_.clear();
-                    ImGui::CloseCurrentPopup();
-                } else {
-                    import_zip_error_ = zip_res.errors.empty() ? "Failed to import ZIP archive" : zip_res.errors[0];
-                }
-            }
-            ImGui::SameLine();
-            if (ImGui::Button("Cancel##ZipBtn", ImVec2(120, 0))) {
-                show_import_zip_modal_ = false;
-                import_zip_path_buffer_[0] = 0;
-                import_zip_error_.clear();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();
@@ -198,17 +254,17 @@ void LibraryPanel::draw(ViewModel& vm) {
             ImGui::OpenPopup("Rename Recipe");
         }
         if (ImGui::BeginPopupModal("Rename Recipe", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            ImGui::Text("Enter new name:");
+            ImGui::Text("%s", use_zh ? "输入新名称:" : "Enter new name:");
             ImGui::InputText("##RenameInput", rename_buffer_, sizeof(rename_buffer_));
             ImGui::Spacing();
 
-            if (ImGui::Button("Save", ImVec2(120, 0))) {
+            if (ImGui::Button(use_zh ? "保存" : "Save", ImVec2(120, 0))) {
                 vm.execute_command(std::make_unique<atm::RenameRecipeCommand>(renaming_hash_, rename_buffer_, 2));
                 renaming_hash_.clear();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::SameLine();
-            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+            if (ImGui::Button(use_zh ? "取消" : "Cancel", ImVec2(120, 0))) {
                 renaming_hash_.clear();
                 ImGui::CloseCurrentPopup();
             }

@@ -20,7 +20,7 @@ static float hash01(int32_t ix, int32_t iy, int32_t seed) {
     return static_cast<float>(static_cast<double>(uval) / 4294967296.0);
 }
 
-static bool ribbon_uses_invert(const std::string& id) {
+bool ribbon_uses_invert(const std::string& id) {
     return id == "bevel" || id == "wave" || id == "rope";
 }
 

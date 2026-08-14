@@ -17,10 +17,7 @@ private:
     char search_filter_[128] = { 0 };
     std::string renaming_hash_;
     char rename_buffer_[128] = { 0 };
-
-    bool show_import_zip_modal_ = false;
-    char import_zip_path_buffer_[256] = { 0 };
-    std::string import_zip_error_;
+    bool is_grid_view_ = false;
 };
 
 } // namespace atm_desktop

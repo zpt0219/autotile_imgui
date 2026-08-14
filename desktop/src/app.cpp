@@ -1,4 +1,6 @@
 #include "app.h"
+#include "file_dialog.h"
+#include "command/library_command.h"
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -82,9 +84,9 @@ bool App::initialize() {
         return false;
     }
 
+    const char* glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
     window_ = glfwCreateWindow(1440, 900, "AutoTile Mixer (Desktop)", nullptr, nullptr);
     if (!window_) {
@@ -105,9 +107,16 @@ bool App::initialize() {
     set_dark_theme();
 
     ImGui_ImplGlfw_InitForOpenGL(window_, true);
-    ImGui_ImplOpenGL3_Init("#version 130");
+    ImGui_ImplOpenGL3_Init(glsl_version);
 
     view_model_.sheet_renderer().initialize();
+
+    // Initialize with a default recipe
+    if (view_model_.handler().library()->entries().empty()) {
+        atm::Recipe r = atm::get_default_recipe();
+        view_model_.execute_command(std::make_unique<atm::AddRecipeCommand>(r, "Water & Grass"));
+    }
+
     is_running_ = true;
     return true;
 }
@@ -139,15 +148,21 @@ void App::render_menu_bar() {
                 view_model_.show_import_share_modal = true;
             }
             ImGui::Separator();
-            if (ImGui::MenuItem("Save Library...", "Ctrl+S")) {
-                view_model_.handler().library()->save_to_file("library.atmlib");
-                view_model_.log("Saved library to library.atmlib", "INFO");
+            if (ImGui::MenuItem("Save Library As...", "Ctrl+S")) {
+                auto path = fd::save_file("Save Recipe Library", "library.atmlib", { "*.atmlib" }, "AutoTile Library (*.atmlib)");
+                if (path.has_value()) {
+                    view_model_.handler().library()->save_to_file(*path);
+                    view_model_.log("Saved library to " + *path, "INFO");
+                }
             }
             if (ImGui::MenuItem("Open Library...", "Ctrl+O")) {
-                auto loaded = atm::RecipeLibrary::load_from_file("library.atmlib");
-                if (loaded) {
-                    view_model_.handler().set_library(std::move(loaded), &view_model_);
-                    view_model_.log("Opened library from library.atmlib", "INFO");
+                auto path = fd::open_file("Open Recipe Library", "library.atmlib", { "*.atmlib" }, "AutoTile Library (*.atmlib)");
+                if (path.has_value()) {
+                    auto loaded = atm::RecipeLibrary::load_from_file(*path);
+                    if (loaded) {
+                        view_model_.handler().set_library(std::move(loaded), &view_model_);
+                        view_model_.log("Opened library from " + *path, "INFO");
+                    }
                 }
             }
             ImGui::Separator();
@@ -186,6 +201,17 @@ void App::render_menu_bar() {
             bool log_open = log_panel_.is_open();
             if (ImGui::MenuItem("Activity Log", nullptr, &log_open)) log_panel_.set_open(log_open);
 
+            ImGui::Separator();
+            if (ImGui::BeginMenu("Language / 语言")) {
+                if (ImGui::MenuItem("简体中文 (Chinese)", nullptr, view_model_.use_zh)) {
+                    view_model_.use_zh = true;
+                }
+                if (ImGui::MenuItem("English", nullptr, !view_model_.use_zh)) {
+                    view_model_.use_zh = false;
+                }
+                ImGui::EndMenu();
+            }
+
             ImGui::EndMenu();
         }
 
@@ -206,20 +232,22 @@ void App::setup_dockspace() {
     ImGui::SetNextWindowSize(viewport->WorkSize);
     ImGui::SetNextWindowViewport(viewport->ID);
 
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
-        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoBackground;
+    ImGuiWindowFlags host_window_flags = 0;
+    host_window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking;
+    host_window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    host_window_flags |= ImGuiWindowFlags_NoBackground;
+
+    char label[32];
+    snprintf(label, sizeof(label), "DockSpaceViewport_%08X", viewport->ID);
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-
-    ImGui::Begin("MainDockSpaceRoot", nullptr, window_flags);
+    ImGui::Begin(label, nullptr, host_window_flags);
     ImGui::PopStyleVar(3);
 
     ImGuiID dockspace_id = ImGui::GetID("AutoTileDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
-
     ImGui::End();
 }
 

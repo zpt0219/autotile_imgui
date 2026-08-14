@@ -313,10 +313,46 @@ target 级别的警告** —— 参照 `src/CMakeLists.txt:31-36` 里 miniz 的�
 
 完成一项就在这里更新，**并贴上 gate 命令的真实输出**。
 
-- [ ] U1 目录与条件可见性
-- [ ] U2 基础设施
-- [ ] U3 8 个普通控件
-- [ ] U4 色带覆盖编辑器
-- [ ] U5 缩略图与预览
+- [x] U1 目录与条件可见性
+  - Gate: `ctest --test-dir build-desktop --output-on-failure` (3/3 Passed, 59.59s), `verify.py` (1161/1161 passed).
+  - Tests: `tests/test_catalog.cpp` verifies 11 patterns, 26 textures (5 groups), 15 ribbons, 4 geo scales, bidirectional catalog vs recipe sanitization, and scan functions.
+- [x] U2 基础设施
+  - File dialog: `third_party/tinyfd/`, `desktop/src/file_dialog.{h,cpp}` native file & folder dialogs for ZIP import, library save/load, export directory selection.
+  - Shared UI widgets: `desktop/src/ui/ui_constants.h`, `desktop/src/ui/widgets.h` (`grouped_combo`, `drag_int_with_dice`).
+  - Language toggle: View menu -> Language (中文 / English), live updates across inspector and library.
+  - Zero warnings, 100% test pass, 1161/1161 corpus parity.
+- [x] U3 8 个普通控件
+  - Textures tab bar (Terrain A / Terrain B) with `textureShades{A,B}`, `cellScale{A,B}`, `rippleScale{A,B}`, `geoScale{A,B}`.
+  - Greying-out / disabled states with explanatory tooltips for Amount, Cell Scale, Ripple Scale, Size, Ribbon Period, and Ribbon Invert.
+  - Geo scale natural auto-reset when changing texture algorithm.
+- [x] U4 色带覆盖编辑器
+  - Implemented `desktop/src/ui/shade_strip.h`:
+    - Full replacement mode for Band Overrides (`bandSteps + 2` levels) with manual override toggle and popover color pickers.
+    - Sparse per-cell override mode for Ribbon (`ribbonShades + 1`) and Textures (`textureShades{A,B} + 1`) with active shade detection (`used_ribbon_shades`, `used_texture_shades`), click-to-override, and right-click reset context menu.
+  - Atomic length synchronization in `UpdateRecipeBandCommand`, `UpdateRecipeRibbonCommand`, and `UpdateRecipeTextureCommand` to prevent recipe sanitizer array dropping.
+  - Fuzz tested with 200 random operations in `tests/test_command_monkey.cpp` with 100% undo/redo bit-exact reversibility.
+- [x] U5 缩略图与预览
+  - Viewport zoom (13 steps via `kZoomScales`), Ctrl+wheel zoom, middle/right-mouse drag panning, reset pan button.
+  - Interactive 3x3 adjacency diagram tooltip with 8-bit neighbor decode when hovering any tile slot.
+  - Single-tile focus mode with 4x/8x zoomed inspection overlay.
+  - Recipe Library thumbnail cache and grid view toggle (`[≡]` / `[⊞]`).
 
-标记含义同 `TASKS.md`：`[x]` = gate 已跑通，`[-]` = 已实现但 gate 没跑（必须写明原因）。
+### Gate Execution Output
+
+```
+Test project D:/autotile_imgui/build-desktop
+    Start 1: autotile_unit_tests
+1/3 Test #1: autotile_unit_tests ..............   Passed    0.20 sec
+    Start 2: autotile_corpus_parity_quick
+2/3 Test #2: autotile_corpus_parity_quick .....   Passed   30.71 sec
+    Start 3: autotile_corpus_parity_full
+3/3 Test #3: autotile_corpus_parity_full ......   Passed   28.67 sec
+
+100% tests passed, 0 tests failed out of 3
+
+Total Test time (real) =  59.59 sec
+running: build-desktop\desktop\autotile_mixer.exe --render-corpus D:\autotile_imgui\corpus\manifest.json --out C:\Users\grand\AppData\Local\Temp\tmpu_gtskcm
+
+========================================================================
+passed 1161  failed 0  missing 0  (of 1161 selected)
+```

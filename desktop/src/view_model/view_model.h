@@ -3,6 +3,7 @@
 #include "handler/library_handler.h"
 #include "command/library_command_handler.h"
 #include "renderer/sheet_renderer.h"
+#include "renderer/thumbnail_cache.h"
 #include "panels/panel.h"
 #include <vector>
 #include <memory>
@@ -28,6 +29,7 @@ public:
     atm::LibraryHandler& handler() { return handler_; }
     atm::LibraryCommandHandler& command_handler() { return cmd_handler_; }
     SheetRenderer& sheet_renderer() { return sheet_renderer_; }
+    ThumbnailCache& thumbnail_cache() { return thumbnail_cache_; }
 
     atm::EditorResult execute_command(std::unique_ptr<atm::LibraryCommand> command);
     atm::EditorResult undo();
@@ -61,10 +63,11 @@ public:
     bool show_new_recipe_modal = false;
     std::string new_recipe_name_buffer = "New Recipe";
 
-    // Viewport state
+    // Viewport and UI state
     float zoom_level = 2.0f;
     bool show_grid = true;
     bool show_checkerboard = true;
+    bool use_zh = true;
     int hovered_slot = -1;
 
     // Batch Exporting State (thread-safe queue drained on main thread)
@@ -80,6 +83,7 @@ private:
     atm::LibraryHandler handler_;
     atm::LibraryCommandHandler cmd_handler_;
     SheetRenderer sheet_renderer_;
+    ThumbnailCache thumbnail_cache_;
     std::vector<IPanel*> panels_;
 
     mutable std::mutex log_mutex_;

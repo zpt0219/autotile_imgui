@@ -76,6 +76,7 @@ atm::EditorResult ViewModel::redo() {
 }
 
 void ViewModel::onLibraryLoaded(int flag) {
+    thumbnail_cache_.clear();
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
         p->onLibraryLoaded(flag);
@@ -104,6 +105,9 @@ void ViewModel::onRecipeSelected(atm::RecipeEntry* entry, int flag) {
 }
 
 void ViewModel::onRecipeUpdated(atm::RecipeEntry* entry, atm::DirtyMask dirty, int flag) {
+    if (entry) {
+        thumbnail_cache_.invalidate(entry->hash);
+    }
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
         p->onRecipeUpdated(entry, dirty, flag);
