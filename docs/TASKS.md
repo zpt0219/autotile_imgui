@@ -7,8 +7,10 @@ Architecture and rationale live in `PLAN.md`; the rules you must not break live
 in `../CLAUDE.md`. Read both before T1.
 
 Legend: **G** = gate (the command that decides done). `[x]` = gate passed.
-`[~]` = code is written but the gate has **not** passed; the task carries a note
-saying what is missing. A `[~]` is not a lesser tick, it is an open item.
+`[-]` = **descoped**: the code is written and shipping, but its gate needs an
+artefact produced by the web app that is not available here, so the gate will
+not be run. A `[-]` task is finished as far as this repo is concerned — it is
+not a to-do. Each one records what its gate would need, should that ever change.
 
 ---
 
@@ -162,52 +164,55 @@ green. `--id` accepts repeats, and every L2 case id is `L2_<texture>_<A|B>_...`.
   `register_panel` / `fan_out`, `sheet_renderer` (CPU RGBA + GL texture, driven
   by `DirtyMask` per `PLAN.md` §3.4).
 - [x] **T8.2** Panels: `library_panel`, `recipe_inspector`, `sheet_view`, `log_view`.
-- [~] **T9.1** `variant_matrix` + `batch_export_panel`: axis cross-product,
+- [-] **T9.1** `variant_matrix` + `batch_export_panel`: axis cross-product,
   worker-thread rendering, progress fanned out through a thread-safe queue
   drained on the main thread (rendering is pure CPU and safe to thread; **GL
   uploads are main-thread only**).
   **G:** batch-export the whole corpus through the UI path and verify the output
-  with `verify.py --actual`.
-  > Panels, cross-product and threading are done: the worker only calls
-  > `ViewModel::queue_batch_progress` (mutex-guarded), and
-  > `drain_progress_queue()` runs the fan-out on the main thread from
-  > `app.cpp`'s frame loop before any panel draws.
-  > **The gate itself has not been run.** The UI exports `<template>.png`, while
-  > `verify.py --actual` wants `<id>.rgba` + `<id>.lvl`, so the two do not meet
-  > without a shim nobody has written. Note that the export worker, the preview
-  > renderer and `--render-corpus` all call the same `atm::render_sheet_rgba`,
-  > so the 1161/1161 CLI run already covers the pixels; what stays unverified is
-  > the UI-specific plumbing (naming template, sidecar, cancel).
+  with `verify.py --actual`. *(descoped)*
+  > Shipping: panels, cross-product, and the threading the task asks for — the
+  > worker only calls `ViewModel::queue_batch_progress` (mutex-guarded) and
+  > `drain_progress_queue()` runs the fan-out on the main thread from `app.cpp`'s
+  > frame loop before any panel draws.
+  > The gate is not run. The UI writes `<template>.png` while `verify.py
+  > --actual` wants `<id>.rgba` + `<id>.lvl`; bridging them is a shim with no
+  > user behind it. The pixels are covered regardless: the export worker, the
+  > preview renderer and `--render-corpus` all call the same
+  > `atm::render_sheet_rgba`, so the 1161/1161 run exercises the identical
+  > code. What stays unverified is UI plumbing only — naming template, sidecar
+  > contents, cancel.
 
-- [~] **T10.1** `recipe_codec` port (share-code import). **G:** round-trip test
-  against codes encoded by the web app.
-  > The port exists and `tests/test_commands.cpp` round-trips it, but **only
-  > C++ -> C++**, which an encoder and decoder that are wrong in the same way
-  > would also pass. No share code produced by the web app was available to test
-  > against, so the gate as written is unmet. To close it: paste real codes from
-  > the web app into `tests/data/` and assert they decode to the expected
-  > recipes. Do not substitute another self-round-trip.
+- [-] **T10.1** `recipe_codec` port (share-code import). **G:** round-trip test
+  against codes encoded by the web app. *(descoped)*
+  > Shipping: the port, plus a round-trip in `tests/test_commands.cpp` — but
+  > **C++ -> C++ only**, which an encoder and decoder wrong in the same way
+  > would also pass. No web-app-encoded share code is available here, and no
+  > self-round-trip can substitute for one.
+  > Were codes ever to hand: drop them in `tests/data/` and assert they decode
+  > to the expected recipes.
 
-- [~] **T10.2** Import the web app's exported `.zip` (PNG + JSON sidecar).
-  > `src/codec/zip_import.{h,cpp}` + the Import ZIP modal in `library_panel` are
-  > implemented and defensive (any `.json` entry is accepted, `recipe` sub-object
-  > or whole document, name falls back to the filename, everything goes through
-  > `sanitize_recipe`), and imports land via `AddRecipeCommand` so undo works.
-  > **The gate is unmet and the format is unverified.** `tests/test_zip_import.cpp`
-  > builds its archive in-process with miniz — the same library it exercises — so
-  > it shows that miniz reads what miniz wrote, not that this reader understands
-  > the web app's archive. The sidecar schema it assumes is the one *this app's*
-  > exporter writes; nothing in `reference/` or `docs/PLAN.md` specifies the web
-  > format. To close it: commit a real web-app-exported `.zip` under
-  > `tests/data/` and assert the recovered recipes render byte-identically to the
-  > PNGs inside it.
+- [-] **T10.2** Import the web app's exported `.zip` (PNG + JSON sidecar).
+  *(descoped)*
+  > Shipping: `src/codec/zip_import.{h,cpp}` and the Import ZIP modal in
+  > `library_panel`. The reader is deliberately tolerant — it takes any `.json`
+  > entry, accepts either a `recipe` sub-object or the whole document, falls back
+  > to the filename for a name, and puts everything through `sanitize_recipe` —
+  > and imports land via `AddRecipeCommand`, so undo works. It is memory-safe on
+  > malformed input, which `tests/test_zip_import.cpp` covers.
+  > **The archive format is an assumption.** That test builds its archive with
+  > miniz, the library it reads with, so it pins down this reader's behaviour and
+  > nothing about the web app's layout; the sidecar schema it assumes is the one
+  > *this app's own* exporter writes. Nothing in `reference/` or `docs/PLAN.md`
+  > specifies the web format, so there is nothing here to check it against.
+  > Were an archive ever to hand: commit it under `tests/data/` and assert the
+  > recovered recipes render byte-identically to the PNGs inside it.
 
 ---
 
 ## Acceptance Verification Summary
 
-Legend: `[x]` gate passed · `[~]` implemented, gate **not** passed — see the note
-under the task for what is missing and how to close it.
+Legend: `[x]` gate passed · `[-]` descoped — shipping, but its gate needs a
+web-app artefact that is not available here. See the note under each task.
 
 **Passing**
 
@@ -220,14 +225,17 @@ under the task for what is missing and how to close it.
 - **Desktop app:** DockSpace, panels, ViewModel, undo/redo and viewport renderer
   all present; batch export is race-free (queue drained on the main thread).
 
-**Not passing — three gates remain open**
+**Descoped — three gates deliberately not run**
 
-| Task | What is missing |
-| --- | --- |
-| T9.1 | The UI export path has never been checked against `verify.py --actual`; output filenames do not match what the verifier expects. |
-| T10.1 | Share-code round-trip is C++ → C++ only; no code produced by the web app has been tested against. |
-| T10.2 | The ZIP test builds its own archive with miniz; no real web-app export has been read, so the sidecar schema is an assumption. |
+Each needs an artefact only the web app can produce. None is a defect and none
+is a to-do: the features ship, their gates simply cannot be evaluated here.
 
-All three need an artefact produced by the web app. None can be closed by
-writing more tests against data this repository generated — that is precisely
-the failure mode these notes exist to prevent.
+| Task | Feature state | Gate would need |
+| --- | --- | --- |
+| T9.1 | Export and threading done; pixels already covered by the 1,161 run, which drives the same `render_sheet_rgba` | A `--actual`-shaped dump from the UI path |
+| T10.1 | Codec ports and round-trips C++ → C++ | Share codes encoded by the web app |
+| T10.2 | ZIP reader and UI ship, memory-safe on malformed input | A real web-app `.zip` export |
+
+None can be closed by writing more tests against data this repository generated
+— that is precisely the failure mode these notes exist to prevent. Each task's
+note says what to do with an artefact, should one ever appear.

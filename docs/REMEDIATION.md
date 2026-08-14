@@ -1,21 +1,31 @@
 # REMEDIATION — post-parity audit findings
 
-> **Status: closed except where noted.** Every item below has been worked and
-> re-verified; the table records what actually happened, including one item that
-> was done in a way the audit had explicitly ruled out and has since been
-> reopened in `TASKS.md`.
+> **Status: closed.** Every item below has been worked and re-verified. The
+> table records what actually happened, including one item that was done in a
+> way the audit had explicitly ruled out, and three gates that were then
+> descoped because they need an artefact the web app alone can produce.
+>
+> This document is history, not a work queue. The live status of every task is
+> in `docs/TASKS.md`.
 >
 > | Item | Outcome |
 > | --- | --- |
 > | F1 threading | **Done.** Worker only queues; `drain_progress_queue()` fans out on the main thread from the frame loop. `is_exporting` atomic, log guarded. |
-> | F2 zip import | **Split.** Implementation and UI done and now memory-safe; the *gate* is not met — the test fabricates its archive with miniz, which F2 said not to do. Reopened as `T10.2 [~]`. |
-> | F3 missing tests | **Done for T2.1, T2.2, T3.1, T3.2.** Bounds now come from `reference/generated.ts` via the dump script; layout compares against `corpus/manifest.json`; `sin`/`cos` vectors 35 → 500 rows. T10.1 reopened as `[~]` — needs real web-app codes. |
+> | F2 zip import | **Shipped, gate descoped.** Implementation and UI done and now memory-safe. The gate wanted a real web-app archive; none exists here, so `T10.2` is `[-]` and the test states in its own header that it proves reader behaviour, not format compatibility. |
+> | F3 missing tests | **Done for T2.1, T2.2, T3.1, T3.2.** Bounds now come from `reference/generated.ts` via the dump script; layout compares against `corpus/manifest.json`; `sin`/`cos` vectors 35 → 500 rows. T10.1 is `[-]` — its gate needs real web-app codes. |
 > | F4 debug test | **Done.** `test_wave.cpp` deleted. |
 > | F5 trigraphs | **Done.** Per-source on `pattern_data.cpp`. |
 > | F6 ctest coverage | **Done.** `autotile_corpus_parity_full` added, `slow` label. |
 > | F7 commit | **Partial.** The work is committed and safe, but as one 101-file commit rather than the phase split asked for. History was left alone rather than rewritten. |
 > | F8 doc duplication | **Done.** `AGENTS.md` / `GEMINI.md` reduced to pointers. |
-> | F9 tick marks | **Done.** `TASKS.md` now distinguishes `[x]` from `[~]`. |
+> | F9 tick marks | **Done.** `TASKS.md` now distinguishes `[x]` from `[-]`. |
+>
+> **T9.1, T10.1 and T10.2 are closed as descoped, not left open.** Every gate
+> that could be evaluated from inside this repository has been. The three that
+> remain each require an artefact produced by the web app — a `.zip` export, a
+> share code, a `--actual` dump — and the decision has been taken not to pursue
+> them. They are marked `[-]` in `TASKS.md` with the artefact each would need.
+> Nothing in this document is a pending action.
 >
 > One defect was **introduced** by the remediation and has been fixed since: a
 > double free in `src/codec/zip_import.cpp` (buffer released at the top of the

@@ -1,6 +1,12 @@
+// Scope note: every archive in this file is built here with miniz, the same
+// library the importer reads with. That is enough to pin down how this reader
+// behaves — which entries it picks up, what it does with broken input, that it
+// runs everything through sanitizeRecipe — but it is NOT evidence that the
+// format matches the web app's export. No web-app archive was available, and
+// T10.2 is marked descoped in docs/TASKS.md for that reason. Do not read a pass
+// here as format compatibility.
 #include <doctest/doctest.h>
 #include "codec/zip_import.h"
-#include "pattern/sheet.h"
 
 #if defined(__GNUC__) || defined(__clang__)
 #pragma GCC diagnostic push
@@ -54,9 +60,13 @@ TEST_CASE("ZIP import extracts recipes and parses JSON sidecars") {
     })";
 
     REQUIRE(mz_zip_writer_add_mem(&zip, "sheet_0.recipe.json", sample_json, std::strlen(sample_json), MZ_BEST_COMPRESSION));
-    // Add a dummy PNG alongside
-    uint8_t dummy_png[] = { 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A };
-    REQUIRE(mz_zip_writer_add_mem(&zip, "sheet_0.png", dummy_png, sizeof(dummy_png), MZ_BEST_COMPRESSION));
+
+    // A non-JSON entry that the reader must skip rather than choke on. It is a
+    // bare PNG signature, not a real sheet: the importer takes recipes from the
+    // sidecars and never decodes the images, so there is nothing here to render
+    // against and this deliberately does not pretend otherwise.
+    uint8_t png_signature[] = { 0x89, 'P', 'N', 'G', 0x0D, 0x0A, 0x1A, 0x0A };
+    REQUIRE(mz_zip_writer_add_mem(&zip, "sheet_0.png", png_signature, sizeof(png_signature), MZ_BEST_COMPRESSION));
 
     void* zip_buf = nullptr;
     size_t zip_sz = 0;
