@@ -16,6 +16,18 @@
 
 namespace atm {
 
+/** Frees a `mz_zip_reader_extract_file_to_heap` buffer on every exit path. */
+class MinizBuffer {
+public:
+    explicit MinizBuffer(void* p) : p_(p) {}
+    ~MinizBuffer() { if (p_) mz_free(p_); }
+    MinizBuffer(const MinizBuffer&) = delete;
+    MinizBuffer& operator=(const MinizBuffer&) = delete;
+
+private:
+    void* p_;
+};
+
 static ZipImportResult parse_zip_archive(mz_zip_archive* zip_archive) {
     ZipImportResult result;
     mz_uint num_files = mz_zip_reader_get_num_files(zip_archive);
@@ -47,9 +59,14 @@ static ZipImportResult parse_zip_archive(mz_zip_archive* zip_archive) {
                 continue;
             }
 
+            // Owns `p` for the rest of this iteration. Freeing by hand here is
+            // how a double free crept in once: the buffer was released at the
+            // top of the try and again in the catch, so any malformed sidecar
+            // freed it twice. The destructor runs exactly once on every path.
+            MinizBuffer buf(p);
+
             try {
                 std::string json_text(reinterpret_cast<const char*>(p), file_size);
-                mz_free(p);
 
                 auto j = nlohmann::json::parse(json_text);
                 RecipeEntry entry;
@@ -86,7 +103,6 @@ static ZipImportResult parse_zip_archive(mz_zip_archive* zip_archive) {
 
                 result.entries.push_back(entry);
             } catch (const std::exception& e) {
-                mz_free(p);
                 result.errors.push_back("Error parsing " + filename + ": " + e.what());
             }
         }
