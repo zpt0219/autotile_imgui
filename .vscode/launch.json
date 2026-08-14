@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "AutoTile Mixer",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build-desktop/desktop/autotile_mixer.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "preLaunchTask": "Build autotile_mixer"
+        },
+        {
+            "name": "Unit Tests",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/build-desktop/tests/autotile_tests.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopOnEntry": false,
+            "preLaunchTask": "Build autotile_tests"
+        }
+    ]
+}

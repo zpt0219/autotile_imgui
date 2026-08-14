@@ -1,0 +1,12 @@
+{
+    "C_Cpp.default.compileCommands": "${workspaceFolder}/build-desktop/compile_commands.json",
+    "C_Cpp.default.cppStandard": "c++17",
+    "C_Cpp.default.cStandard": "c11",
+    "C_Cpp.default.intelliSenseMode": "windows-gcc-x64",
+    "cmake.buildDirectory": "${workspaceFolder}/build-desktop",
+    "files.associations": {
+        "*.h": "cpp",
+        "*.cpp": "cpp",
+        "*.json": "json"
+    }
+}

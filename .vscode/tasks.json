@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build autotile_mixer",
+            "type": "shell",
+            "command": "cmake --build build-desktop -j4 --target autotile_mixer",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Build autotile_tests",
+            "type": "shell",
+            "command": "cmake --build build-desktop -j4 --target autotile_tests",
+            "group": "build",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Build All",
+            "type": "shell",
+            "command": "cmake --build build-desktop -j4",
+            "group": "build",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Run Quick Parity Check",
+            "type": "shell",
+            "command": "python corpus/verify.py --exe build-desktop/desktop/autotile_mixer.exe --quick",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Full Parity Check (1,161 Cases)",
+            "type": "shell",
+            "command": "python corpus/verify.py --exe build-desktop/desktop/autotile_mixer.exe",
+            "problemMatcher": []
+        }
+    ]
+}

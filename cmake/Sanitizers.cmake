@@ -1,0 +1,13 @@
+function(add_sanitizer_flags TARGET_NAME)
+    if(MSVC)
+        # MSVC address sanitizer if requested
+        if(ENABLE_ASAN)
+            target_compile_options(${TARGET_NAME} PRIVATE /fsanitize=address)
+        endif()
+    else()
+        if(ENABLE_ASAN)
+            target_compile_options(${TARGET_NAME} PRIVATE -fsanitize=address,undefined -fno-omit-frame-pointer)
+            target_link_options(${TARGET_NAME} PRIVATE -fsanitize=address,undefined)
+        endif()
+    endif()
+endfunction()

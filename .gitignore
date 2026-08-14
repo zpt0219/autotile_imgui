@@ -1,20 +1,29 @@
 # Build trees
 build*/
 out/
+bin/
+lib/
 imgui*.ini
 
-# FetchContent downloads (imgui, glfw, tinyfd, doctest)
+# FetchContent downloads
 third_party/_deps/
 
-# Verifier output
+# Verifier & Python artifacts
 diff/
 __pycache__/
 *.pyc
 
-# Editor
-.vscode/
+# Editor & IDE configs
 .idea/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
 compile_commands.json
+*.swp
+*~
+.DS_Store
+Thumbs.db
 
 # NOT ignored, on purpose:
 #   corpus/   - 8 MB of ground truth. It is the test suite; it belongs in git.
