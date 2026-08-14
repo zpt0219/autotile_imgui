@@ -6,7 +6,9 @@ code looks finished. Tick the box and move on.
 Architecture and rationale live in `PLAN.md`; the rules you must not break live
 in `../CLAUDE.md`. Read both before T1.
 
-Legend: **G** = gate (the command that decides done).
+Legend: **G** = gate (the command that decides done). `[x]` = gate passed.
+`[~]` = code is written but the gate has **not** passed; the task carries a note
+saying what is missing. A `[~]` is not a lesser tick, it is an open item.
 
 ---
 
@@ -160,20 +162,72 @@ green. `--id` accepts repeats, and every L2 case id is `L2_<texture>_<A|B>_...`.
   `register_panel` / `fan_out`, `sheet_renderer` (CPU RGBA + GL texture, driven
   by `DirtyMask` per `PLAN.md` §3.4).
 - [x] **T8.2** Panels: `library_panel`, `recipe_inspector`, `sheet_view`, `log_view`.
-- [x] **T9.1** `variant_matrix` + `batch_export_panel`: axis cross-product,
+- [~] **T9.1** `variant_matrix` + `batch_export_panel`: axis cross-product,
   worker-thread rendering, progress fanned out through a thread-safe queue
   drained on the main thread (rendering is pure CPU and safe to thread; **GL
   uploads are main-thread only**).
   **G:** batch-export the whole corpus through the UI path and verify the output
   with `verify.py --actual`.
-- [x] **T10.1** `recipe_codec` port (share-code import). **G:** round-trip test
+  > Panels, cross-product and threading are done: the worker only calls
+  > `ViewModel::queue_batch_progress` (mutex-guarded), and
+  > `drain_progress_queue()` runs the fan-out on the main thread from
+  > `app.cpp`'s frame loop before any panel draws.
+  > **The gate itself has not been run.** The UI exports `<template>.png`, while
+  > `verify.py --actual` wants `<id>.rgba` + `<id>.lvl`, so the two do not meet
+  > without a shim nobody has written. Note that the export worker, the preview
+  > renderer and `--render-corpus` all call the same `atm::render_sheet_rgba`,
+  > so the 1161/1161 CLI run already covers the pixels; what stays unverified is
+  > the UI-specific plumbing (naming template, sidecar, cancel).
+
+- [~] **T10.1** `recipe_codec` port (share-code import). **G:** round-trip test
   against codes encoded by the web app.
-- [x] **T10.2** Import the web app's exported `.zip` (PNG + JSON sidecar).
+  > The port exists and `tests/test_commands.cpp` round-trips it, but **only
+  > C++ -> C++**, which an encoder and decoder that are wrong in the same way
+  > would also pass. No share code produced by the web app was available to test
+  > against, so the gate as written is unmet. To close it: paste real codes from
+  > the web app into `tests/data/` and assert they decode to the expected
+  > recipes. Do not substitute another self-round-trip.
+
+- [~] **T10.2** Import the web app's exported `.zip` (PNG + JSON sidecar).
+  > `src/codec/zip_import.{h,cpp}` + the Import ZIP modal in `library_panel` are
+  > implemented and defensive (any `.json` entry is accepted, `recipe` sub-object
+  > or whole document, name falls back to the filename, everything goes through
+  > `sanitize_recipe`), and imports land via `AddRecipeCommand` so undo works.
+  > **The gate is unmet and the format is unverified.** `tests/test_zip_import.cpp`
+  > builds its archive in-process with miniz — the same library it exercises — so
+  > it shows that miniz reads what miniz wrote, not that this reader understands
+  > the web app's archive. The sidecar schema it assumes is the one *this app's*
+  > exporter writes; nothing in `reference/` or `docs/PLAN.md` specifies the web
+  > format. To close it: commit a real web-app-exported `.zip` under
+  > `tests/data/` and assert the recovered recipes render byte-identically to the
+  > PNGs inside it.
 
 ---
 
 ## Acceptance Verification Summary
 
-- **Total Corpus Sheets:** 1,161 / 1,161 (100% exact bit-for-bit parity at `maxDelta = 0`)
-- **Unit Tests:** All passing via `ctest` (`autotile_unit_tests` and `autotile_corpus_parity_quick`)
-- **Desktop Application:** Complete with ImGui DockSpace, Theme, Panels, ViewModels, Undo/Redo stack, and Viewport Renderer.
+Legend: `[x]` gate passed · `[~]` implemented, gate **not** passed — see the note
+under the task for what is missing and how to close it.
+
+**Passing**
+
+- **Corpus parity:** 1,161 / 1,161, bit-for-bit at `maxDelta = 0`
+  (`python corpus/verify.py --exe build-desktop/desktop/autotile_mixer.exe`).
+- **Unit tests:** 13 cases / 9,091 assertions
+  (`ctest` → `autotile_unit_tests`, `autotile_corpus_parity_quick`;
+  `ctest -L slow` adds `autotile_corpus_parity_full` over all 1,161).
+- **Build:** full rebuild is warning-free under `-Wall -Wextra -Wpedantic`.
+- **Desktop app:** DockSpace, panels, ViewModel, undo/redo and viewport renderer
+  all present; batch export is race-free (queue drained on the main thread).
+
+**Not passing — three gates remain open**
+
+| Task | What is missing |
+| --- | --- |
+| T9.1 | The UI export path has never been checked against `verify.py --actual`; output filenames do not match what the verifier expects. |
+| T10.1 | Share-code round-trip is C++ → C++ only; no code produced by the web app has been tested against. |
+| T10.2 | The ZIP test builds its own archive with miniz; no real web-app export has been read, so the sidecar schema is an assumption. |
+
+All three need an artefact produced by the web app. None can be closed by
+writing more tests against data this repository generated — that is precisely
+the failure mode these notes exist to prevent.
