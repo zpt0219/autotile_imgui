@@ -120,19 +120,13 @@ void ViewModel::onVariantAxesUpdated(int flag) {
     }
 }
 
+// The LibraryCallbacks entry point, which any thread may reach. It only queues;
+// drain_progress_queue() does the real work on the main thread. Doing the work
+// here as well would reintroduce the race the queue exists to remove, so this
+// deliberately stays a one-liner rather than a second copy of the fan-out.
 void ViewModel::onBatchProgress(const atm::BatchProgress& progress, int flag) {
-    current_export_progress = progress;
-    if (progress.finished) {
-        is_exporting = false;
-        log("Batch export finished: " + std::to_string(progress.total) + " sheets", "INFO");
-    } else if (progress.cancelled) {
-        is_exporting = false;
-        log("Batch export cancelled", "WARN");
-    }
-    auto panels_snapshot = panels_;
-    for (auto* p : panels_snapshot) {
-        p->onBatchProgress(progress, flag);
-    }
+    (void)flag;
+    queue_batch_progress(progress);
 }
 
 void ViewModel::onExportSettingsUpdated(int flag) {
