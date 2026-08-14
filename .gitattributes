@@ -1,0 +1,14 @@
+# Normalise text to LF in the repository. Without this, core.autocrlf=true on
+# Windows checks the corpus out with CRLF, and the next `npm run gen-corpus`
+# rewrites it with LF — leaving 1100+ files permanently "modified" and burying
+# the diff that is supposed to tell you which recipes actually changed.
+* text=auto eol=lf
+
+# Ground truth and vendored data: byte-for-byte, never touched.
+*.png       binary
+*.gz        binary
+corpus/manifest.json    -text
+corpus/recipes/*.json   -text
+
+# The reference snapshot is compared against upstream; keep it exactly as copied.
+reference/*.ts  -text
