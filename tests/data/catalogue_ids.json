@@ -1,0 +1,268 @@
+{
+  "pattern": [
+    {
+      "id": "square",
+      "zh": "纯直角 · 方角描边",
+      "en": "Square — 90° right angles"
+    },
+    {
+      "id": "rounded",
+      "zh": "圆润 · 全四级过渡",
+      "en": "Rounded — soft corners, full ramp"
+    },
+    {
+      "id": "sharp",
+      "zh": "硬边 · 弧角描边",
+      "en": "Sharp — rounded corners, outline"
+    },
+    {
+      "id": "wave",
+      "zh": "波浪 · 规则圆弧边",
+      "en": "Wave — regular circular arc edge"
+    },
+    {
+      "id": "jagged",
+      "zh": "粗糙 · 岩石碎边",
+      "en": "Jagged — rough rocky edge"
+    },
+    {
+      "id": "gravel",
+      "zh": "砂砾 · 细碎颗粒边",
+      "en": "Gravel — fine crumbling edge"
+    },
+    {
+      "id": "boulder",
+      "zh": "巨砾 · 大块起伏",
+      "en": "Boulder — large rolling masses"
+    },
+    {
+      "id": "billow",
+      "zh": "云絮 · 扇贝鼓边",
+      "en": "Billow — scalloped bulges"
+    },
+    {
+      "id": "coast",
+      "zh": "海岸 · 多层碎屑",
+      "en": "Coast — multi-scale fractal edge"
+    },
+    {
+      "id": "moss",
+      "zh": "苔藓 · 团簇细胞",
+      "en": "Moss — clustered cellular edge"
+    },
+    {
+      "id": "thorn",
+      "zh": "荆棘 · 尖刺边",
+      "en": "Thorn — spiky ridged edge"
+    }
+  ],
+  "texture": [
+    {
+      "id": "none",
+      "zh": "无纹理",
+      "en": "None"
+    },
+    {
+      "id": "field",
+      "zh": "草地颗粒 · Field",
+      "en": "Field — grassy ground"
+    },
+    {
+      "id": "rubble",
+      "zh": "碎石地面 · Rubble",
+      "en": "Rubble — broken stone"
+    },
+    {
+      "id": "ripple",
+      "zh": "水面波纹 · Ripples",
+      "en": "Ripples — short horizontal dashes"
+    },
+    {
+      "id": "ripple_diag",
+      "zh": "斜向水波 · Diagonal Ripples",
+      "en": "Diagonal Ripples — 45° short dashes"
+    },
+    {
+      "id": "water",
+      "zh": "水面边线 · Water",
+      "en": "Water — edge lines only"
+    },
+    {
+      "id": "cells",
+      "zh": "多边形细胞 · Voronoi 细胞网格",
+      "en": "Polygonal Cells — Voronoi cell mesh"
+    },
+    {
+      "id": "square",
+      "zh": "正方形铺砖 · 可调尺寸",
+      "en": "Square — plain square paving, sizeable"
+    },
+    {
+      "id": "hexagon",
+      "zh": "规则六边形 · 可调尺寸",
+      "en": "Hexagon — regular hexagonal tiles, sizeable"
+    },
+    {
+      "id": "isometric",
+      "zh": "等距菱形块 · 可调尺寸",
+      "en": "Isometric — diamond blocks, sizeable"
+    },
+    {
+      "id": "isometric_grid",
+      "zh": "等距立体方块 · 可调尺寸",
+      "en": "Isometric Grid — 3D cube mesh, sizeable"
+    },
+    {
+      "id": "octagonal",
+      "zh": "八边切角砖 (32px)",
+      "en": "Octagonal — chamfered square tiles (32)"
+    },
+    {
+      "id": "nonslip",
+      "zh": "交叉防滑纹 · 可调尺寸",
+      "en": "Non-slip — textured grip, sizeable"
+    },
+    {
+      "id": "brick_wall",
+      "zh": "错缝砖墙 (32px)",
+      "en": "Brick Wall — running-bond masonry (32)"
+    },
+    {
+      "id": "brick_bond",
+      "zh": "程序化错缝砖 · 可调尺寸",
+      "en": "Running Bond — procedural offset bricks, sizeable"
+    },
+    {
+      "id": "cobbles2",
+      "zh": "细密错缝砖 (16px)",
+      "en": "Cobbles2 — fine running-bond bricks"
+    },
+    {
+      "id": "brick_floor",
+      "zh": "45° 斜铺砖 (16px)",
+      "en": "Brick Floor — diagonal 45° bond"
+    },
+    {
+      "id": "weave",
+      "zh": "菱格编织砖 (16px)",
+      "en": "Weave — diagonal interlocking bricks"
+    },
+    {
+      "id": "breeze_block",
+      "zh": "镂空通风砖 (32px)",
+      "en": "Breeze Block — perforated masonry (32)"
+    },
+    {
+      "id": "paving",
+      "zh": "乱砌石板 (32px)",
+      "en": "Paving — random ashlar flags (32)"
+    },
+    {
+      "id": "paving3",
+      "zh": "等距立体方块 (32px)",
+      "en": "Paving3 — isometric cubes (32)"
+    },
+    {
+      "id": "paving5",
+      "zh": "曲边咬合铺砖 (32px)",
+      "en": "Paving5 — interlocking curved pavers (32)"
+    },
+    {
+      "id": "stone_floor",
+      "zh": "不规则石板地面 (32px)",
+      "en": "Stone Floor — irregular stone slabs (32)"
+    },
+    {
+      "id": "white",
+      "zh": "白噪散点 · 随机沙粒",
+      "en": "White speckle — random sand"
+    },
+    {
+      "id": "blue",
+      "zh": "蓝噪散点 · 均匀细颗粒",
+      "en": "Blue speckle — even fine grain"
+    },
+    {
+      "id": "ordered",
+      "zh": "有序网点 · 规则半调",
+      "en": "Ordered — regular halftone"
+    }
+  ],
+  "ribbon": [
+    {
+      "id": "none",
+      "zh": "纯色 · 不加花纹",
+      "en": "Flat — no motif"
+    },
+    {
+      "id": "bevel",
+      "zh": "倒角 · 内亮外暗",
+      "en": "Bevel — lit inside, dark out"
+    },
+    {
+      "id": "dashes",
+      "zh": "虚线 · 等距断口",
+      "en": "Dashes — evenly broken"
+    },
+    {
+      "id": "ticks",
+      "zh": "齿纹 · 垂直短划",
+      "en": "Ticks — perpendicular strokes"
+    },
+    {
+      "id": "beads",
+      "zh": "珠链 · 等距圆点",
+      "en": "Beads — dots along the edge"
+    },
+    {
+      "id": "rope",
+      "zh": "缆绳 · 斜向绞纹",
+      "en": "Rope — slanted twist"
+    },
+    {
+      "id": "wave",
+      "zh": "波浪 · 起伏高光",
+      "en": "Wave — undulating highlight"
+    },
+    {
+      "id": "grain",
+      "zh": "颗粒 · 带内碎点",
+      "en": "Grain — scatter in the ribbon"
+    },
+    {
+      "id": "speckle",
+      "zh": "沿边细点 · 均匀",
+      "en": "Speckle — even fine dots"
+    },
+    {
+      "id": "along_brick_wall",
+      "zh": "砖墙 · 沿边一列砖",
+      "en": "Brick wall — one course"
+    },
+    {
+      "id": "along_cobbles2",
+      "zh": "细密砖 · 沿边小块",
+      "en": "Cobbles — fine bricks"
+    },
+    {
+      "id": "along_weave",
+      "zh": "编织 · 沿边菱格",
+      "en": "Weave — diagonal braid"
+    },
+    {
+      "id": "along_stone_floor",
+      "zh": "石板 · 沿边不规则块",
+      "en": "Stone — irregular slabs"
+    },
+    {
+      "id": "along_breeze_block",
+      "zh": "通风砖 · 沿边细孔",
+      "en": "Breeze block — perforated"
+    },
+    {
+      "id": "along_octagonal",
+      "zh": "八边形 · 沿边切角砖",
+      "en": "Octagonal — chamfered"
+    }
+  ]
+}

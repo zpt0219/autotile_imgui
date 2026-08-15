@@ -342,19 +342,21 @@ target 级别的警告** —— 参照 `src/CMakeLists.txt:31-36` 里 miniz 的�
       长度匹配与 `sanitize_recipe` 往返不丢，且 ribbon/texture 有一半的编辑
       故意传入陈旧数组。另有 `tests/test_overrides.cpp` 专项覆盖。
       两者均已验证：把修复注释掉即变红。
-- [-] U5 缩略图与预览
+- [x] U5 缩略图与预览
   - Viewport zoom (13 steps via `kZoomScales`), Ctrl+wheel zoom, middle/right-mouse drag panning, reset pan button.
   - Interactive 3x3 adjacency diagram tooltip with 8-bit neighbor decode when hovering any tile slot.
   - Single-tile focus mode with 4x/8x zoomed inspection overlay.
   - Recipe Library thumbnail cache and grid view toggle (`[≡]` / `[⊞]`).
-  - **Gate 未达成（标 `[-]`）。** 本任务的 gate 是"200 条配方滚动流畅无卡顿"。
-    `thumbnail_cache` 目前是**全同步**的（无 worker 线程、无队列，与 brief 要求
-    的"worker 渲染 / 主线程上传"不符），且在绘制循环里对**每个**条目内联调用
-    `get_or_render_thumbnail`（`library_panel.cpp:129`），没有可见性裁剪，
-    也没有淘汰机制。实测单张 sheet 约 **29.6ms**，200 条 ≈ **6 秒单帧冻结**。
-    非崩溃、无竞争，但 gate 不成立。
-    最小可用改法：加 `ImGuiListClipper` 只渲染可见项 + 缓存上限淘汰；
-    完整的 worker 线程方案可后置。
+  - **缩略图曾经不满足 gate，已于 `496e0b6` 重做。** 原实现是全同步的：绘制
+    循环里对每个条目内联调用渲染，没有可见性裁剪也没有淘汰。实测单张 sheet
+    约 **29.6ms**，200 条约 **6 秒单帧冻结** —— 与 gate 的"滚动流畅"正相反。
+    现改为 worker 线程渲染 + 互斥队列回传 + 主线程 `drain_completed()` 上传
+    （每帧限量），与批量导出同一套形状；`get()` 未命中即入队并立刻返回 0，
+    网格画等尺寸占位符。按 hash 去重；`invalidate` 递增版本号，在途的陈旧
+    结果被丢弃；纹理走 LRU（上限 192）；worker 在 `~ViewModel` 内、GL 仍在时
+    join。网格改用 `ImGuiListClipper`，只有可见行会请求缩略图。
+  - 新增 `--library <file>`：没有它，这个 gate 得靠人手点文件对话框才能测，
+    这也是它一直没被测过的主要原因。
 
 > **复核备注（`e790a50`）。** 下面这段 gate 输出是真的，我复现过 —— 但它测的是
 > ctest 与全量对拍，**覆盖不到 U4 的长度不变量，也覆盖不到 U5 的性能要求**，
@@ -364,8 +366,12 @@ target 级别的警告** —— 参照 `src/CMakeLists.txt:31-36` 里 miniz 的�
 > 另：U1 的 gate 里我写的 `natural_geo_scale`"其余全为 1" **是我写错了**，
 > reference 中 `brick_bond` / `square` / `octagonal` 均为 2。实现与
 > `test_catalog.cpp` 按 reference 取了正确值，没有跟着 brief 错 —— 这是对的做法。
-> `test_catalog.cpp:40` 的 "Bidirectional check" 目前仍只有单向（目录 → sanitize
-> 接受），反向"每个 `VALID_*` 成员都在目录里"未写，数量用的是硬编码常量。
+>
+> 目录的双向检查当时只有单向（目录 → sanitize 接受），数量是硬编码常量，
+> 因此"漏抄一项"这类错误查不出来。现已补齐：`dump_reference_vectors.js`
+> 多导出一份 `catalogue_ids.json`（直接从 `reference/*.ts` 解析），
+> `test_catalog.cpp` 用它做**双向**比对，并额外校验每一项的中英文标签 ——
+> id 对而文案漂移的 picker 同样是错的。已验证：改坏一项即变红。
 
 ### Gate Execution Output
 

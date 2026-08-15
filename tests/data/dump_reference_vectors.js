@@ -334,4 +334,42 @@ if (fieldBounds.length === 0) {
 fs.writeFileSync(path.join(__dirname, 'field_bounds.json'), JSON.stringify(fieldBounds, null, 2));
 console.log(`field_bounds.json: ${fieldBounds.length} (pattern, mask) entries from reference/generated.ts`);
 
+// =========================================================================
+// 5. Picker catalogue ids, read out of the reference
+//
+// PATTERN_GROUPS / TEXTURE_GROUPS / RIBBON_GROUPS are UI metadata, but the
+// set of ids they carry is not cosmetic: a picker missing an id makes that
+// algorithm unreachable, and one carrying an id the sanitiser rejects gives
+// the user a choice that silently snaps back. Dumping them lets the C++
+// catalogue be checked in BOTH directions against something outside itself,
+// instead of against a hand-copied count.
+// =========================================================================
+function catalogueIds(file) {
+  const s = fs.readFileSync(path.join(__dirname, '..', '..', 'reference', file), 'utf8');
+  const ids = [];
+  const re = /\{ id: '([a-z_0-9]+)', zh: '([^']*)', en: '([^']*)' \}/g;
+  let m;
+  while ((m = re.exec(s)) !== null) ids.push({ id: m[1], zh: m[2], en: m[3] });
+  return ids;
+}
+
+const catalogues = {
+  pattern: catalogueIds('blob47Pattern.ts'),
+  texture: catalogueIds('patternTexture.ts'),
+  ribbon: catalogueIds('patternRibbon.ts'),
+};
+
+for (const [name, items] of Object.entries(catalogues)) {
+  const seen = new Set();
+  for (const it of items) {
+    if (seen.has(it.id)) throw new Error(`${name}: duplicate id ${it.id}`);
+    seen.add(it.id);
+  }
+  if (items.length === 0) throw new Error(`${name}: parsed no items - the format changed`);
+}
+
+fs.writeFileSync(path.join(__dirname, 'catalogue_ids.json'), JSON.stringify(catalogues, null, 2));
+console.log(`catalogue_ids.json: pattern=${catalogues.pattern.length} `
+          + `texture=${catalogues.texture.length} ribbon=${catalogues.ribbon.length}`);
+
 console.log('Successfully regenerated all reference vector json files with exact recipe values!');
