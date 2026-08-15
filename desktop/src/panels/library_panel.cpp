@@ -45,7 +45,7 @@ void LibraryPanel::draw(ViewModel& vm) {
         }
 
         ImGui::SameLine(0, 15.0f);
-        if (ImGui::Button(is_grid_view_ ? (use_zh ? "列表视图 [≡]" : "List [≡]") : (use_zh ? "网格视图 [⊞]" : "Grid [⊞]"))) {
+        if (ImGui::Button(is_grid_view_ ? (use_zh ? "列表视图" : "List View") : (use_zh ? "网格视图" : "Grid View"))) {
             is_grid_view_ = !is_grid_view_;
         }
 

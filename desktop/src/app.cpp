@@ -104,6 +104,35 @@ bool App::initialize() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
+    // Load Chinese font support (fallback to default font if not found)
+    const char* font_paths[] = {
+        "C:/Windows/Fonts/msyh.ttc",            // Microsoft YaHei (Windows)
+        "C:/Windows/Fonts/msyh.ttf",
+        "C:/Windows/Fonts/simhei.ttf",
+        "C:/Windows/Fonts/simsun.ttc",          // SimSun (Windows)
+        "/System/Library/Fonts/PingFang.ttc",  // macOS
+        "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc" // Linux
+    };
+
+    bool font_loaded = false;
+    for (const char* path : font_paths) {
+        FILE* f = fopen(path, "rb");
+        if (f) {
+            fclose(f);
+            ImFontConfig font_cfg;
+            font_cfg.FontDataOwnedByAtlas = true;
+            font_cfg.OversampleH = 2;
+            font_cfg.OversampleV = 2;
+            io.Fonts->AddFontFromFileTTF(path, 17.0f, &font_cfg, io.Fonts->GetGlyphRangesChineseFull());
+            font_loaded = true;
+            break;
+        }
+    }
+
+    if (!font_loaded) {
+        io.Fonts->AddFontDefault();
+    }
+
     set_dark_theme();
 
     ImGui_ImplGlfw_InitForOpenGL(window_, true);

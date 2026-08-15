@@ -98,7 +98,7 @@ inline bool drag_int_with_dice(
     }
 
     ImGui::SameLine();
-    std::string dice_id = "🎲##Dice_" + std::string(id_suffix);
+    std::string dice_id = "Dice##Dice_" + std::string(id_suffix);
     if (ImGui::Button(dice_id.c_str())) {
         static std::random_device rd;
         static std::mt19937 gen(rd());
