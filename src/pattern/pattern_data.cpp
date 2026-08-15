@@ -5,12 +5,6 @@
 namespace atm {
 namespace pattern_data {
 
-static const char FIELD_CHARS_STR[] = "#$%&()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[]^_`abcdefghijklmnopqrstuvwxyz{|}~";
-
-const char* get_field_chars() {
-    return FIELD_CHARS_STR;
-}
-
 static const uint8_t CHAR_VALUE_LUT[128] = {
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,

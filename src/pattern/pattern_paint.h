@@ -29,7 +29,6 @@ struct RoleColours {
     RGB edge;
 };
 
-extern const RoleColours REFERENCE_ROLE_COLOURS;
 extern const RoleColours DEFAULT_ROLE_COLOURS;
 
 RGB parse_hex_colour(const std::string& hex);
@@ -58,25 +57,21 @@ struct RibbonPaintOptions {
     std::optional<std::vector<std::optional<RGB>>> ramp;
 };
 
+struct TextureSide {
+    std::string algo = "none";
+    double amount = 0.0;
+    int shades = 2;
+    int32_t seed = 0;
+    int cellScale = 4;
+    int rippleScale = 4;
+    int geoScale = 1;
+    std::optional<RGB> colour;
+    std::optional<std::vector<std::optional<RGB>>> ramp;
+};
+
 struct TexturePaintOptions {
-    std::string algoA = "none";
-    std::string algoB = "none";
-    double amountA = 0.0;
-    double amountB = 0.0;
-    int shadesA = 2;
-    int shadesB = 2;
-    int32_t seedA = 0;
-    int32_t seedB = 0;
-    int cellScaleA = 4;
-    int cellScaleB = 4;
-    int rippleScaleA = 4;
-    int rippleScaleB = 4;
-    int geoScaleA = 1;
-    int geoScaleB = 1;
-    std::optional<RGB> colourA;
-    std::optional<RGB> colourB;
-    std::optional<std::vector<std::optional<RGB>>> rampA;
-    std::optional<std::vector<std::optional<RGB>>> rampB;
+    TextureSide a;
+    TextureSide b;
 };
 
 struct PaintOptions {

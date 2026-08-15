@@ -9,12 +9,6 @@
 
 namespace atm {
 
-const RoleColours REFERENCE_ROLE_COLOURS = {
-    { 248, 248, 248 }, // terrainA
-    { 176, 216,  72 }, // terrainB
-    { 175, 198, 255 }  // edge
-};
-
 const RoleColours DEFAULT_ROLE_COLOURS = {
     {  58, 127, 201 }, // #3a7fc9 water
     {  93, 168,  50 }, // #5da832 grass
@@ -143,6 +137,102 @@ std::vector<RGB> pattern_ramp(const RoleColours& colours, int band_steps) {
     return out;
 }
 
+struct GrainResult {
+    RGB rgb;
+    int final_level;
+    bool grained;
+};
+
+template <typename TargetMatcher>
+static GrainResult apply_grain(
+    int level,
+    int x,
+    int y,
+    const PaintOptions& opts,
+    const std::vector<RGB>& ramp,
+    const std::vector<PatternLevelDef>& level_defs,
+    int solid,
+    int span,
+    const TargetMatcher& target_matches
+) {
+    if (level <= 0 || level >= solid || opts.noises.empty()) {
+        return { ramp[level], level, false };
+    }
+
+    int step = noise_step(opts.noises, x, y, opts.noise_seed, opts.noise_strength) * span;
+    if (step == 0) {
+        return { ramp[level], level, false };
+    }
+
+    int next_lvl = std::max(0, std::min(solid, level + step));
+    PatternRole from_role = level_defs[level].role;
+    PatternRole next_role = level_defs[next_lvl].role;
+
+    bool keep_noise = target_matches(from_role) &&
+        (next_role != PatternRole::Edge || target_matches(PatternRole::Edge));
+
+    if (!keep_noise) {
+        return { ramp[level], level, false };
+    }
+
+    RGB rgb;
+    if (next_role == PatternRole::Edge && opts.noise_colours.edge.has_value()) {
+        rgb = *opts.noise_colours.edge;
+    } else if (step < 0 && opts.noise_colours.b.has_value()) {
+        rgb = *opts.noise_colours.b;
+    } else if (step > 0 && opts.noise_colours.a.has_value()) {
+        rgb = *opts.noise_colours.a;
+    } else {
+        rgb = ramp[next_lvl];
+    }
+    return { rgb, next_lvl, true };
+}
+
+static std::optional<RGB> pick_overlay(
+    int level,
+    int x,
+    int y,
+    int p,
+    int solid,
+    int edge_level,
+    const PaintOptions& opts,
+    const std::optional<std::vector<RGB>>& rib_ramp,
+    const std::optional<BandCoords>& coords,
+    float rib_width,
+    int rib_shades,
+    const std::optional<std::vector<RGB>>& texA,
+    const std::optional<std::vector<RGB>>& texB
+) {
+    if (rib_ramp.has_value() && coords.has_value() && level == edge_level) {
+        int k = ribbon_shade_at(
+            opts.ribbon.algo, coords->s[p], coords->depth[p], rib_width,
+            opts.ribbon.seed, opts.ribbon.amount, rib_shades, opts.ribbon.period, opts.ribbon.invert
+        );
+        if (k > 0 && k < static_cast<int>(rib_ramp->size())) {
+            return (*rib_ramp)[k];
+        }
+    } else if (texA.has_value() && level == solid) {
+        int k = texture_shade_at(
+            opts.texture.a.algo, x, y, opts.texture.a.seed, opts.texture.a.amount,
+            std::max(1, opts.texture.a.shades),
+            opts.texture.a.cellScale, opts.texture.a.rippleScale, opts.texture.a.geoScale
+        );
+        if (k > 0 && k < static_cast<int>(texA->size())) {
+            return (*texA)[k];
+        }
+    } else if (texB.has_value() && level == 0) {
+        int k = texture_shade_at(
+            opts.texture.b.algo, x, y, opts.texture.b.seed, opts.texture.b.amount,
+            std::max(1, opts.texture.b.shades),
+            opts.texture.b.cellScale, opts.texture.b.rippleScale, opts.texture.b.geoScale
+        );
+        if (k > 0 && k < static_cast<int>(texB->size())) {
+            return (*texB)[k];
+        }
+    }
+    return std::nullopt;
+}
+
 std::vector<uint8_t> paint_pattern_tile_rgba(
     const std::string& pattern,
     int mask,
@@ -153,23 +243,25 @@ std::vector<uint8_t> paint_pattern_tile_rgba(
     auto derived = pattern_ramp(colours, opts.band_steps);
     const auto& ramp = (opts.ramp.has_value() && opts.ramp->size() == derived.size()) ? *opts.ramp : derived;
     auto level_defs = pattern_levels_for(opts.band_steps);
-    std::string grid = pattern_levels_for_mask(
-        pattern, mask, opts.offset_px, tile_size, opts.band_steps,
-        opts.hard_edge_b, opts.edge_seed, opts.outline_width
-    );
+    FieldParams fp{
+        static_cast<float>(opts.offset_px),
+        tile_size,
+        opts.band_steps,
+        opts.hard_edge_b,
+        opts.edge_seed,
+        static_cast<float>(opts.outline_width)
+    };
+    std::string grid = pattern_levels_for_mask(pattern, mask, fp);
     int solid = static_cast<int>(ramp.size()) - 1;
 
-    int shadesA = std::max(1, opts.texture.shadesA);
-    int shadesB = std::max(1, opts.texture.shadesB);
-
     std::optional<std::vector<RGB>> texA;
-    if (opts.texture.algoA != "none" && opts.texture.amountA > 0.0f) {
-        texA = texture_ramp(colours.terrainA, opts.texture.colourA, shadesA, opts.texture.rampA);
+    if (opts.texture.a.algo != "none" && opts.texture.a.amount > 0.0f) {
+        texA = texture_ramp(colours.terrainA, opts.texture.a.colour, std::max(1, opts.texture.a.shades), opts.texture.a.ramp);
     }
 
     std::optional<std::vector<RGB>> texB;
-    if (!opts.transparent_b && opts.texture.algoB != "none" && opts.texture.amountB > 0.0f) {
-        texB = texture_ramp(colours.terrainB, opts.texture.colourB, shadesB, opts.texture.rampB);
+    if (!opts.transparent_b && opts.texture.b.algo != "none" && opts.texture.b.amount > 0.0f) {
+        texB = texture_ramp(colours.terrainB, opts.texture.b.colour, std::max(1, opts.texture.b.shades), opts.texture.b.ramp);
     }
 
     int edge_level = -1;
@@ -190,15 +282,21 @@ std::vector<uint8_t> paint_pattern_tile_rgba(
 
     std::optional<BandCoords> coords;
     if (ribbon_on) {
-        coords = pattern_band_coords(
-            pattern, mask, opts.offset_px, tile_size, opts.band_steps,
-            opts.hard_edge_b, opts.edge_seed, opts.outline_width
-        );
+        coords = pattern_band_coords(pattern, mask, fp);
     }
 
     float rib_width = ribbon_on ? std::max(1.0f, outline_width_px(pattern, opts.band_steps, opts.hard_edge_b, opts.outline_width, tile_size)) : 1.0f;
 
     int span = band_noise_span(pattern, opts.band_steps);
+
+    auto target_matches = [&opts](PatternRole r) {
+        for (auto tid : opts.noise_targets) {
+            if (tid == NoiseTargetId::TerrainA && r == PatternRole::TerrainA) return true;
+            if (tid == NoiseTargetId::TerrainB && r == PatternRole::TerrainB) return true;
+            if (tid == NoiseTargetId::Edge && r == PatternRole::Edge) return true;
+        }
+        return false;
+    };
 
     std::vector<uint8_t> out(tile_size * tile_size * 4, 0);
 
@@ -206,68 +304,12 @@ std::vector<uint8_t> paint_pattern_tile_rgba(
         for (int x = 0; x < tile_size; ++x) {
             int p = y * tile_size + x;
             int level = grid[p] - '0';
-            RGB rgb = ramp[level];
-            int final_level = level;
-            bool grained = false;
 
-            if (level > 0 && level < solid && !opts.noises.empty()) {
-                int step = noise_step(opts.noises, x, y, opts.noise_seed, opts.noise_strength) * span;
-                if (step != 0) {
-                    int next_lvl = std::max(0, std::min(solid, level + step));
-                    PatternRole from_role = level_defs[level].role;
-                    PatternRole next_role = level_defs[next_lvl].role;
-
-                    auto target_matches = [&](PatternRole r) {
-                        for (auto tid : opts.noise_targets) {
-                            if (tid == NoiseTargetId::TerrainA && r == PatternRole::TerrainA) return true;
-                            if (tid == NoiseTargetId::TerrainB && r == PatternRole::TerrainB) return true;
-                            if (tid == NoiseTargetId::Edge && r == PatternRole::Edge) return true;
-                        }
-                        return false;
-                    };
-
-                    bool keep_noise = target_matches(from_role) &&
-                        (next_role != PatternRole::Edge || target_matches(PatternRole::Edge));
-
-                    if (keep_noise) {
-                        grained = true;
-                        final_level = next_lvl;
-                        if (next_role == PatternRole::Edge && opts.noise_colours.edge.has_value()) {
-                            rgb = *opts.noise_colours.edge;
-                        } else if (step < 0 && opts.noise_colours.b.has_value()) {
-                            rgb = *opts.noise_colours.b;
-                        } else if (step > 0 && opts.noise_colours.a.has_value()) {
-                            rgb = *opts.noise_colours.a;
-                        } else {
-                            rgb = ramp[next_lvl];
-                        }
-                    }
-                }
-            }
-
-            if (!grained && rib_ramp.has_value() && coords.has_value() && level == edge_level) {
-                int k = ribbon_shade_at(
-                    opts.ribbon.algo, coords->s[p], coords->depth[p], rib_width,
-                    opts.ribbon.seed, opts.ribbon.amount, rib_shades, opts.ribbon.period, opts.ribbon.invert
-                );
-                if (k > 0 && k < static_cast<int>(rib_ramp->size())) {
-                    rgb = (*rib_ramp)[k];
-                }
-            } else if (texA.has_value() && level == solid) {
-                int k = texture_shade_at(
-                    opts.texture.algoA, x, y, opts.texture.seedA, opts.texture.amountA, shadesA,
-                    opts.texture.cellScaleA, opts.texture.rippleScaleA, opts.texture.geoScaleA
-                );
-                if (k > 0 && k < static_cast<int>(texA->size())) {
-                    rgb = (*texA)[k];
-                }
-            } else if (texB.has_value() && level == 0) {
-                int k = texture_shade_at(
-                    opts.texture.algoB, x, y, opts.texture.seedB, opts.texture.amountB, shadesB,
-                    opts.texture.cellScaleB, opts.texture.rippleScaleB, opts.texture.geoScaleB
-                );
-                if (k > 0 && k < static_cast<int>(texB->size())) {
-                    rgb = (*texB)[k];
+            auto grain = apply_grain(level, x, y, opts, ramp, level_defs, solid, span, target_matches);
+            RGB rgb = grain.rgb;
+            if (!grain.grained) {
+                if (auto overlay = pick_overlay(level, x, y, p, solid, edge_level, opts, rib_ramp, coords, rib_width, rib_shades, texA, texB)) {
+                    rgb = *overlay;
                 }
             }
 
@@ -275,7 +317,7 @@ std::vector<uint8_t> paint_pattern_tile_rgba(
             out[i] = rgb.r;
             out[i + 1] = rgb.g;
             out[i + 2] = rgb.b;
-            out[i + 3] = (opts.transparent_b && level_defs[final_level].role == PatternRole::TerrainB) ? 0 : 255;
+            out[i + 3] = (opts.transparent_b && level_defs[grain.final_level].role == PatternRole::TerrainB) ? 0 : 255;
         }
     }
     return out;

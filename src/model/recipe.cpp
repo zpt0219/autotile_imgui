@@ -79,15 +79,84 @@ static bool is_hex_color(const std::string& str) {
     return true;
 }
 
-static int clamp_int(int val, int min_val, int max_val, int fallback) {
-    if (std::isnan(static_cast<float>(val))) return fallback;
-    return std::max(min_val, std::min(max_val, val));
+template <class T>
+static void read_clamped(const nlohmann::json& raw, const char* key, T lo, T hi, T fallback, T& out) {
+    if (!raw.contains(key) || !raw[key].is_number()) return;
+    if constexpr (std::is_integral_v<T>) {
+        out = std::max(lo, std::min(hi, raw[key].template get<T>()));
+    } else {
+        double val = raw[key].template get<double>();
+        if (!std::isfinite(val)) out = fallback;
+        else out = std::max(lo, std::min(hi, static_cast<T>(val)));
+    }
 }
 
-static double clamp_double(double val, double min_val, double max_val, double fallback) {
-    if (!std::isfinite(val)) return fallback;
-    return std::max(min_val, std::min(max_val, val));
+static void read_bool(const nlohmann::json& raw, const char* key, bool& out) {
+    if (raw.contains(key) && raw[key].is_boolean()) {
+        out = raw[key].get<bool>();
+    }
 }
+
+static void read_enum(const nlohmann::json& raw, const char* key,
+                      const std::unordered_set<std::string>& valid, std::string& out) {
+    if (raw.contains(key) && raw[key].is_string()) {
+        std::string s = raw[key].get<std::string>();
+        if (valid.count(s)) out = s;
+    }
+}
+
+static std::optional<std::vector<std::string>>
+read_all_or_nothing_hex_array(const nlohmann::json& raw, const char* key, int expected_len) {
+    if (!raw.contains(key) || !raw[key].is_array()) return std::nullopt;
+    const auto& arr = raw[key];
+    if (static_cast<int>(arr.size()) != expected_len) return std::nullopt;
+    std::vector<std::string> custom;
+    custom.reserve(arr.size());
+    for (const auto& item : arr) {
+        if (item.is_string() && is_hex_color(item.get<std::string>())) {
+            custom.push_back(item.get<std::string>());
+        } else {
+            return std::nullopt;
+        }
+    }
+    return custom;
+}
+
+static std::optional<std::vector<std::optional<std::string>>>
+read_sparse_hex_array(const nlohmann::json& raw, const char* key, int expected_len) {
+    if (!raw.contains(key) || !raw[key].is_array()) return std::nullopt;
+    const auto& arr = raw[key];
+    if (static_cast<int>(arr.size()) != expected_len) return std::nullopt;
+    std::vector<std::optional<std::string>> custom;
+    custom.reserve(arr.size());
+    for (const auto& item : arr) {
+        if (item.is_string() && is_hex_color(item.get<std::string>())) {
+            custom.push_back(item.get<std::string>());
+        } else {
+            custom.push_back(std::nullopt);
+        }
+    }
+    return custom;
+}
+
+static const std::unordered_set<std::string> VALID_PATTERNS = {
+    "square", "sharp", "rounded", "wave", "jagged", "gravel",
+    "boulder", "thorn", "coast", "moss", "billow"
+};
+
+static const std::unordered_set<std::string> VALID_RIBBONS = {
+    "none", "bevel", "dashes", "ticks", "beads", "rope", "wave", "grain", "speckle",
+    "along_brick_wall", "along_cobbles2", "along_weave", "along_stone_floor",
+    "along_breeze_block", "along_octagonal"
+};
+
+static const std::unordered_set<std::string> VALID_TEXTURES = {
+    "none", "white", "blue", "ordered", "ripple", "ripple_diag", "cells",
+    "breeze_block", "brick_wall", "cobbles2", "brick_floor", "hexagon",
+    "isometric", "isometric_grid", "octagonal", "square", "weave",
+    "paving", "paving3", "paving5", "stone_floor", "water", "brick_bond",
+    "field", "rubble", "nonslip"
+};
 
 Recipe sanitize_recipe(const nlohmann::json& raw) {
     if (!raw.is_object()) return DEFAULT_RECIPE_INSTANCE;
@@ -96,63 +165,26 @@ Recipe sanitize_recipe(const nlohmann::json& raw) {
 
     if (raw.contains("roleHex") && raw["roleHex"].is_object()) {
         const auto& rh = raw["roleHex"];
-        if (rh.contains("terrainA") && rh["terrainA"].is_string() && is_hex_color(rh["terrainA"].get<std::string>())) {
-            r.roleHex.terrainA = rh["terrainA"].get<std::string>();
-        }
-        if (rh.contains("terrainB") && rh["terrainB"].is_string() && is_hex_color(rh["terrainB"].get<std::string>())) {
-            r.roleHex.terrainB = rh["terrainB"].get<std::string>();
-        }
-        if (rh.contains("edge") && rh["edge"].is_string() && is_hex_color(rh["edge"].get<std::string>())) {
-            r.roleHex.edge = rh["edge"].get<std::string>();
-        }
-    }
-
-    static const std::unordered_set<std::string> VALID_PATTERNS = {
-        "square", "sharp", "rounded", "wave", "jagged", "gravel",
-        "boulder", "thorn", "coast", "moss", "billow"
-    };
-
-    if (raw.contains("patternId") && raw["patternId"].is_string()) {
-        std::string pid = raw["patternId"].get<std::string>();
-        if (VALID_PATTERNS.count(pid)) {
-            r.patternId = pid;
-        }
-    }
-
-    if (raw.contains("edgeSeed") && raw["edgeSeed"].is_number()) {
-        r.edgeSeed = clamp_int(raw["edgeSeed"].get<int>(), 0, 99999, DEFAULT_RECIPE_INSTANCE.edgeSeed);
-    }
-    if (raw.contains("outlineWidth") && raw["outlineWidth"].is_number()) {
-        r.outlineWidth = clamp_int(raw["outlineWidth"].get<int>(), 1, 4, DEFAULT_RECIPE_INSTANCE.outlineWidth);
-    }
-    if (raw.contains("bandSteps") && raw["bandSteps"].is_number()) {
-        r.bandSteps = clamp_int(raw["bandSteps"].get<int>(), 3, 5, DEFAULT_RECIPE_INSTANCE.bandSteps);
-    }
-    if (raw.contains("hardEdgeB") && raw["hardEdgeB"].is_boolean()) {
-        r.hardEdgeB = raw["hardEdgeB"].get<bool>();
-    }
-    if (raw.contains("transparentB") && raw["transparentB"].is_boolean()) {
-        r.transparentB = raw["transparentB"].get<bool>();
-    }
-    if (raw.contains("bandBias") && raw["bandBias"].is_number()) {
-        r.bandBias = clamp_double(raw["bandBias"].get<double>(), -1.0, 1.0, DEFAULT_RECIPE_INSTANCE.bandBias);
-    }
-
-    if (raw.contains("customShadesHex") && raw["customShadesHex"].is_array()) {
-        const auto& arr = raw["customShadesHex"];
-        if (static_cast<int>(arr.size()) == r.bandSteps + 2) {
-            std::vector<std::string> custom;
-            bool valid = true;
-            for (const auto& item : arr) {
-                if (item.is_string() && is_hex_color(item.get<std::string>())) {
-                    custom.push_back(item.get<std::string>());
-                } else {
-                    valid = false;
-                    break;
-                }
+        auto read_hex = [&](const char* k, std::string& out) {
+            if (rh.contains(k) && rh[k].is_string() && is_hex_color(rh[k].get<std::string>())) {
+                out = rh[k].get<std::string>();
             }
-            if (valid) r.customShadesHex = custom;
-        }
+        };
+        read_hex("terrainA", r.roleHex.terrainA);
+        read_hex("terrainB", r.roleHex.terrainB);
+        read_hex("edge",     r.roleHex.edge);
+    }
+
+    read_enum(raw, "patternId", VALID_PATTERNS, r.patternId);
+    read_clamped(raw, "edgeSeed", 0, 99999, DEFAULT_RECIPE_INSTANCE.edgeSeed, r.edgeSeed);
+    read_clamped(raw, "outlineWidth", 1, 4, DEFAULT_RECIPE_INSTANCE.outlineWidth, r.outlineWidth);
+    read_clamped(raw, "bandSteps", 3, 5, DEFAULT_RECIPE_INSTANCE.bandSteps, r.bandSteps);
+    read_bool(raw, "hardEdgeB", r.hardEdgeB);
+    read_bool(raw, "transparentB", r.transparentB);
+    read_clamped(raw, "bandBias", -1.0, 1.0, DEFAULT_RECIPE_INSTANCE.bandBias, r.bandBias);
+
+    if (auto custom = read_all_or_nothing_hex_array(raw, "customShadesHex", r.bandSteps + 2)) {
+        r.customShadesHex = *custom;
     }
 
     if (raw.contains("patternNoise") && raw["patternNoise"].is_array()) {
@@ -166,143 +198,45 @@ Recipe sanitize_recipe(const nlohmann::json& raw) {
             }
         }
     }
-    if (raw.contains("patternNoiseSeed") && raw["patternNoiseSeed"].is_number()) {
-        r.patternNoiseSeed = clamp_int(raw["patternNoiseSeed"].get<int>(), 0, 99999, DEFAULT_RECIPE_INSTANCE.patternNoiseSeed);
-    }
-    if (raw.contains("patternNoiseStrength") && raw["patternNoiseStrength"].is_number()) {
-        r.patternNoiseStrength = clamp_double(raw["patternNoiseStrength"].get<double>(), 0.0, 2.0, DEFAULT_RECIPE_INSTANCE.patternNoiseStrength);
+    read_clamped(raw, "patternNoiseSeed", 0, 99999, DEFAULT_RECIPE_INSTANCE.patternNoiseSeed, r.patternNoiseSeed);
+    read_clamped(raw, "patternNoiseStrength", 0.0, 2.0, DEFAULT_RECIPE_INSTANCE.patternNoiseStrength, r.patternNoiseStrength);
+
+    read_enum(raw, "ribbonAlgo", VALID_RIBBONS, r.ribbonAlgo);
+    read_clamped(raw, "ribbonAmount", 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.ribbonAmount, r.ribbonAmount);
+    read_clamped(raw, "ribbonPeriod", 1, 8, DEFAULT_RECIPE_INSTANCE.ribbonPeriod, r.ribbonPeriod);
+    read_clamped(raw, "ribbonShades", 1, 4, DEFAULT_RECIPE_INSTANCE.ribbonShades, r.ribbonShades);
+    read_bool(raw, "ribbonInvert", r.ribbonInvert);
+
+    if (auto custom = read_sparse_hex_array(raw, "customRibbonHex", r.ribbonShades + 1)) {
+        r.customRibbonHex = *custom;
     }
 
-    static const std::unordered_set<std::string> VALID_RIBBONS = {
-        "none", "bevel", "dashes", "ticks", "beads", "rope", "wave", "grain", "speckle",
-        "along_brick_wall", "along_cobbles2", "along_weave", "along_stone_floor",
-        "along_breeze_block", "along_octagonal"
-    };
-
-    if (raw.contains("ribbonAlgo") && raw["ribbonAlgo"].is_string()) {
-        std::string ral = raw["ribbonAlgo"].get<std::string>();
-        if (VALID_RIBBONS.count(ral)) r.ribbonAlgo = ral;
-    }
-    if (raw.contains("ribbonAmount") && raw["ribbonAmount"].is_number()) {
-        r.ribbonAmount = clamp_double(raw["ribbonAmount"].get<double>(), 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.ribbonAmount);
-    }
-    if (raw.contains("ribbonPeriod") && raw["ribbonPeriod"].is_number()) {
-        r.ribbonPeriod = clamp_int(raw["ribbonPeriod"].get<int>(), 1, 8, DEFAULT_RECIPE_INSTANCE.ribbonPeriod);
-    }
-    if (raw.contains("ribbonShades") && raw["ribbonShades"].is_number()) {
-        r.ribbonShades = clamp_int(raw["ribbonShades"].get<int>(), 1, 4, DEFAULT_RECIPE_INSTANCE.ribbonShades);
-    }
-    if (raw.contains("ribbonInvert") && raw["ribbonInvert"].is_boolean()) {
-        r.ribbonInvert = raw["ribbonInvert"].get<bool>();
-    }
-
-    if (raw.contains("customRibbonHex") && raw["customRibbonHex"].is_array()) {
-        const auto& arr = raw["customRibbonHex"];
-        if (static_cast<int>(arr.size()) == r.ribbonShades + 1) {
-            std::vector<std::optional<std::string>> custom;
-            for (const auto& item : arr) {
-                if (item.is_string() && is_hex_color(item.get<std::string>())) {
-                    custom.push_back(item.get<std::string>());
-                } else {
-                    custom.push_back(std::nullopt);
-                }
-            }
-            r.customRibbonHex = custom;
-        }
-    }
-
-    static const std::unordered_set<std::string> VALID_TEXTURES = {
-        "none", "white", "blue", "ordered", "ripple", "ripple_diag", "cells",
-        "breeze_block", "brick_wall", "cobbles2", "brick_floor", "hexagon",
-        "isometric", "isometric_grid", "octagonal", "square", "weave",
-        "paving", "paving3", "paving5", "stone_floor", "water", "brick_bond",
-        "field", "rubble", "nonslip"
-    };
-
-    if (raw.contains("textureAlgoA") && raw["textureAlgoA"].is_string()) {
-        std::string tal = raw["textureAlgoA"].get<std::string>();
-        if (VALID_TEXTURES.count(tal)) r.textureAlgoA = tal;
-    }
-    if (raw.contains("textureAlgoB") && raw["textureAlgoB"].is_string()) {
-        std::string tal = raw["textureAlgoB"].get<std::string>();
-        if (VALID_TEXTURES.count(tal)) r.textureAlgoB = tal;
-    }
-
-    if (raw.contains("textureAmountA") && raw["textureAmountA"].is_number()) {
-        r.textureAmountA = clamp_double(raw["textureAmountA"].get<double>(), 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.textureAmountA);
-    }
-    if (raw.contains("textureAmountB") && raw["textureAmountB"].is_number()) {
-        r.textureAmountB = clamp_double(raw["textureAmountB"].get<double>(), 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.textureAmountB);
-    }
-    if (raw.contains("textureShadesA") && raw["textureShadesA"].is_number()) {
-        r.textureShadesA = clamp_int(raw["textureShadesA"].get<int>(), 1, 4, DEFAULT_RECIPE_INSTANCE.textureShadesA);
-    }
-    if (raw.contains("textureShadesB") && raw["textureShadesB"].is_number()) {
-        r.textureShadesB = clamp_int(raw["textureShadesB"].get<int>(), 1, 4, DEFAULT_RECIPE_INSTANCE.textureShadesB);
-    }
-    if (raw.contains("textureSeedA") && raw["textureSeedA"].is_number()) {
-        r.textureSeedA = clamp_int(raw["textureSeedA"].get<int>(), 0, 99999, DEFAULT_RECIPE_INSTANCE.textureSeedA);
-    }
-    if (raw.contains("textureSeedB") && raw["textureSeedB"].is_number()) {
-        r.textureSeedB = clamp_int(raw["textureSeedB"].get<int>(), 0, 99999, DEFAULT_RECIPE_INSTANCE.textureSeedB);
-    }
-
-    if (raw.contains("cellScaleA") && raw["cellScaleA"].is_number()) {
-        r.cellScaleA = clamp_int(raw["cellScaleA"].get<int>(), 2, 8, DEFAULT_RECIPE_INSTANCE.cellScaleA);
-    }
-    if (raw.contains("cellScaleB") && raw["cellScaleB"].is_number()) {
-        r.cellScaleB = clamp_int(raw["cellScaleB"].get<int>(), 2, 8, DEFAULT_RECIPE_INSTANCE.cellScaleB);
-    }
-    if (raw.contains("rippleScaleA") && raw["rippleScaleA"].is_number()) {
-        r.rippleScaleA = clamp_int(raw["rippleScaleA"].get<int>(), 2, 8, DEFAULT_RECIPE_INSTANCE.rippleScaleA);
-    }
-    if (raw.contains("rippleScaleB") && raw["rippleScaleB"].is_number()) {
-        r.rippleScaleB = clamp_int(raw["rippleScaleB"].get<int>(), 2, 8, DEFAULT_RECIPE_INSTANCE.rippleScaleB);
-    }
-    if (raw.contains("geoScaleA") && raw["geoScaleA"].is_number()) {
-        r.geoScaleA = clamp_int(raw["geoScaleA"].get<int>(), 1, 8, DEFAULT_RECIPE_INSTANCE.geoScaleA);
-    }
-    if (raw.contains("geoScaleB") && raw["geoScaleB"].is_number()) {
-        r.geoScaleB = clamp_int(raw["geoScaleB"].get<int>(), 1, 8, DEFAULT_RECIPE_INSTANCE.geoScaleB);
-    }
+    read_enum(raw, "textureAlgoA", VALID_TEXTURES, r.textureAlgoA);
+    read_enum(raw, "textureAlgoB", VALID_TEXTURES, r.textureAlgoB);
+    read_clamped(raw, "textureAmountA", 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.textureAmountA, r.textureAmountA);
+    read_clamped(raw, "textureAmountB", 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.textureAmountB, r.textureAmountB);
+    read_clamped(raw, "textureShadesA", 1, 4, DEFAULT_RECIPE_INSTANCE.textureShadesA, r.textureShadesA);
+    read_clamped(raw, "textureShadesB", 1, 4, DEFAULT_RECIPE_INSTANCE.textureShadesB, r.textureShadesB);
+    read_clamped(raw, "textureSeedA", 0, 99999, DEFAULT_RECIPE_INSTANCE.textureSeedA, r.textureSeedA);
+    read_clamped(raw, "textureSeedB", 0, 99999, DEFAULT_RECIPE_INSTANCE.textureSeedB, r.textureSeedB);
+    read_clamped(raw, "cellScaleA", 2, 8, DEFAULT_RECIPE_INSTANCE.cellScaleA, r.cellScaleA);
+    read_clamped(raw, "cellScaleB", 2, 8, DEFAULT_RECIPE_INSTANCE.cellScaleB, r.cellScaleB);
+    read_clamped(raw, "rippleScaleA", 2, 8, DEFAULT_RECIPE_INSTANCE.rippleScaleA, r.rippleScaleA);
+    read_clamped(raw, "rippleScaleB", 2, 8, DEFAULT_RECIPE_INSTANCE.rippleScaleB, r.rippleScaleB);
+    read_clamped(raw, "geoScaleA", 1, 8, DEFAULT_RECIPE_INSTANCE.geoScaleA, r.geoScaleA);
+    read_clamped(raw, "geoScaleB", 1, 8, DEFAULT_RECIPE_INSTANCE.geoScaleB, r.geoScaleB);
 
     if (raw.contains("customTexHex") && raw["customTexHex"].is_object()) {
         const auto& ctex = raw["customTexHex"];
-        if (ctex.contains("terrainA") && ctex["terrainA"].is_array()) {
-            const auto& arr = ctex["terrainA"];
-            if (static_cast<int>(arr.size()) == r.textureShadesA + 1) {
-                std::vector<std::optional<std::string>> custom;
-                for (const auto& item : arr) {
-                    if (item.is_string() && is_hex_color(item.get<std::string>())) {
-                        custom.push_back(item.get<std::string>());
-                    } else {
-                        custom.push_back(std::nullopt);
-                    }
-                }
-                r.customTexHexA = custom;
-            }
+        if (auto customA = read_sparse_hex_array(ctex, "terrainA", r.textureShadesA + 1)) {
+            r.customTexHexA = *customA;
         }
-        if (ctex.contains("terrainB") && ctex["terrainB"].is_array()) {
-            const auto& arr = ctex["terrainB"];
-            if (static_cast<int>(arr.size()) == r.textureShadesB + 1) {
-                std::vector<std::optional<std::string>> custom;
-                for (const auto& item : arr) {
-                    if (item.is_string() && is_hex_color(item.get<std::string>())) {
-                        custom.push_back(item.get<std::string>());
-                    } else {
-                        custom.push_back(std::nullopt);
-                    }
-                }
-                r.customTexHexB = custom;
-            }
+        if (auto customB = read_sparse_hex_array(ctex, "terrainB", r.textureShadesB + 1)) {
+            r.customTexHexB = *customB;
         }
     }
 
     return r;
-}
-
-Recipe recipe_from_json(const nlohmann::json& j) {
-    return sanitize_recipe(j);
 }
 
 nlohmann::json recipe_to_json(const Recipe& r) {

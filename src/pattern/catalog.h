@@ -1,5 +1,6 @@
 #pragma once
 
+#include "pattern_ribbon.h"
 #include <string>
 #include <vector>
 #include <set>
@@ -52,7 +53,6 @@ std::set<int> used_texture_shades(
 );
 
 bool ribbon_uses_period(const std::string& id);
-bool ribbon_uses_invert(const std::string& id);
 double ribbon_min_width(const std::string& id);
 
 std::set<int> used_ribbon_shades(

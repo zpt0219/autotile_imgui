@@ -1,5 +1,6 @@
 #include "pattern_ribbon.h"
 #include "pattern_texture.h"
+#include "pattern_hash.h"
 #include "js_math.h"
 #include <algorithm>
 #include <cmath>
@@ -7,17 +8,11 @@
 
 namespace atm {
 
+// Ribbon seed perturbation salt. Reference: renderSheet.ts ribbonShadeAt()
 static const int32_t RIBBON_SALT = 0x2c9f;
 
 static inline double modp(double v, double m) {
     return std::fmod(std::fmod(v, m) + m, m);
-}
-
-static float hash01(int32_t ix, int32_t iy, int32_t seed) {
-    int32_t n = js_math::imul(ix, 374761393) + js_math::imul(iy, 668265263) + js_math::imul(seed, 1442695041);
-    n = js_math::imul(n ^ static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n), 13)), 1274126177);
-    uint32_t uval = static_cast<uint32_t>(n ^ static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n), 16)));
-    return static_cast<float>(static_cast<double>(uval) / 4294967296.0);
 }
 
 bool ribbon_uses_invert(const std::string& id) {
@@ -84,8 +79,7 @@ int ribbon_shade_at(
         return cap(1 + static_cast<int>(std::floor(static_cast<double>(shades - 1) * (1.0 - std::abs(2.0 * t - 1.0)))));
     }
     if (id == "wave") {
-        const double PI_D = 3.14159265358979323846;
-        double split = 0.5 + 0.35 * js_math::sin((2.0 * PI_D * sp) / T);
+        double split = 0.5 + 0.35 * js_math::sin((2.0 * js_math::PI * sp) / T);
         return (dp > split) ? cap(static_cast<int>(js_math::round(static_cast<double>(shades) * amount))) : 0;
     }
     if (id == "grain") {
@@ -99,6 +93,7 @@ int ribbon_shade_at(
         int ix = static_cast<int>(std::floor(sp));
         int iy = static_cast<int>(std::floor(dp * width_px));
         if (((ix + iy) & 1) == 1) return 0;
+        // Speckle noise salt (0x51). Reference: renderSheet.ts speckle()
         return (static_cast<double>(hash01(ix, iy, sd ^ 0x51)) < amount * 2.0) ? shades : 0;
     }
 

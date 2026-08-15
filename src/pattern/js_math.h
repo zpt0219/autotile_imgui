@@ -6,6 +6,8 @@
 namespace atm {
 namespace js_math {
 
+constexpr double PI = 3.14159265358979323846;
+
 // JS Math.imul(a, b) -> 32-bit integer multiplication
 inline int32_t imul(int32_t a, int32_t b) {
     return static_cast<int32_t>(static_cast<uint32_t>(a) * static_cast<uint32_t>(b));

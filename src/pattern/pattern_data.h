@@ -10,9 +10,6 @@ namespace pattern_data {
 constexpr float FIELD_STEP = 0.25f;
 constexpr int PATTERN_TILE_SIZE = 32;
 
-// Returns the 90 printable field chars (ASCII 35..126 excluding ' and \\)
-const char* get_field_chars();
-
 // Decodes a character to its integer index 0..89
 uint8_t char_to_value(char c);
 

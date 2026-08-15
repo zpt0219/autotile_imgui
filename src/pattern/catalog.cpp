@@ -132,35 +132,70 @@ const std::vector<GeoScaleItem>& geo_scales() {
     return scales;
 }
 
-int texture_period(const std::string& texture) {
-    static const std::vector<std::string> PERIOD_32 = {
-        "paving", "paving3", "paving5", "stone_floor", "breeze_block",
-        "hexagon", "isometric", "isometric_grid", "octagonal", "water",
-        "field", "rubble", "ripple", "ripple_diag", "cells", "square",
-        "nonslip", "brick_bond"
-    };
-    if (std::find(PERIOD_32.begin(), PERIOD_32.end(), texture) != PERIOD_32.end()) {
-        return 32;
+struct TextureDef {
+    const char* id;
+    int period;
+    bool uses_geo_scale;
+    int natural_geo_scale;
+    bool max_geo_scale_4;
+};
+
+static const TextureDef TEXTURE_DEFS[] = {
+    // id, period, uses_geo_scale, natural_geo_scale, max_geo_scale_4
+    { "none",           16, false, 1, false },
+    { "field",          32, false, 1, false },
+    { "rubble",         32, false, 1, false },
+    { "ripple",         32, false, 1, false },
+    { "ripple_diag",    32, false, 1, false },
+    { "water",          32, false, 1, false },
+    { "cells",          32, false, 1, false },
+    { "square",         32, true,  2, false },
+    { "hexagon",        32, true,  1, true  },
+    { "isometric",      32, true,  1, false },
+    { "isometric_grid", 32, true,  1, true  },
+    { "octagonal",      32, true,  2, false },
+    { "nonslip",        32, true,  4, true  },
+    { "brick_wall",     16, false, 1, false },
+    { "brick_bond",     32, true,  2, true  },
+    { "cobbles2",       16, false, 1, false },
+    { "brick_floor",    16, false, 1, false },
+    { "weave",          16, false, 1, false },
+    { "breeze_block",   32, false, 1, false },
+    { "paving",         32, false, 1, false },
+    { "paving3",        32, false, 1, false },
+    { "paving5",        32, false, 1, false },
+    { "stone_floor",    32, false, 1, false },
+    { "white",          16, false, 1, false },
+    { "blue",           16, false, 1, false },
+    { "ordered",        16, false, 1, false },
+};
+
+static const TextureDef* find_texture_def(const std::string& tex) {
+    for (const auto& def : TEXTURE_DEFS) {
+        if (tex == def.id) return &def;
     }
-    return 16;
+    return nullptr;
+}
+
+int texture_period(const std::string& texture) {
+    auto* def = find_texture_def(texture);
+    return def ? def->period : 16;
 }
 
 bool texture_uses_geo_scale(const std::string& texture) {
-    return texture == "isometric" || texture == "isometric_grid" || texture == "octagonal"
-        || texture == "square" || texture == "nonslip" || texture == "hexagon"
-        || texture == "brick_bond";
+    auto* def = find_texture_def(texture);
+    return def ? def->uses_geo_scale : false;
 }
 
 int natural_geo_scale(const std::string& texture) {
-    if (texture == "brick_bond") return 2;
-    if (texture == "square" || texture == "octagonal") return 2;
-    if (texture == "nonslip") return 4;
-    return 1;
+    auto* def = find_texture_def(texture);
+    return def ? def->natural_geo_scale : 1;
 }
 
 std::vector<GeoScaleItem> geo_scales_for(const std::string& texture) {
     const auto& all = geo_scales();
-    if (texture == "nonslip" || texture == "hexagon" || texture == "brick_bond" || texture == "isometric_grid") {
+    auto* def = find_texture_def(texture);
+    if (def && def->max_geo_scale_4) {
         std::vector<GeoScaleItem> filtered;
         for (const auto& item : all) {
             if (item.id <= 4) {

@@ -1,6 +1,7 @@
 #include "blob47_pattern.h"
 #include "pattern_data.h"
 #include "pattern_noise.h"
+#include "pattern_hash.h"
 #include "js_math.h"
 #include <algorithm>
 #include <cmath>
@@ -108,10 +109,7 @@ static double edge_noise(double u, double v, int32_t seed) {
         int32_t iper = static_cast<int32_t>(per);
         int32_t wx = ((ix % iper) + iper) % iper;
         int32_t wy = ((iy % iper) + iper) % iper;
-        int32_t n = js_math::imul(wx, 374761393) + js_math::imul(wy, 668265263) + js_math::imul(seed, 1442695041);
-        n = js_math::imul(n ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n), 13))), 1274126177);
-        uint32_t uval = static_cast<uint32_t>(n ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n), 16))));
-        return (static_cast<double>(uval) / 4294967296.0) * 2.0 - 1.0;
+        return (static_cast<double>(hash_bits(wx, wy, seed)) / 4294967296.0) * 2.0 - 1.0;
     };
     double a = h(x0, y0) * (1.0 - tx) + h(x0 + 1, y0) * tx;
     double b = h(x0, y0 + 1) * (1.0 - tx) + h(x0 + 1, y0 + 1) * tx;
@@ -136,75 +134,79 @@ static double sample_field(const char* field, int N, double u, double v) {
     return (a * (1.0 - ty) + b * ty) * static_cast<double>(pattern_data::FIELD_STEP);
 }
 
+static double wave_offset_at(
+    const char* field,
+    double u,
+    double v,
+    double d_base,
+    int edge_seed,
+    double off
+) {
+    double wavelength = 16.0;
+    double preset_amp = 1.4;
+    double phase = 0.0;
+    if (edge_seed != 0) {
+        // Phase hash for the wave pattern (salt: 0x1f3b2a). Reference: renderSheet.ts wave()
+        int32_t n1 = js_math::imul(edge_seed, 374761393) ^ 0x1f3b2a;
+        n1 = js_math::imul(n1 ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n1), 13))), 1274126177);
+        int32_t hash = std::abs(n1 ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n1), 16))));
+        wavelength = ((hash & 1) == 0) ? 16.0 : 32.0;
+        preset_amp = 1.3 + static_cast<double>(hash % 8) * 0.1;
+        phase = static_cast<double>(hash % 13);
+    }
+
+    double headroom = static_cast<double>(edge_jitter_amplitude("wave", static_cast<float>(off)));
+    double wave_amp = std::max(0.0, std::min(preset_amp, headroom));
+
+    double gx = sample_field(field, pattern_data::PATTERN_TILE_SIZE, u + 0.5, v) - sample_field(field, pattern_data::PATTERN_TILE_SIZE, u - 0.5, v);
+    double gy = sample_field(field, pattern_data::PATTERN_TILE_SIZE, u, v + 0.5) - sample_field(field, pattern_data::PATTERN_TILE_SIZE, u, v - 0.5);
+    double len_sq = gx * gx + gy * gy;
+    double wy2 = 1.0;
+    double wx2 = 0.0;
+    if (len_sq > 1e-4) {
+        wy2 = (gy * gy) / len_sq;
+        wx2 = (gx * gx) / len_sq;
+    }
+
+    double wu = js_math::sin((2.0 * js_math::PI * (u + phase)) / wavelength);
+    double wv = js_math::sin((2.0 * js_math::PI * (v + phase)) / wavelength);
+    double wave_val = wy2 * wu + wx2 * wv;
+
+    double border_fade = std::max(0.0, std::min(1.0, (d_base - 2.5) / 2.0));
+    return wave_amp * border_fade * wave_val;
+}
+
 std::string pattern_levels_for_mask(
     const std::string& pattern,
     int mask,
-    float offset_px,
-    int tile_size,
-    int band_steps,
-    bool hard_edge_b,
-    int edge_seed,
-    float outline_width
+    const FieldParams& params
 ) {
+    int tile_size = params.tile_size;
     if (mask < 0) {
         return std::string(tile_size * tile_size, '0');
     }
+
     const char* field = pattern_field_for_mask(pattern, mask);
     if (!field) {
         return std::string(tile_size * tile_size, '0');
     }
 
-    double off = static_cast<double>(clamp_offset(pattern, offset_px));
-    double amp = (edge_seed == 0) ? 0.0 : static_cast<double>(edge_jitter_amplitude(pattern, static_cast<float>(off)));
-    auto bands = bands_for(pattern, band_steps, hard_edge_b, outline_width);
+    double off = static_cast<double>(clamp_offset(pattern, params.offset_px));
+    double amp = (params.edge_seed == 0) ? 0.0 : static_cast<double>(edge_jitter_amplitude(pattern, static_cast<float>(off)));
+    auto bands = bands_for(pattern, params.band_steps, params.hard_edge_b, params.outline_width);
     double scale = static_cast<double>(pattern_data::PATTERN_TILE_SIZE) / static_cast<double>(tile_size);
+    bool is_wave = (pattern == "wave");
 
     std::string out;
     out.reserve(tile_size * tile_size);
-
-    const double PI_D = 3.14159265358979323846;
 
     for (int y = 0; y < tile_size; ++y) {
         double v = (static_cast<double>(y) + 0.5) * scale - 0.5;
         for (int x = 0; x < tile_size; ++x) {
             double u = (static_cast<double>(x) + 0.5) * scale - 0.5;
-            double d_base = sample_field(field, 32, u, v);
-            double wave_offset = 0.0;
-            if (pattern == "wave") {
-                double wavelength = 16.0;
-                double preset_amp = 1.4;
-                double phase = 0.0;
-                if (edge_seed != 0) {
-                    int32_t n1 = js_math::imul(edge_seed, 374761393) ^ 0x1f3b2a;
-                    n1 = js_math::imul(n1 ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n1), 13))), 1274126177);
-                    int32_t hash = std::abs(n1 ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n1), 16))));
-                    wavelength = ((hash & 1) == 0) ? 16.0 : 32.0;
-                    preset_amp = 1.3 + static_cast<double>(hash % 8) * 0.1;
-                    phase = static_cast<double>(hash % 13);
-                }
-
-                double headroom = static_cast<double>(edge_jitter_amplitude("wave", static_cast<float>(off)));
-                double wave_amp = std::max(0.0, std::min(preset_amp, headroom));
-
-                double gx = sample_field(field, 32, u + 0.5, v) - sample_field(field, 32, u - 0.5, v);
-                double gy = sample_field(field, 32, u, v + 0.5) - sample_field(field, 32, u, v - 0.5);
-                double len_sq = gx * gx + gy * gy;
-                double wy2 = 1.0;
-                double wx2 = 0.0;
-                if (len_sq > 1e-4) {
-                    wy2 = (gy * gy) / len_sq;
-                    wx2 = (gx * gx) / len_sq;
-                }
-
-                double wu = js_math::sin((2.0 * PI_D * (u + phase)) / wavelength);
-                double wv = js_math::sin((2.0 * PI_D * (v + phase)) / wavelength);
-                double wave_val = wy2 * wu + wx2 * wv;
-
-                double border_fade = std::max(0.0, std::min(1.0, (d_base - 2.5) / 2.0));
-                wave_offset = wave_amp * border_fade * wave_val;
-            }
-
-            double jitter = (amp > 0.0 && pattern != "wave") ? amp * edge_noise(u, v, edge_seed) : 0.0;
+            double d_base = sample_field(field, pattern_data::PATTERN_TILE_SIZE, u, v);
+            double wave_offset = is_wave ? wave_offset_at(field, u, v, d_base, params.edge_seed, off) : 0.0;
+            double jitter = (amp > 0.0 && !is_wave) ? amp * edge_noise(u, v, params.edge_seed) : 0.0;
             double d = d_base + off + wave_offset + jitter;
 
             size_t level = 0;
@@ -245,13 +247,9 @@ static double derivative(const char* field, int N, double u, double v, bool hori
 BandCoords pattern_band_coords(
     const std::string& pattern,
     int mask,
-    float offset_px,
-    int tile_size,
-    int band_steps,
-    bool hard_edge_b,
-    int edge_seed,
-    float outline_width
+    const FieldParams& params
 ) {
+    int tile_size = params.tile_size;
     int n = tile_size * tile_size;
     BandCoords coords;
     coords.s.resize(n, 0.0f);
@@ -261,31 +259,30 @@ BandCoords pattern_band_coords(
     const char* field = pattern_field_for_mask(pattern, mask);
     if (!field) return coords;
 
-    double off = static_cast<double>(clamp_offset(pattern, offset_px));
-    double amp = (edge_seed == 0) ? 0.0 : static_cast<double>(edge_jitter_amplitude(pattern, static_cast<float>(off)));
-    auto bands = bands_for(pattern, band_steps, hard_edge_b, outline_width);
+    double off = static_cast<double>(clamp_offset(pattern, params.offset_px));
+    double amp = (params.edge_seed == 0) ? 0.0 : static_cast<double>(edge_jitter_amplitude(pattern, static_cast<float>(off)));
+    auto bands = bands_for(pattern, params.band_steps, params.hard_edge_b, params.outline_width);
     double inner = static_cast<double>(bands[1]);
     double width = std::max(1e-6, static_cast<double>(bands[2] - bands[1]));
     double scale = static_cast<double>(pattern_data::PATTERN_TILE_SIZE) / static_cast<double>(tile_size);
-    const double PI_D = 3.14159265358979323846;
 
     for (int y = 0; y < tile_size; ++y) {
         double v = (static_cast<double>(y) + 0.5) * scale - 0.5;
         for (int x = 0; x < tile_size; ++x) {
             double u = (static_cast<double>(x) + 0.5) * scale - 0.5;
-            double jitter = (amp > 0.0) ? amp * edge_noise(u, v, edge_seed) : 0.0;
-            double d = sample_field(field, 32, u, v) + off + jitter;
+            double jitter = (amp > 0.0) ? amp * edge_noise(u, v, params.edge_seed) : 0.0;
+            double d = sample_field(field, pattern_data::PATTERN_TILE_SIZE, u, v) + off + jitter;
             int i = y * tile_size + x;
             coords.depth[i] = static_cast<float>(std::max(0.0, std::min(1.0, (d - inner) / width)));
 
             if (d < inner || d >= static_cast<double>(bands[2])) continue;
 
-            double gx = derivative(field, 32, u, v, true);
-            double gy = derivative(field, 32, u, v, false);
+            double gx = derivative(field, pattern_data::PATTERN_TILE_SIZE, u, v, true);
+            double gy = derivative(field, pattern_data::PATTERN_TILE_SIZE, u, v, false);
             double ang = js_math::atan2(gx, -gy);
-            if (ang < 0.0) ang += PI_D;
-            if (ang >= PI_D) ang -= PI_D;
-            int bucket = static_cast<int>(std::floor((ang + (PI_D / 8.0)) / (PI_D / 4.0))) % 4;
+            if (ang < 0.0) ang += js_math::PI;
+            if (ang >= js_math::PI) ang -= js_math::PI;
+            int bucket = static_cast<int>(std::floor((ang + (js_math::PI / 8.0)) / (js_math::PI / 4.0))) % 4;
 
             coords.s[i] = (bucket == 0) ? static_cast<float>(x)
                         : (bucket == 1) ? static_cast<float>(x + y)

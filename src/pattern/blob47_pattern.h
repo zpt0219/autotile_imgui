@@ -59,16 +59,20 @@ float edge_jitter_amplitude(const std::string& pattern, float offset_px = 0.0f);
 // Flat distance field (1024 chars) for a canonical mask
 const char* pattern_field_for_mask(const std::string& pattern, int mask);
 
+struct FieldParams {
+    float offset_px = 0.0f;
+    int tile_size = 32;
+    int band_steps = DEFAULT_BAND_STEPS;
+    bool hard_edge_b = false;
+    int edge_seed = 0;
+    float outline_width = -1.0f;
+};
+
 // Generate 1024-char level grid string (digits 0..4) for a tile mask
 std::string pattern_levels_for_mask(
     const std::string& pattern,
     int mask,
-    float offset_px = 0.0f,
-    int tile_size = 32,
-    int band_steps = DEFAULT_BAND_STEPS,
-    bool hard_edge_b = false,
-    int edge_seed = 0,
-    float outline_width = -1.0f
+    const FieldParams& params = {}
 );
 
 struct BandCoords {
@@ -80,12 +84,7 @@ struct BandCoords {
 BandCoords pattern_band_coords(
     const std::string& pattern,
     int mask,
-    float offset_px = 0.0f,
-    int tile_size = 32,
-    int band_steps = DEFAULT_BAND_STEPS,
-    bool hard_edge_b = false,
-    int edge_seed = 0,
-    float outline_width = -1.0f
+    const FieldParams& params = {}
 );
 
 } // namespace atm

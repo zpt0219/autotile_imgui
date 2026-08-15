@@ -84,7 +84,6 @@ void sync_texture_overrides(Recipe& r);
 void sync_all_overrides(Recipe& r);
 
 Recipe sanitize_recipe(const nlohmann::json& raw);
-Recipe recipe_from_json(const nlohmann::json& j);
 nlohmann::json recipe_to_json(const Recipe& recipe);
 
 } // namespace atm

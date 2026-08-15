@@ -35,7 +35,4 @@ int blob_index_for_mask(uint8_t mask);
 // 0..47 slot on sheet for raw neighbourhood mask
 int blob_slot_for_mask(uint8_t mask);
 
-// Coverage of terrain A at (tx, ty) inside center cell [0, 1]
-float blob_weight_at(float tx, float ty, uint8_t mask, float radius, float corner_rounding = 0.0f);
-
 } // namespace atm
