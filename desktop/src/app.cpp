@@ -104,12 +104,15 @@ bool App::initialize() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-    // Load Chinese font support (fallback to default font if not found)
+    // Load Chinese font support (prioritize bundled NotoSansSC.ttf, then system fallbacks)
     const char* font_paths[] = {
-        "C:/Windows/Fonts/msyh.ttc",            // Microsoft YaHei (Windows)
+        "assets/NotoSansSC.ttf",               // Bundled next to working directory
+        "../assets/NotoSansSC.ttf",            // Bundled relative to build dir
+        "../../assets/NotoSansSC.ttf",
+        "C:/Windows/Fonts/msyh.ttc",            // Microsoft YaHei (Windows fallback)
         "C:/Windows/Fonts/msyh.ttf",
         "C:/Windows/Fonts/simhei.ttf",
-        "C:/Windows/Fonts/simsun.ttc",          // SimSun (Windows)
+        "C:/Windows/Fonts/simsun.ttc",          // SimSun (Windows fallback)
         "/System/Library/Fonts/PingFang.ttc",  // macOS
         "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc" // Linux
     };

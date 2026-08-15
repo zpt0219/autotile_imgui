@@ -91,3 +91,10 @@ endif()
 if(ENABLE_ASAN)
     enable_sanitizers(autotile_mixer)
 endif()
+
+# Copy assets folder to build directory next to executable
+add_custom_command(TARGET autotile_mixer POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/assets
+        $<TARGET_FILE_DIR:autotile_mixer>/assets
+)
