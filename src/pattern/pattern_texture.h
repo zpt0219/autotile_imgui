@@ -21,7 +21,8 @@ extern const RGB WATER_DOT_COLOUR;
 extern const RGB DEFAULT_TEXTURE_TERRAIN_A;
 extern const RGB DEFAULT_TEXTURE_TERRAIN_B;
 
-bool texture_uses_amount(const std::string& texture);
+// texture_uses_amount() and the rest of the per-texture switches now live on
+// the registry in catalog.h.
 
 RGB texture_colour(RGB c, float t);
 

@@ -18,6 +18,14 @@ static const Cmd* cast_merge_target(const LibraryCommand* self, const LibraryCom
     return o;
 }
 
+// Run a field edit forward: snapshot the old values once, write the new ones,
+// then (optionally) re-sync any colour-override array whose length this edit
+// governs. See the invariant block in model/recipe.h.
+//
+// `sync` belongs to the forward path only. `undo_recipe_mutation` deliberately
+// has no equivalent: undo restores the snapshot verbatim, because re-syncing on
+// the way back would rebuild trimmed levels from computed colours and quietly
+// lose the user's. That was a real bug once — see commit e790a50.
 template <typename InitFn, typename ApplyFn, typename SyncFn = std::nullptr_t>
 static EditorResult execute_recipe_mutation(
     LibraryHandler& handler,
@@ -73,6 +81,8 @@ EditorResult UpdateRecipeColoursCommand::execute(LibraryHandler& handler, Librar
         handler, target_hash_, initialized_,
         [&](const Recipe& r) { old_roles_ = r.roleHex; old_shades_ = r.customShadesHex; },
         [&](Recipe& r) { r.roleHex = new_roles_; r.customShadesHex = new_shades_; },
+        // Defensive sync: a caller that built the array against a stale
+        // bandSteps would otherwise hand over one the sanitiser drops.
         DIRTY_COLOUR, cb, flag_, sync_band_overrides
     );
 }
@@ -148,6 +158,8 @@ EditorResult UpdateRecipeBandCommand::execute(LibraryHandler& handler, LibraryCa
             old_hard_edge_b_ = r.hardEdgeB;
             old_transparent_b_ = r.transparentB;
             old_band_bias_ = r.bandBias;
+            // bandSteps owns the length of customShadesHex, so the resize the
+            // sync below performs is part of this edit and must be undone with it.
             old_custom_shades_ = r.customShadesHex;
         },
         [&](Recipe& r) {
@@ -166,6 +178,8 @@ EditorResult UpdateRecipeBandCommand::undo(LibraryHandler& handler, LibraryCallb
         r.hardEdgeB = old_hard_edge_b_;
         r.transparentB = old_transparent_b_;
         r.bandBias = old_band_bias_;
+        // Restore rather than re-sync: growing then shrinking would otherwise
+        // leave the trimmed levels holding computed colours instead of the user's.
         r.customShadesHex = old_custom_shades_;
     }, DIRTY_SILHOUETTE, cb);
 }
@@ -255,6 +269,8 @@ EditorResult UpdateRecipeRibbonCommand::execute(LibraryHandler& handler, Library
             r.ribbonInvert = new_invert_;
             r.customRibbonHex = new_custom_hex_;
         },
+        // ribbonShades owns this array's length. Enforced here rather than at
+        // the call sites so a caller passing the previous array cannot invalidate it.
         DIRTY_RIBBON, cb, flag_, sync_ribbon_overrides
     );
 }
@@ -316,6 +332,7 @@ EditorResult UpdateRecipeTextureCommand::execute(LibraryHandler& handler, Librar
         handler, target_hash_, initialized_,
         [&](const Recipe& r) { old_recipe_ = r; },
         [&](Recipe& r) { copy_texture_fields(r, new_recipe_); },
+        // textureShadesA/B own these arrays' lengths.
         static_cast<DirtyMask>(DIRTY_TEXTURE_A | DIRTY_TEXTURE_B), cb, flag_, sync_texture_overrides
     );
 }

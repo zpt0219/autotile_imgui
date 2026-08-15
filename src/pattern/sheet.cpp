@@ -1,6 +1,7 @@
 #include "sheet.h"
 #include "pattern_data.h"
 #include "pattern_texture.h"
+#include "catalog.h"   // texture_uses_amount() and the rest of the registry
 #include "blob47.h"
 #include <algorithm>
 #include <cstring>

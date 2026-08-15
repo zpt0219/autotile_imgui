@@ -1,8 +1,7 @@
 #include "recipe.h"
 #include "pattern/js_math.h"
 #include "pattern/pattern_paint.h"
-#include <unordered_set>
-#include <regex>
+#include "pattern/catalog.h"
 #include <cmath>
 
 namespace atm {
@@ -97,11 +96,13 @@ static void read_bool(const nlohmann::json& raw, const char* key, bool& out) {
     }
 }
 
+// `is_known` is one of the catalogue predicates from pattern/catalog.h, so the
+// whitelist cannot drift away from what the pickers actually offer.
 static void read_enum(const nlohmann::json& raw, const char* key,
-                      const std::unordered_set<std::string>& valid, std::string& out) {
+                      bool (*is_known)(const std::string&), std::string& out) {
     if (raw.contains(key) && raw[key].is_string()) {
         std::string s = raw[key].get<std::string>();
-        if (valid.count(s)) out = s;
+        if (is_known(s)) out = s;
     }
 }
 
@@ -139,25 +140,6 @@ read_sparse_hex_array(const nlohmann::json& raw, const char* key, int expected_l
     return custom;
 }
 
-static const std::unordered_set<std::string> VALID_PATTERNS = {
-    "square", "sharp", "rounded", "wave", "jagged", "gravel",
-    "boulder", "thorn", "coast", "moss", "billow"
-};
-
-static const std::unordered_set<std::string> VALID_RIBBONS = {
-    "none", "bevel", "dashes", "ticks", "beads", "rope", "wave", "grain", "speckle",
-    "along_brick_wall", "along_cobbles2", "along_weave", "along_stone_floor",
-    "along_breeze_block", "along_octagonal"
-};
-
-static const std::unordered_set<std::string> VALID_TEXTURES = {
-    "none", "white", "blue", "ordered", "ripple", "ripple_diag", "cells",
-    "breeze_block", "brick_wall", "cobbles2", "brick_floor", "hexagon",
-    "isometric", "isometric_grid", "octagonal", "square", "weave",
-    "paving", "paving3", "paving5", "stone_floor", "water", "brick_bond",
-    "field", "rubble", "nonslip"
-};
-
 Recipe sanitize_recipe(const nlohmann::json& raw) {
     if (!raw.is_object()) return DEFAULT_RECIPE_INSTANCE;
 
@@ -175,7 +157,7 @@ Recipe sanitize_recipe(const nlohmann::json& raw) {
         read_hex("edge",     r.roleHex.edge);
     }
 
-    read_enum(raw, "patternId", VALID_PATTERNS, r.patternId);
+    read_enum(raw, "patternId", is_known_pattern, r.patternId);
     read_clamped(raw, "edgeSeed", 0, 99999, DEFAULT_RECIPE_INSTANCE.edgeSeed, r.edgeSeed);
     read_clamped(raw, "outlineWidth", 1, 4, DEFAULT_RECIPE_INSTANCE.outlineWidth, r.outlineWidth);
     read_clamped(raw, "bandSteps", 3, 5, DEFAULT_RECIPE_INSTANCE.bandSteps, r.bandSteps);
@@ -201,7 +183,7 @@ Recipe sanitize_recipe(const nlohmann::json& raw) {
     read_clamped(raw, "patternNoiseSeed", 0, 99999, DEFAULT_RECIPE_INSTANCE.patternNoiseSeed, r.patternNoiseSeed);
     read_clamped(raw, "patternNoiseStrength", 0.0, 2.0, DEFAULT_RECIPE_INSTANCE.patternNoiseStrength, r.patternNoiseStrength);
 
-    read_enum(raw, "ribbonAlgo", VALID_RIBBONS, r.ribbonAlgo);
+    read_enum(raw, "ribbonAlgo", is_known_ribbon, r.ribbonAlgo);
     read_clamped(raw, "ribbonAmount", 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.ribbonAmount, r.ribbonAmount);
     read_clamped(raw, "ribbonPeriod", 1, 8, DEFAULT_RECIPE_INSTANCE.ribbonPeriod, r.ribbonPeriod);
     read_clamped(raw, "ribbonShades", 1, 4, DEFAULT_RECIPE_INSTANCE.ribbonShades, r.ribbonShades);
@@ -211,8 +193,8 @@ Recipe sanitize_recipe(const nlohmann::json& raw) {
         r.customRibbonHex = *custom;
     }
 
-    read_enum(raw, "textureAlgoA", VALID_TEXTURES, r.textureAlgoA);
-    read_enum(raw, "textureAlgoB", VALID_TEXTURES, r.textureAlgoB);
+    read_enum(raw, "textureAlgoA", is_known_texture, r.textureAlgoA);
+    read_enum(raw, "textureAlgoB", is_known_texture, r.textureAlgoB);
     read_clamped(raw, "textureAmountA", 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.textureAmountA, r.textureAmountA);
     read_clamped(raw, "textureAmountB", 0.0, 1.0, DEFAULT_RECIPE_INSTANCE.textureAmountB, r.textureAmountB);
     read_clamped(raw, "textureShadesA", 1, 4, DEFAULT_RECIPE_INSTANCE.textureShadesA, r.textureShadesA);

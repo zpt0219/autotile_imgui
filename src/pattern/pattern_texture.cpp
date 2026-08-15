@@ -2,11 +2,11 @@
 #include "texture_tables.h"
 #include "pattern_noise.h"
 #include "pattern_hash.h"
+#include "catalog.h"
 #include "js_math.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <unordered_set>
 
 namespace atm {
 
@@ -20,16 +20,6 @@ static inline int wrapN(int v, int n) {
 
 static inline double wrapN_f(double v, double n) {
     return std::fmod(std::fmod(v, n) + n, n);
-}
-
-static const std::unordered_set<std::string> NO_AMOUNT = {
-    "cells", "square", "hexagon", "isometric", "isometric_grid", "octagonal",
-    "brick_wall", "brick_bond", "cobbles2", "brick_floor", "weave", "breeze_block",
-    "paving", "paving3", "paving5", "stone_floor", "field", "rubble"
-};
-
-bool texture_uses_amount(const std::string& texture) {
-    return texture != "none" && !NO_AMOUNT.count(texture);
 }
 
 static const int BAKED_RANKS = 4;
@@ -372,10 +362,7 @@ int texture_shade_at(
     if (texture == "paving3") return baked_shade(PAVING3, 32, x, y, s, amount, shades);
     if (texture == "paving5") return baked_shade(PAVING5, 32, x, y, s, amount, shades);
 
-    static const std::unordered_set<std::string> JOINT_AT_RANK_0_SET = {
-        "brick_wall", "cobbles2", "brick_floor", "breeze_block", "stone_floor"
-    };
-    bool rot = JOINT_AT_RANK_0_SET.count(texture) > 0;
+    bool rot = texture_joint_at_rank_0(texture);
 
     if (texture == "stone_floor") return baked_shade(STONE_FLOOR, 32, x, y, s, amount, shades, rot);
     if (texture == "breeze_block") return baked_shade(BREEZE_BLOCK, 32, x, y, s, amount, shades, rot);

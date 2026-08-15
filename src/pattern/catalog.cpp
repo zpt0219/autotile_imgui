@@ -34,60 +34,129 @@ const std::vector<CatalogGroup>& pattern_groups() {
     return groups;
 }
 
+// --- the texture registry --------------------------------------------------
+//
+// One row per texture, holding everything declarative about it. This table is
+// the single source of truth for the picker (grouping + labels), the sanitiser
+// whitelist, and the per-texture switches the renderer reads. Adding a texture
+// means adding one row here, one row to `TEXTURES` in `codec/recipe_codec.cpp`
+// (append only — its index is the share-code byte) and the algorithm itself in
+// `pattern_texture.cpp`.
+//
+// Row order is the picker's display order; it must stay grouped, because
+// `texture_groups()` is built by walking this table in order.
+
+enum class TextureGroup {
+    None,
+    Nature,
+    Procedural,
+    Masonry,
+    Speckle
+};
+
+struct TextureDef {
+    const char*  id;
+    TextureGroup group;
+    const char*  zh;
+    const char*  en;
+    int  period;            // sampling period in px: 16 or 32
+    bool uses_amount;       // is the "amount" slider live for this texture
+    bool joint_at_rank_0;   // baked table keeps the joint at rank 0, not BAKED_RANKS
+    bool uses_geo_scale;
+    int  natural_geo_scale;
+    bool max_geo_scale_4;   // picker stops at 4 rather than 8
+};
+
+static const TextureDef TEXTURE_DEFS[] = {
+    { "none",           TextureGroup::None,       "无纹理", "None",
+      16, false, false, false, 1, false },
+
+    { "field",          TextureGroup::Nature,     "草地颗粒 · Field", "Field — grassy ground",
+      32, false, false, false, 1, false },
+    { "rubble",         TextureGroup::Nature,     "碎石地面 · Rubble", "Rubble — broken stone",
+      32, false, false, false, 1, false },
+    { "ripple",         TextureGroup::Nature,     "水面波纹 · Ripples", "Ripples — short horizontal dashes",
+      32, true,  false, false, 1, false },
+    { "ripple_diag",    TextureGroup::Nature,     "斜向水波 · Diagonal Ripples", "Diagonal Ripples — 45° short dashes",
+      32, true,  false, false, 1, false },
+    { "water",          TextureGroup::Nature,     "水面边线 · Water", "Water — edge lines only",
+      32, true,  false, false, 1, false },
+
+    { "cells",          TextureGroup::Procedural, "多边形细胞 · Voronoi 细胞网格", "Polygonal Cells — Voronoi cell mesh",
+      32, false, false, false, 1, false },
+    { "square",         TextureGroup::Procedural, "正方形铺砖 · 可调尺寸", "Square — plain square paving, sizeable",
+      32, false, false, true,  2, false },
+    { "hexagon",        TextureGroup::Procedural, "规则六边形 · 可调尺寸", "Hexagon — regular hexagonal tiles, sizeable",
+      32, false, false, true,  1, true  },
+    { "isometric",      TextureGroup::Procedural, "等距菱形块 · 可调尺寸", "Isometric — diamond blocks, sizeable",
+      32, false, false, true,  1, false },
+    { "isometric_grid", TextureGroup::Procedural, "等距立体方块 · 可调尺寸", "Isometric Grid — 3D cube mesh, sizeable",
+      32, false, false, true,  1, true  },
+    { "octagonal",      TextureGroup::Procedural, "八边切角砖 (32px)", "Octagonal — chamfered square tiles (32)",
+      32, false, false, true,  2, false },
+    { "nonslip",        TextureGroup::Procedural, "交叉防滑纹 · 可调尺寸", "Non-slip — textured grip, sizeable",
+      32, true,  false, true,  4, true  },
+
+    { "brick_wall",     TextureGroup::Masonry,    "错缝砖墙 (32px)", "Brick Wall — running-bond masonry (32)",
+      16, false, true,  false, 1, false },
+    { "brick_bond",     TextureGroup::Masonry,    "程序化错缝砖 · 可调尺寸", "Running Bond — procedural offset bricks, sizeable",
+      32, false, false, true,  2, true  },
+    { "cobbles2",       TextureGroup::Masonry,    "细密错缝砖 (16px)", "Cobbles2 — fine running-bond bricks",
+      16, false, true,  false, 1, false },
+    { "brick_floor",    TextureGroup::Masonry,    "45° 斜铺砖 (16px)", "Brick Floor — diagonal 45° bond",
+      16, false, true,  false, 1, false },
+    { "weave",          TextureGroup::Masonry,    "菱格编织砖 (16px)", "Weave — diagonal interlocking bricks",
+      16, false, false, false, 1, false },
+    { "breeze_block",   TextureGroup::Masonry,    "镂空通风砖 (32px)", "Breeze Block — perforated masonry (32)",
+      32, false, true,  false, 1, false },
+    { "paving",         TextureGroup::Masonry,    "乱砌石板 (32px)", "Paving — random ashlar flags (32)",
+      32, false, false, false, 1, false },
+    { "paving3",        TextureGroup::Masonry,    "等距立体方块 (32px)", "Paving3 — isometric cubes (32)",
+      32, false, false, false, 1, false },
+    { "paving5",        TextureGroup::Masonry,    "曲边咬合铺砖 (32px)", "Paving5 — interlocking curved pavers (32)",
+      32, false, false, false, 1, false },
+    { "stone_floor",    TextureGroup::Masonry,    "不规则石板地面 (32px)", "Stone Floor — irregular stone slabs (32)",
+      32, false, true,  false, 1, false },
+
+    { "white",          TextureGroup::Speckle,    "白噪散点 · 随机沙粒", "White speckle — random sand",
+      16, true,  false, false, 1, false },
+    { "blue",           TextureGroup::Speckle,    "蓝噪散点 · 均匀细颗粒", "Blue speckle — even fine grain",
+      16, true,  false, false, 1, false },
+    { "ordered",        TextureGroup::Speckle,    "有序网点 · 规则半调", "Ordered — regular halftone",
+      16, true,  false, false, 1, false },
+};
+
+static const TextureDef* find_texture_def(const std::string& tex) {
+    for (const auto& def : TEXTURE_DEFS) {
+        if (tex == def.id) return &def;
+    }
+    return nullptr;
+}
+
 const std::vector<CatalogGroup>& texture_groups() {
-    static const std::vector<CatalogGroup> groups = {
-        {
-            "无纹理", "None",
-            {
-                { "none", "无纹理", "None" },
-            }
-        },
-        {
-            "自然与有机", "Nature & Organic",
-            {
-                { "field", "草地颗粒 · Field", "Field — grassy ground" },
-                { "rubble", "碎石地面 · Rubble", "Rubble — broken stone" },
-                { "ripple", "水面波纹 · Ripples", "Ripples — short horizontal dashes" },
-                { "ripple_diag", "斜向水波 · Diagonal Ripples", "Diagonal Ripples — 45° short dashes" },
-                { "water", "水面边线 · Water", "Water — edge lines only" },
-            }
-        },
-        {
-            "程序与几何", "Procedural & Geometry",
-            {
-                { "cells", "多边形细胞 · Voronoi 细胞网格", "Polygonal Cells — Voronoi cell mesh" },
-                { "square", "正方形铺砖 · 可调尺寸", "Square — plain square paving, sizeable" },
-                { "hexagon", "规则六边形 · 可调尺寸", "Hexagon — regular hexagonal tiles, sizeable" },
-                { "isometric", "等距菱形块 · 可调尺寸", "Isometric — diamond blocks, sizeable" },
-                { "isometric_grid", "等距立体方块 · 可调尺寸", "Isometric Grid — 3D cube mesh, sizeable" },
-                { "octagonal", "八边切角砖 (32px)", "Octagonal — chamfered square tiles (32)" },
-                { "nonslip", "交叉防滑纹 · 可调尺寸", "Non-slip — textured grip, sizeable" },
-            }
-        },
-        {
-            "砖石与石板铺装", "Masonry & Paving",
-            {
-                { "brick_wall", "错缝砖墙 (32px)", "Brick Wall — running-bond masonry (32)" },
-                { "brick_bond", "程序化错缝砖 · 可调尺寸", "Running Bond — procedural offset bricks, sizeable" },
-                { "cobbles2", "细密错缝砖 (16px)", "Cobbles2 — fine running-bond bricks" },
-                { "brick_floor", "45° 斜铺砖 (16px)", "Brick Floor — diagonal 45° bond" },
-                { "weave", "菱格编织砖 (16px)", "Weave — diagonal interlocking bricks" },
-                { "breeze_block", "镂空通风砖 (32px)", "Breeze Block — perforated masonry (32)" },
-                { "paving", "乱砌石板 (32px)", "Paving — random ashlar flags (32)" },
-                { "paving3", "等距立体方块 (32px)", "Paving3 — isometric cubes (32)" },
-                { "paving5", "曲边咬合铺砖 (32px)", "Paving5 — interlocking curved pavers (32)" },
-                { "stone_floor", "不规则石板地面 (32px)", "Stone Floor — irregular stone slabs (32)" },
-            }
-        },
-        {
-            "散点与半调噪声", "Speckle & Noise",
-            {
-                { "white", "白噪散点 · 随机沙粒", "White speckle — random sand" },
-                { "blue", "蓝噪散点 · 均匀细颗粒", "Blue speckle — even fine grain" },
-                { "ordered", "有序网点 · 规则半调", "Ordered — regular halftone" },
-            }
-        }
+    struct GroupLabel { TextureGroup group; const char* zh; const char* en; };
+    static const GroupLabel LABELS[] = {
+        { TextureGroup::None,       "无纹理", "None" },
+        { TextureGroup::Nature,     "自然与有机", "Nature & Organic" },
+        { TextureGroup::Procedural, "程序与几何", "Procedural & Geometry" },
+        { TextureGroup::Masonry,    "砖石与石板铺装", "Masonry & Paving" },
+        { TextureGroup::Speckle,    "散点与半调噪声", "Speckle & Noise" },
     };
+
+    static const std::vector<CatalogGroup> groups = [] {
+        std::vector<CatalogGroup> out;
+        out.reserve(sizeof(LABELS) / sizeof(LABELS[0]));
+        for (const auto& label : LABELS) {
+            CatalogGroup group{ label.zh, label.en, {} };
+            for (const auto& def : TEXTURE_DEFS) {
+                if (def.group == label.group) {
+                    group.items.push_back({ def.id, def.zh, def.en });
+                }
+            }
+            out.push_back(std::move(group));
+        }
+        return out;
+    }();
     return groups;
 }
 
@@ -132,51 +201,6 @@ const std::vector<GeoScaleItem>& geo_scales() {
     return scales;
 }
 
-struct TextureDef {
-    const char* id;
-    int period;
-    bool uses_geo_scale;
-    int natural_geo_scale;
-    bool max_geo_scale_4;
-};
-
-static const TextureDef TEXTURE_DEFS[] = {
-    // id, period, uses_geo_scale, natural_geo_scale, max_geo_scale_4
-    { "none",           16, false, 1, false },
-    { "field",          32, false, 1, false },
-    { "rubble",         32, false, 1, false },
-    { "ripple",         32, false, 1, false },
-    { "ripple_diag",    32, false, 1, false },
-    { "water",          32, false, 1, false },
-    { "cells",          32, false, 1, false },
-    { "square",         32, true,  2, false },
-    { "hexagon",        32, true,  1, true  },
-    { "isometric",      32, true,  1, false },
-    { "isometric_grid", 32, true,  1, true  },
-    { "octagonal",      32, true,  2, false },
-    { "nonslip",        32, true,  4, true  },
-    { "brick_wall",     16, false, 1, false },
-    { "brick_bond",     32, true,  2, true  },
-    { "cobbles2",       16, false, 1, false },
-    { "brick_floor",    16, false, 1, false },
-    { "weave",          16, false, 1, false },
-    { "breeze_block",   32, false, 1, false },
-    { "paving",         32, false, 1, false },
-    { "paving3",        32, false, 1, false },
-    { "paving5",        32, false, 1, false },
-    { "stone_floor",    32, false, 1, false },
-    { "white",          16, false, 1, false },
-    { "blue",           16, false, 1, false },
-    { "ordered",        16, false, 1, false },
-};
-
-static const TextureDef* find_texture_def(const std::string& tex) {
-    for (const auto& def : TEXTURE_DEFS) {
-        if (tex == def.id) return &def;
-    }
-    return nullptr;
-}
-
 int texture_period(const std::string& texture) {
     auto* def = find_texture_def(texture);
     return def ? def->period : 16;
@@ -190,6 +214,39 @@ bool texture_uses_geo_scale(const std::string& texture) {
 int natural_geo_scale(const std::string& texture) {
     auto* def = find_texture_def(texture);
     return def ? def->natural_geo_scale : 1;
+}
+
+bool texture_uses_amount(const std::string& texture) {
+    // An id that is not in the registry keeps the old fallback: everything
+    // except "none" was assumed to take an amount.
+    auto* def = find_texture_def(texture);
+    return def ? def->uses_amount : (texture != "none");
+}
+
+bool texture_joint_at_rank_0(const std::string& texture) {
+    auto* def = find_texture_def(texture);
+    return def ? def->joint_at_rank_0 : false;
+}
+
+bool is_known_texture(const std::string& texture) {
+    return find_texture_def(texture) != nullptr;
+}
+
+static bool catalogue_contains(const std::vector<CatalogGroup>& groups, const std::string& id) {
+    for (const auto& group : groups) {
+        for (const auto& item : group.items) {
+            if (id == item.id) return true;
+        }
+    }
+    return false;
+}
+
+bool is_known_pattern(const std::string& pattern) {
+    return catalogue_contains(pattern_groups(), pattern);
+}
+
+bool is_known_ribbon(const std::string& ribbon) {
+    return catalogue_contains(ribbon_groups(), ribbon);
 }
 
 std::vector<GeoScaleItem> geo_scales_for(const std::string& texture) {
