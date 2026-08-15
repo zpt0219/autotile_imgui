@@ -1,5 +1,6 @@
 #include "recipe.h"
 #include "pattern/js_math.h"
+#include "pattern/pattern_paint.h"
 #include <unordered_set>
 #include <regex>
 #include <cmath>
@@ -7,6 +8,61 @@
 namespace atm {
 
 static const Recipe DEFAULT_RECIPE_INSTANCE;
+
+namespace {
+
+/** Grow or shrink a sparse override array; new slots mean "not overridden". */
+void resize_sparse(std::optional<std::vector<std::optional<std::string>>>& arr, size_t want) {
+    if (!arr.has_value()) return;
+    arr->resize(want);
+}
+
+} // namespace
+
+void sync_band_overrides(Recipe& r) {
+    if (!r.customShadesHex.has_value()) return;
+
+    const size_t want = static_cast<size_t>(r.bandSteps) + 2;
+    auto& arr = *r.customShadesHex;
+    if (arr.size() == want) return;
+
+    if (arr.size() > want) {
+        arr.resize(want);
+        return;
+    }
+
+    // customShadesHex is all-or-nothing: an empty entry invalidates the whole
+    // array, so a grown level cannot be left blank. Fill it with the shade the
+    // level would have had with no override at all.
+    RoleColours colours{
+        parse_hex_colour(r.roleHex.terrainA),
+        parse_hex_colour(r.roleHex.terrainB),
+        parse_hex_colour(r.roleHex.edge)
+    };
+    const std::vector<RGB> computed = pattern_ramp(colours, r.bandSteps);
+
+    const size_t first_new = arr.size();
+    arr.resize(want);
+    for (size_t i = first_new; i < want; ++i) {
+        arr[i] = (i < computed.size()) ? to_hex_colour(computed[i])
+                                       : to_hex_colour(colours.terrainA);
+    }
+}
+
+void sync_ribbon_overrides(Recipe& r) {
+    resize_sparse(r.customRibbonHex, static_cast<size_t>(r.ribbonShades) + 1);
+}
+
+void sync_texture_overrides(Recipe& r) {
+    resize_sparse(r.customTexHexA, static_cast<size_t>(r.textureShadesA) + 1);
+    resize_sparse(r.customTexHexB, static_cast<size_t>(r.textureShadesB) + 1);
+}
+
+void sync_all_overrides(Recipe& r) {
+    sync_band_overrides(r);
+    sync_ribbon_overrides(r);
+    sync_texture_overrides(r);
+}
 
 const Recipe& get_default_recipe() {
     return DEFAULT_RECIPE_INSTANCE;

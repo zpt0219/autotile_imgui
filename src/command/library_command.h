@@ -118,6 +118,7 @@ private:
     bool new_transparent_b_ = false;
     double old_band_bias_ = 0.0;
     double new_band_bias_ = 0.0;
+    std::optional<std::vector<std::string>> old_custom_shades_;
     bool initialized_ = false;
 };
 

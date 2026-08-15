@@ -56,6 +56,33 @@ struct Recipe {
 
 const Recipe& get_default_recipe();
 
+// --- colour-override length invariants -------------------------------------
+//
+// Each override array's length is pinned to a count some *other* field owns:
+//
+//   customShadesHex   == bandSteps + 2          (all-or-nothing, see recipe.ts)
+//   customRibbonHex   == ribbonShades + 1       (per-slot optional)
+//   customTexHexA     == textureShadesA + 1     (per-slot optional)
+//   customTexHexB     == textureShadesB + 1     (per-slot optional)
+//
+// sanitizeRecipe drops any array whose length does not match, so moving one of
+// those counts without resizing loses the user's hand-tuned colours the next
+// time the recipe round-trips through JSON — silently, on save/load.
+//
+// Call the matching sync after changing a count, in the same edit. They are
+// idempotent and a no-op on an absent (nullopt) array.
+//
+// Growing customShadesHex fills the new levels with the colour they would have
+// had uncustomised, since that array cannot hold a "not overridden" entry; the
+// sparse arrays grow with nullopt, which already means "use the computed one".
+
+void sync_band_overrides(Recipe& r);
+void sync_ribbon_overrides(Recipe& r);
+void sync_texture_overrides(Recipe& r);
+
+/** All four at once. */
+void sync_all_overrides(Recipe& r);
+
 Recipe sanitize_recipe(const nlohmann::json& raw);
 Recipe recipe_from_json(const nlohmann::json& j);
 nlohmann::json recipe_to_json(const Recipe& recipe);

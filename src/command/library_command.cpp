@@ -28,6 +28,9 @@ EditorResult UpdateRecipeColoursCommand::execute(LibraryHandler& handler, Librar
 
     entry->recipe.roleHex = new_roles_;
     entry->recipe.customShadesHex = new_shades_;
+    // Defensive: a caller that built the array against a stale bandSteps would
+    // otherwise hand over one the sanitiser drops.
+    sync_band_overrides(entry->recipe);
     handler.notify_recipe_updated(entry.get(), DIRTY_COLOUR, cb, flag_);
     return EditorResult::Ok();
 }
@@ -125,6 +128,9 @@ EditorResult UpdateRecipeBandCommand::execute(LibraryHandler& handler, LibraryCa
         old_hard_edge_b_ = entry->recipe.hardEdgeB;
         old_transparent_b_ = entry->recipe.transparentB;
         old_band_bias_ = entry->recipe.bandBias;
+        // bandSteps owns the length of customShadesHex, so the resize below is
+        // part of this edit and has to be undone with it.
+        old_custom_shades_ = entry->recipe.customShadesHex;
         initialized_ = true;
     }
 
@@ -132,6 +138,7 @@ EditorResult UpdateRecipeBandCommand::execute(LibraryHandler& handler, LibraryCa
     entry->recipe.hardEdgeB = new_hard_edge_b_;
     entry->recipe.transparentB = new_transparent_b_;
     entry->recipe.bandBias = new_band_bias_;
+    sync_band_overrides(entry->recipe);
     handler.notify_recipe_updated(entry.get(), DIRTY_SILHOUETTE, cb, flag_);
     return EditorResult::Ok();
 }
@@ -144,6 +151,9 @@ EditorResult UpdateRecipeBandCommand::undo(LibraryHandler& handler, LibraryCallb
     entry->recipe.hardEdgeB = old_hard_edge_b_;
     entry->recipe.transparentB = old_transparent_b_;
     entry->recipe.bandBias = old_band_bias_;
+    // Restore rather than re-sync: growing then shrinking would otherwise leave
+    // the trimmed levels holding computed colours instead of the user's.
+    entry->recipe.customShadesHex = old_custom_shades_;
     handler.notify_recipe_updated(entry.get(), DIRTY_SILHOUETTE, cb, 2);
     return EditorResult::Ok();
 }
@@ -252,6 +262,9 @@ EditorResult UpdateRecipeRibbonCommand::execute(LibraryHandler& handler, Library
     entry->recipe.ribbonShades = new_shades_;
     entry->recipe.ribbonInvert = new_invert_;
     entry->recipe.customRibbonHex = new_custom_hex_;
+    // ribbonShades owns this array's length. Enforced here rather than at the
+    // call sites so a caller passing the previous array cannot invalidate it.
+    sync_ribbon_overrides(entry->recipe);
     handler.notify_recipe_updated(entry.get(), DIRTY_RIBBON, cb, flag_);
     return EditorResult::Ok();
 }
@@ -320,6 +333,8 @@ EditorResult UpdateRecipeTextureCommand::execute(LibraryHandler& handler, Librar
     entry->recipe.geoScaleB = new_recipe_.geoScaleB;
     entry->recipe.customTexHexA = new_recipe_.customTexHexA;
     entry->recipe.customTexHexB = new_recipe_.customTexHexB;
+    // textureShadesA/B own these arrays' lengths.
+    sync_texture_overrides(entry->recipe);
 
     handler.notify_recipe_updated(entry.get(), static_cast<DirtyMask>(DIRTY_TEXTURE_A | DIRTY_TEXTURE_B), cb, flag_);
     return EditorResult::Ok();

@@ -7,6 +7,43 @@
 
 using namespace atm;
 
+namespace {
+
+/**
+ * Every present override array matches the count that governs it.
+ *
+ * Checked after each command rather than only at the end: a mismatch is not an
+ * error until the recipe next round-trips through JSON, at which point
+ * sanitizeRecipe drops the array. Waiting until the end would let a later
+ * command paper over the moment it went wrong.
+ */
+void require_overrides_consistent(const RecipeLibrary& lib, int step) {
+    for (const auto& e : lib.entries()) {
+        const Recipe& r = e->recipe;
+        INFO("step " << step << ", recipe " << e->hash);
+        if (r.customShadesHex) {
+            REQUIRE(r.customShadesHex->size() == static_cast<size_t>(r.bandSteps) + 2);
+        }
+        if (r.customRibbonHex) {
+            REQUIRE(r.customRibbonHex->size() == static_cast<size_t>(r.ribbonShades) + 1);
+        }
+        if (r.customTexHexA) {
+            REQUIRE(r.customTexHexA->size() == static_cast<size_t>(r.textureShadesA) + 1);
+        }
+        if (r.customTexHexB) {
+            REQUIRE(r.customTexHexB->size() == static_cast<size_t>(r.textureShadesB) + 1);
+        }
+        // The invariant that actually matters: nothing is lost on save/load.
+        Recipe back = sanitize_recipe(recipe_to_json(r));
+        REQUIRE(back.customShadesHex.has_value() == r.customShadesHex.has_value());
+        REQUIRE(back.customRibbonHex.has_value() == r.customRibbonHex.has_value());
+        REQUIRE(back.customTexHexA.has_value() == r.customTexHexA.has_value());
+        REQUIRE(back.customTexHexB.has_value() == r.customTexHexB.has_value());
+    }
+}
+
+} // namespace
+
 TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
     LibraryHandler handler;
     LibraryCommandHandler cmd_handler(300);
@@ -79,8 +116,21 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
             std::string hash = handler.library()->entries()[idx]->hash;
             int new_shades = rand_int(1, 3);
             std::optional<std::vector<std::optional<std::string>>> rib_hex = std::nullopt;
-            if (rand_int(0, 1) == 1) {
-                rib_hex = std::vector<std::optional<std::string>>(new_shades + 1, "#aabbcc");
+            switch (rand_int(0, 2)) {
+                case 0: break;  // no override
+                case 1:  // correctly sized for the new count
+                    rib_hex = std::vector<std::optional<std::string>>(new_shades + 1, "#aabbcc");
+                    break;
+                default:
+                    // Stale: sized for the count *before* this edit, which is
+                    // exactly what the panel hands over when only the shade
+                    // slider moves. The command has to fix it up.
+                    rib_hex = handler.library()->entries()[idx]->recipe.customRibbonHex;
+                    if (!rib_hex) {
+                        rib_hex = std::vector<std::optional<std::string>>(
+                            handler.library()->entries()[idx]->recipe.ribbonShades + 1, "#aabbcc");
+                    }
+                    break;
             }
             cmd_handler.add_and_execute_command(
                 std::make_unique<UpdateRecipeRibbonCommand>(hash, "bevel", 0.5, 4, new_shades, false, rib_hex, 0),
@@ -89,6 +139,9 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
         } else if (action == 7) {
             int idx = rand_int(0, static_cast<int>(handler.library()->entries().size()) - 1);
             std::string hash = handler.library()->entries()[idx]->hash;
+            // Carries the previous arrays forward untouched, as the panel does
+            // when only the shade slider moves — so half these edits arrive
+            // with arrays sized for the old count.
             Recipe nr = handler.library()->entries()[idx]->recipe;
             nr.textureShadesA = rand_int(1, 4);
             nr.textureShadesB = rand_int(1, 4);
@@ -110,24 +163,30 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
                 handler
             );
         }
+
+        require_overrides_consistent(*handler.library(), i);
     }
 
     // Save executed state
     nlohmann::json all_executed_json = handler.library()->to_json();
 
     // Undo all
+    int undo_step = 0;
     while (cmd_handler.can_undo()) {
         auto res = cmd_handler.undo(handler);
         REQUIRE(res.success);
+        require_overrides_consistent(*handler.library(), --undo_step);
     }
 
     nlohmann::json fully_undone_json = handler.library()->to_json();
     CHECK(fully_undone_json.dump() == initial_json.dump());
 
     // Redo all
+    int redo_step = 1000;
     while (cmd_handler.can_redo()) {
         auto res = cmd_handler.redo(handler);
         REQUIRE(res.success);
+        require_overrides_consistent(*handler.library(), ++redo_step);
     }
 
     nlohmann::json fully_redone_json = handler.library()->to_json();
