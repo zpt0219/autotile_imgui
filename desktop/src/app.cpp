@@ -274,6 +274,11 @@ void App::run() {
         // Drain worker progress events on the main thread
         view_model_.drain_progress_queue();
 
+        // Uploads whatever the thumbnail worker finished since the last frame.
+        // Capped per frame so a big library fills in over several frames
+        // instead of stalling one.
+        view_model_.thumbnail_cache().drain_completed();
+
         // Draw Panels
         library_panel_.draw(view_model_);
         recipe_panel_.draw(view_model_);
@@ -294,6 +299,18 @@ void App::run() {
 
         glfwSwapBuffers(window_);
     }
+}
+
+bool App::load_library(const std::string& path) {
+    auto loaded = atm::RecipeLibrary::load_from_file(path);
+    if (!loaded) {
+        view_model_.log("Could not open library: " + path, "ERROR");
+        return false;
+    }
+    const size_t count = loaded->entries().size();
+    view_model_.handler().set_library(std::move(loaded), &view_model_);
+    view_model_.log("Opened library from " + path + " (" + std::to_string(count) + " recipes)", "INFO");
+    return true;
 }
 
 } // namespace atm_desktop

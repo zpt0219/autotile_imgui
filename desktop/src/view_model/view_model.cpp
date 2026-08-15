@@ -32,6 +32,9 @@ ViewModel::~ViewModel() {
         cancel_export_requested = true;
         export_thread_.join();
     }
+    // Joins the thumbnail worker. Runs while the GL context is still up, so
+    // the cache can drop its textures rather than leak them.
+    thumbnail_cache_.shutdown();
 }
 
 void ViewModel::register_panel(IPanel* panel) {

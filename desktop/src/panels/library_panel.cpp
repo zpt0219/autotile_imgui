@@ -118,28 +118,68 @@ void LibraryPanel::draw(ViewModel& vm) {
                 float avail_w = ImGui::GetContentRegionAvail().x;
                 int cols = std::max(1, static_cast<int>(avail_w / 115.0f));
 
+                // Card (96x72) + button padding + caption line. Only needs to
+                // be close enough for the clipper to pick the right rows.
+                const float ROW_HEIGHT = 72.0f + 8.0f + ImGui::GetTextLineHeightWithSpacing() + 8.0f;
+
                 if (ImGui::BeginTable("ThumbGridTable", cols, ImGuiTableFlags_SizingFixedFit)) {
-                    for (size_t i = 0; i < filtered_entries.size(); ++i) {
+                    // Only the visible rows are walked, so only the visible
+                    // cards ask the cache for a thumbnail. Without this the
+                    // grid queues a render for every recipe in the library the
+                    // moment it opens.
+                    const int row_count = (static_cast<int>(filtered_entries.size()) + cols - 1) / cols;
+                    ImGuiListClipper clipper;
+                    clipper.Begin(row_count, ROW_HEIGHT);
+
+                    while (clipper.Step()) {
+                    for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+                    ImGui::TableNextRow();
+                    for (int col = 0; col < cols; ++col) {
+                        const size_t i = static_cast<size_t>(row) * static_cast<size_t>(cols)
+                                       + static_cast<size_t>(col);
+                        if (i >= filtered_entries.size()) break;
+
                         auto* entry = filtered_entries[i];
                         bool is_selected = (selected && selected->hash == entry->hash);
 
                         ImGui::TableNextColumn();
                         ImGui::PushID(entry->hash.c_str());
 
-                        uint32_t thumb_tex = vm.thumbnail_cache().get_or_render_thumbnail(entry->hash, entry->recipe);
+                        // 0 means "not rendered yet"; the request is queued and
+                        // a later frame will have it.
+                        uint32_t thumb_tex = vm.thumbnail_cache().get(entry->hash, entry->recipe);
 
                         ImVec2 card_sz(96, 72);
                         ImVec4 bg_col = is_selected ? ImVec4(0.2f, 0.4f, 0.6f, 1.0f) : ImVec4(0.15f, 0.16f, 0.18f, 1.0f);
                         ImVec4 tint_col = ImVec4(1, 1, 1, 1);
 
                         std::string btn_id = "##Card_" + entry->hash;
-                        if (ImGui::ImageButton(
-                            btn_id.c_str(),
-                            reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(thumb_tex)),
-                            card_sz,
-                            ImVec2(0, 0), ImVec2(1, 1),
-                            bg_col, tint_col
-                        )) {
+                        bool clicked = false;
+                        if (thumb_tex != 0) {
+                            clicked = ImGui::ImageButton(
+                                btn_id.c_str(),
+                                reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(thumb_tex)),
+                                card_sz,
+                                ImVec2(0, 0), ImVec2(1, 1),
+                                bg_col, tint_col
+                            );
+                        } else {
+                            // Placeholder card, same footprint so nothing jumps
+                            // when the real thumbnail lands.
+                            ImGui::PushStyleColor(ImGuiCol_Button, bg_col);
+                            clicked = ImGui::Button(btn_id.c_str(),
+                                                    ImVec2(card_sz.x + 8, card_sz.y + 8));
+                            ImGui::PopStyleColor();
+                            ImVec2 rmin = ImGui::GetItemRectMin();
+                            ImVec2 rmax = ImGui::GetItemRectMax();
+                            const char* dots = "...";
+                            ImVec2 ts = ImGui::CalcTextSize(dots);
+                            ImGui::GetWindowDrawList()->AddText(
+                                ImVec2((rmin.x + rmax.x - ts.x) * 0.5f,
+                                       (rmin.y + rmax.y - ts.y) * 0.5f),
+                                ImGui::GetColorU32(ImGuiCol_TextDisabled), dots);
+                        }
+                        if (clicked) {
                             vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
                         }
 
@@ -183,6 +223,9 @@ void LibraryPanel::draw(ViewModel& vm) {
 
                         ImGui::PopID();
                     }
+                    }
+                    }
+                    clipper.End();
                     ImGui::EndTable();
                 }
             }

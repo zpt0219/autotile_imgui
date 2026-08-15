@@ -19,6 +19,10 @@ public:
 
     bool initialize();
     void run();
+
+    /** Loads a .atmlib at startup. Lets the library UI be driven with real
+     *  data without clicking through a file dialog. */
+    bool load_library(const std::string& path);
     void cleanup();
 
 private:

@@ -155,9 +155,17 @@ static int run_headless() {
 }
 
 int main(int argc, char* argv[]) {
+    std::string startup_library;
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
-        if (arg == "--render-corpus") {
+        if (arg == "--library") {
+            if (i + 1 < argc) {
+                startup_library = argv[++i];
+                continue;
+            }
+            std::cerr << "Error: --library requires a path" << std::endl;
+            return 1;
+        } else if (arg == "--render-corpus") {
             if (i + 1 < argc) {
                 std::string manifest = argv[++i];
                 std::string out_dir = ".";
@@ -180,6 +188,7 @@ int main(int argc, char* argv[]) {
             std::cout << "  autotile_mixer                      Launch desktop GUI" << std::endl;
             std::cout << "  autotile_mixer --render-corpus <m>  Render corpus sheets" << std::endl;
             std::cout << "  autotile_mixer --headless           Start headless JSON stdin/stdout mode" << std::endl;
+            std::cout << "  autotile_mixer --library <file>     Launch GUI with a .atmlib already open" << std::endl;
             return 0;
         }
     }
@@ -189,6 +198,10 @@ int main(int argc, char* argv[]) {
     if (!app.initialize()) {
         std::cerr << "Failed to initialize desktop application." << std::endl;
         return 1;
+    }
+
+    if (!startup_library.empty()) {
+        app.load_library(startup_library);
     }
 
     app.run();
