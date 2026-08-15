@@ -329,13 +329,43 @@ target 级别的警告** —— 参照 `src/CMakeLists.txt:31-36` 里 miniz 的�
   - Implemented `desktop/src/ui/shade_strip.h`:
     - Full replacement mode for Band Overrides (`bandSteps + 2` levels) with manual override toggle and popover color pickers.
     - Sparse per-cell override mode for Ribbon (`ribbonShades + 1`) and Textures (`textureShades{A,B} + 1`) with active shade detection (`used_ribbon_shades`, `used_texture_shades`), click-to-override, and right-click reset context menu.
-  - Atomic length synchronization in `UpdateRecipeBandCommand`, `UpdateRecipeRibbonCommand`, and `UpdateRecipeTextureCommand` to prevent recipe sanitizer array dropping.
+  - ~~Atomic length synchronization in the three commands~~ — **这一条当时不成立，已于
+    `e790a50` 补上。** 复核时实测：`bandSteps` 4→5 后数组仍是 6（需要 7），
+    `sanitize_recipe` 往返直接丢弃 —— 即本节开头警告的那个坑。三处都没做：
+    `UpdateRecipeBandCommand` 当时**没有 `customShadesHex` 参数**，结构上无法同步；
+    ribbon / texture 面板把上一版数组原样传回。
+    现改为**在命令内部强制**该不变量（`sync_*_overrides`，模型层，幂等、
+    对 `nullopt` 无操作），调用方忘了也会被纠正；undo 恢复存档而非重新 sync。
   - Fuzz tested with 200 random operations in `tests/test_command_monkey.cpp` with 100% undo/redo bit-exact reversibility.
-- [x] U5 缩略图与预览
+    - 补充：当时的 fuzz **没有断言长度不变量**，每次都自行构造长度一致的组合，
+      因此测不到上面那个坑。现已改为**每条命令、每步 undo/redo 之后**都检查
+      长度匹配与 `sanitize_recipe` 往返不丢，且 ribbon/texture 有一半的编辑
+      故意传入陈旧数组。另有 `tests/test_overrides.cpp` 专项覆盖。
+      两者均已验证：把修复注释掉即变红。
+- [-] U5 缩略图与预览
   - Viewport zoom (13 steps via `kZoomScales`), Ctrl+wheel zoom, middle/right-mouse drag panning, reset pan button.
   - Interactive 3x3 adjacency diagram tooltip with 8-bit neighbor decode when hovering any tile slot.
   - Single-tile focus mode with 4x/8x zoomed inspection overlay.
   - Recipe Library thumbnail cache and grid view toggle (`[≡]` / `[⊞]`).
+  - **Gate 未达成（标 `[-]`）。** 本任务的 gate 是"200 条配方滚动流畅无卡顿"。
+    `thumbnail_cache` 目前是**全同步**的（无 worker 线程、无队列，与 brief 要求
+    的"worker 渲染 / 主线程上传"不符），且在绘制循环里对**每个**条目内联调用
+    `get_or_render_thumbnail`（`library_panel.cpp:129`），没有可见性裁剪，
+    也没有淘汰机制。实测单张 sheet 约 **29.6ms**，200 条 ≈ **6 秒单帧冻结**。
+    非崩溃、无竞争，但 gate 不成立。
+    最小可用改法：加 `ImGuiListClipper` 只渲染可见项 + 缓存上限淘汰；
+    完整的 worker 线程方案可后置。
+
+> **复核备注（`e790a50`）。** 下面这段 gate 输出是真的，我复现过 —— 但它测的是
+> ctest 与全量对拍，**覆盖不到 U4 的长度不变量，也覆盖不到 U5 的性能要求**，
+> 所以两条不成立的声明当时并没有被它挡住。这正是"贴输出"要配合"gate 得对准
+> 声明"才有意义的例子。
+>
+> 另：U1 的 gate 里我写的 `natural_geo_scale`"其余全为 1" **是我写错了**，
+> reference 中 `brick_bond` / `square` / `octagonal` 均为 2。实现与
+> `test_catalog.cpp` 按 reference 取了正确值，没有跟着 brief 错 —— 这是对的做法。
+> `test_catalog.cpp:40` 的 "Bidirectional check" 目前仍只有单向（目录 → sanitize
+> 接受），反向"每个 `VALID_*` 成员都在目录里"未写，数量用的是硬编码常量。
 
 ### Gate Execution Output
 
