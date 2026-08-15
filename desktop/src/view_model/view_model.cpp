@@ -259,7 +259,27 @@ void ViewModel::start_batch_export(const std::vector<atm::RecipeEntry>& recipes,
             // Export PNG
             if (settings.export_png) {
                 std::string png_path = (fs::path(settings.out_dir) / (filename_base + ".png")).string();
-                atm::write_png(png_path, 256, 192, rgba.data());
+                int scale = std::max(1, std::min(4, settings.scale));
+                if (scale == 1) {
+                    atm::write_png(png_path, 256, 192, rgba.data());
+                } else {
+                    int sw = 256 * scale;
+                    int sh = 192 * scale;
+                    std::vector<uint8_t> scaled(sw * sh * 4);
+                    for (int sy = 0; sy < sh; ++sy) {
+                        int src_y = sy / scale;
+                        for (int sx = 0; sx < sw; ++sx) {
+                            int src_x = sx / scale;
+                            size_t src_idx = (src_y * 256 + src_x) * 4;
+                            size_t dst_idx = (sy * sw + sx) * 4;
+                            scaled[dst_idx + 0] = rgba[src_idx + 0];
+                            scaled[dst_idx + 1] = rgba[src_idx + 1];
+                            scaled[dst_idx + 2] = rgba[src_idx + 2];
+                            scaled[dst_idx + 3] = rgba[src_idx + 3];
+                        }
+                    }
+                    atm::write_png(png_path, sw, sh, scaled.data());
+                }
             }
 
             // Export JSON Sidecar

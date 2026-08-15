@@ -39,6 +39,7 @@ struct VariantAxis {
 struct ExportSettings {
     std::string out_dir = "./export";
     std::string name_template = "{name}_{pattern}_{texA}";
+    int scale = 1;
     bool export_png = true;
     bool export_json_sidecar = true;
 };

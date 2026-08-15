@@ -51,7 +51,16 @@ void BatchExportPanel::draw(ViewModel& vm) {
         ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "Preview: %s.png", preview_filename.c_str());
 
         ImGui::Separator();
-        ImGui::Checkbox("Export 256x192 PNG Sheet", &export_png_);
+        ImGui::Checkbox("Export PNG Sheet", &export_png_);
+        ImGui::SameLine(0, 20.0f);
+        ImGui::SetNextItemWidth(100);
+        const char* scale_names[] = { "1x (256x192)", "2x (512x384)", "3x (768x576)", "4x (1024x768)" };
+        int scale_idx = export_scale_ - 1;
+        if (scale_idx < 0 || scale_idx > 3) scale_idx = 0;
+        if (ImGui::Combo("Scale", &scale_idx, scale_names, 4)) {
+            export_scale_ = scale_idx + 1;
+        }
+
         ImGui::Checkbox("Export JSON Recipe Sidecar (.recipe.json)", &export_json_);
 
         ImGui::Separator();
@@ -67,6 +76,7 @@ void BatchExportPanel::draw(ViewModel& vm) {
                 atm::ExportSettings settings;
                 settings.out_dir = out_dir_buffer_;
                 settings.name_template = name_template_buffer_;
+                settings.scale = export_scale_;
                 settings.export_png = export_png_;
                 settings.export_json_sidecar = export_json_;
 

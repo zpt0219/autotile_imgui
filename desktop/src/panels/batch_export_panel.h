@@ -15,6 +15,7 @@ public:
 private:
     char out_dir_buffer_[256] = "./export";
     char name_template_buffer_[128] = "{name}_{pattern}_{texA}";
+    int export_scale_ = 1;
     bool export_png_ = true;
     bool export_json_ = true;
 };

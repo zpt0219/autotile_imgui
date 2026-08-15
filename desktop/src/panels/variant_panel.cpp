@@ -1,56 +1,66 @@
 #include "variant_panel.h"
 #include "view_model/view_model.h"
 #include "command/library_command.h"
+#include "pattern/catalog.h"
 #include <imgui.h>
+#include <vector>
+#include <string>
 
 namespace atm_desktop {
-
-static const std::vector<std::string> ALL_PATTERNS = {
-    "square", "sharp", "rounded", "wave", "jagged", "gravel",
-    "boulder", "thorn", "coast", "moss", "billow"
-};
-
-static const std::vector<std::string> POPULAR_TEXTURES = {
-    "none", "ordered", "ripple", "cells", "brick_wall", "cobbles2",
-    "brick_floor", "hexagon", "isometric", "weave", "water"
-};
-
-static const std::vector<std::string> POPULAR_RIBBONS = {
-    "none", "bevel", "dashes", "ticks", "beads", "rope", "wave", "grain"
-};
 
 void VariantPanel::draw(ViewModel& vm) {
     if (!open_) return;
 
     if (ImGui::Begin("Variant Matrix", &open_)) {
+        bool use_zh = vm.use_zh;
+
         auto* selected = vm.handler().selected_recipe();
         if (!selected) {
-            ImGui::TextDisabled("Select a base recipe from the library to generate variants.");
+            ImGui::TextDisabled("%s", use_zh ? "从配方库中选择一个基础配方以生成变体矩阵。" : "Select a base recipe from the library to generate variants.");
             ImGui::End();
             return;
         }
 
-        ImGui::Text("Base Recipe: %s (%s)", selected->name.c_str(), selected->recipe.patternId.c_str());
+        ImGui::Text("%s: %s (%s)", use_zh ? "基础配方" : "Base Recipe", selected->name.c_str(), selected->recipe.patternId.c_str());
         ImGui::Separator();
 
-        ImGui::Text("Select Axes to Cross-Multiply:");
-        ImGui::Checkbox("Patterns (11 built-in boundary styles)", &use_all_patterns_);
-        ImGui::Checkbox("Popular Textures (11 surface textures)", &use_all_textures_);
-        ImGui::Checkbox("Ribbon Motifs (8 boundary motifs)", &use_all_ribbons_);
+        ImGui::Text("%s", use_zh ? "选择参与笛卡尔积交叉生成的轴向:" : "Select Axes to Cross-Multiply:");
+        ImGui::Checkbox(use_zh ? "所有轮廓边缘 (11 种图案)" : "All Patterns (11 boundary styles)", &use_all_patterns_);
+        ImGui::Checkbox(use_zh ? "所有表面纹理 (26 种纹理)" : "All Textures (26 surface textures)", &use_all_textures_);
+        ImGui::Checkbox(use_zh ? "所有边缘花纹 (15 种花纹)" : "All Ribbon Motifs (15 motifs)", &use_all_ribbons_);
+
+        std::vector<std::string> all_pats;
+        for (const auto& g : atm::pattern_groups()) {
+            for (const auto& item : g.items) all_pats.push_back(item.id);
+        }
+
+        std::vector<std::string> all_texs;
+        for (const auto& g : atm::texture_groups()) {
+            for (const auto& item : g.items) all_texs.push_back(item.id);
+        }
+
+        std::vector<std::string> all_ribs;
+        for (const auto& g : atm::ribbon_groups()) {
+            for (const auto& item : g.items) all_ribs.push_back(item.id);
+        }
 
         int total_variants = 1;
-        if (use_all_patterns_) total_variants *= static_cast<int>(ALL_PATTERNS.size());
-        if (use_all_textures_) total_variants *= static_cast<int>(POPULAR_TEXTURES.size());
-        if (use_all_ribbons_) total_variants *= static_cast<int>(POPULAR_RIBBONS.size());
+        if (use_all_patterns_) total_variants *= static_cast<int>(all_pats.size());
+        if (use_all_textures_) total_variants *= static_cast<int>(all_texs.size());
+        if (use_all_ribbons_) total_variants *= static_cast<int>(all_ribs.size());
 
         ImGui::Spacing();
-        ImGui::TextColored(ImVec4(0.2f, 0.8f, 1.0f, 1.0f), "Total Combinations: %d sheets", total_variants);
+        ImGui::TextColored(ImVec4(0.2f, 0.8f, 1.0f, 1.0f), "%s: %d %s",
+            use_zh ? "总组合数" : "Total Combinations",
+            total_variants,
+            use_zh ? "套图纸" : "sheets"
+        );
         ImGui::Spacing();
 
-        if (total_variants > 1 && ImGui::Button("Generate & Add All to Library", ImVec2(240, 32))) {
-            std::vector<std::string> pats = use_all_patterns_ ? ALL_PATTERNS : std::vector<std::string>{ selected->recipe.patternId };
-            std::vector<std::string> texs = use_all_textures_ ? POPULAR_TEXTURES : std::vector<std::string>{ selected->recipe.textureAlgoA };
-            std::vector<std::string> ribs = use_all_ribbons_ ? POPULAR_RIBBONS : std::vector<std::string>{ selected->recipe.ribbonAlgo };
+        if (total_variants > 1 && ImGui::Button(use_zh ? "生成并全部加入配方库" : "Generate & Add All to Library", ImVec2(240, 32))) {
+            std::vector<std::string> pats = use_all_patterns_ ? all_pats : std::vector<std::string>{ selected->recipe.patternId };
+            std::vector<std::string> texs = use_all_textures_ ? all_texs : std::vector<std::string>{ selected->recipe.textureAlgoA };
+            std::vector<std::string> ribs = use_all_ribbons_ ? all_ribs : std::vector<std::string>{ selected->recipe.ribbonAlgo };
 
             for (const auto& p : pats) {
                 for (const auto& t : texs) {
