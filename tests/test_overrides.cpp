@@ -152,6 +152,46 @@ TEST_CASE("Undo restores the user's colours rather than the grown defaults") {
     }
 }
 
+// A slider drag arrives as several commands that coalesce into the one already
+// on the undo stack. UpdateRecipeBandCommand never carries a shades array of
+// its own — it picks up whatever is on the recipe — so if that pickup only runs
+// on the first execute, the merged edits write a null array over the user's
+// colours. Every other case here uses EditPhase::End, which never merges, so
+// this is the one that covers the coalescing path.
+TEST_CASE("Merged band edits keep the user's customShadesHex") {
+    LibraryHandler handler;
+    LibraryCommandHandler cmd;
+    const std::string hash = handler.selected_recipe()->hash;
+
+    const int steps0 = handler.selected_recipe()->recipe.bandSteps;
+    RoleHex roles = handler.selected_recipe()->recipe.roleHex;
+    std::vector<std::string> shades(static_cast<size_t>(steps0) + 2, "#0f0f0f");
+    REQUIRE(cmd.add_and_execute_command(
+        std::make_unique<UpdateRecipeColoursCommand>(hash, roles, shades, EditPhase::End), handler).success);
+    REQUIRE(handler.selected_recipe()->recipe.customShadesHex.has_value());
+
+    // Begin then Continue on the same target: the second merges into the first.
+    REQUIRE(cmd.add_and_execute_command(
+        std::make_unique<UpdateRecipeBandCommand>(hash, 5, false, false, 0.0, EditPhase::Begin), handler).success);
+    REQUIRE(cmd.add_and_execute_command(
+        std::make_unique<UpdateRecipeBandCommand>(hash, 3, false, false, 0.0, EditPhase::Continue), handler).success);
+
+    const Recipe& r = handler.selected_recipe()->recipe;
+    CHECK(r.bandSteps == 3);
+    REQUIRE(r.customShadesHex.has_value());
+    CHECK(overrides_consistent(r));
+    for (const auto& hex : *r.customShadesHex) {
+        CHECK(hex == "#0f0f0f");
+    }
+
+    // And the whole drag still undoes as one step, back to the original ramp.
+    REQUIRE(cmd.undo(handler).success);
+    CHECK(handler.selected_recipe()->recipe.bandSteps == steps0);
+    REQUIRE(handler.selected_recipe()->recipe.customShadesHex.has_value());
+    CHECK(handler.selected_recipe()->recipe.customShadesHex->size()
+          == static_cast<size_t>(steps0) + 2);
+}
+
 TEST_CASE("sync helpers are idempotent and ignore absent arrays") {
     Recipe r = get_default_recipe();
     REQUIRE_FALSE(r.customShadesHex.has_value());

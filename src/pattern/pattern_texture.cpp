@@ -342,6 +342,16 @@ static int nonslip_rank(int x_in, int y_in, int n_in, float amount = 1.0f) {
     return 0;
 }
 
+// The three speckle textures are the noise generators under another name; this
+// keeps the mapping off the per-pixel string path.
+static NoiseId noise_id_for_kind(TextureKind kind) {
+    switch (kind) {
+        case TextureKind::Blue:    return NoiseId::Blue;
+        case TextureKind::Ordered: return NoiseId::Ordered;
+        default:                   return NoiseId::White;
+    }
+}
+
 template <typename F>
 static int geo_shade(F rank_fn, int x, int y, uint32_t seed, float amount, int shades, int n) {
     int gx = js_math::wrap(x + static_cast<int>(seed & 31), 32);
@@ -362,10 +372,16 @@ int texture_shade_at(
 ) {
     if (texture == "none" || amount <= 0.0f || shades < 1) return 0;
     TextureKind kind = texture_kind(texture);
-    if (kind == TextureKind::None) return 0;
+    // An id the registry does not know paints nothing. Unreachable in practice:
+    // sanitize_recipe() gates every algo through is_known_texture(), and the
+    // along_* ribbons name registry ids.
+    if (kind == TextureKind::None || kind == TextureKind::Unknown) return 0;
 
     uint32_t s = js_math::urshift(static_cast<uint32_t>(seed ^ TEXTURE_SALT), 0);
     int geo = std::max(1, geo_scale);
+    // Whether the baked table parks the joint at rank 0 instead of BAKED_RANKS
+    // stays a registry fact — read it, do not hardcode it per case below.
+    const bool joint_at_zero = texture_joint_at_rank_0(texture);
 
     switch (kind) {
         case TextureKind::Weave:
@@ -378,16 +394,21 @@ int texture_shade_at(
             return baked_shade(PAVING5, 32, x, y, s, amount, shades);
 
         case TextureKind::StoneFloor:
-            return baked_shade(STONE_FLOOR, 32, x, y, s, amount, shades, true);
+            return baked_shade(STONE_FLOOR, 32, x, y, s, amount, shades, joint_at_zero);
         case TextureKind::BreezeBlock:
-            return baked_shade(BREEZE_BLOCK, 32, x, y, s, amount, shades, true);
+            return baked_shade(BREEZE_BLOCK, 32, x, y, s, amount, shades, joint_at_zero);
         case TextureKind::BrickWall:
-            return baked_shade(BRICK_WALL, 32, x, y, s, amount, shades, true);
+            return baked_shade(BRICK_WALL, 32, x, y, s, amount, shades, joint_at_zero);
         case TextureKind::Cobbles2:
-            return baked_shade(COBBLES2, 16, x, y, s, amount, shades, true);
+            return baked_shade(COBBLES2, 16, x, y, s, amount, shades, joint_at_zero);
         case TextureKind::BrickFloor:
-            return baked_shade(BRICK_FLOOR, 16, x, y, s, amount, shades, true);
+            return baked_shade(BRICK_FLOOR, 16, x, y, s, amount, shades, joint_at_zero);
 
+        // The seed handed to geo_shade() below is the *pixel-shift* seed, and it
+        // is deliberately not the same one everywhere: hexagon / brick_bond /
+        // nonslip shift by the salted `s`, the four that follow shift by the raw
+        // `seed`. That asymmetry is what renderSheet.ts does. Do not unify it —
+        // it moves pixels and turns the corpus red.
         case TextureKind::Hexagon:
             return geo_shade([](int gx, int gy, int gn) { return hexagon_rank(gx, gy, gn); }, x, y, s, amount, shades, geo);
         case TextureKind::BrickBond:
@@ -427,9 +448,9 @@ int texture_shade_at(
         case TextureKind::Blue:
         case TextureKind::Ordered: {
             float r_scale = static_cast<float>(std::max(MIN_RIPPLE_SCALE, std::min(MAX_RIPPLE_SCALE, ripple_scale)));
-            float n = (kind == TextureKind::Ripple) ? ripple_field(x, y, s, r_scale)
+            float n = (kind == TextureKind::Ripple)     ? ripple_field(x, y, s, r_scale)
                     : (kind == TextureKind::RippleDiag) ? ripple_diag_field(x, y, s, r_scale)
-                    : sample_noise(parse_noise_id(texture), x, y, s);
+                    : sample_noise(noise_id_for_kind(kind), x, y, s);
 
             float cut = 1.0f - std::min(1.0f, amount);
             if (n < cut) return 0;

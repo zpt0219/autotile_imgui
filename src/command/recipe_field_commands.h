@@ -15,10 +15,12 @@ struct ColoursState {
 
 class UpdateRecipeColoursCommand : public RecipeFieldCommand<ColoursState> {
 public:
+    // `new_shades` is deliberately not defaulted: passing nullopt clears the
+    // user's ramp, so a caller has to say which it means.
     UpdateRecipeColoursCommand(
         std::string hash,
         RoleHex new_roles,
-        std::optional<std::vector<std::string>> new_shades = std::nullopt,
+        std::optional<std::vector<std::string>> new_shades,
         EditPhase phase = EditPhase::Begin
     );
     CommandKind get_kind() const override { return CommandKind::UpdateRecipeColours; }
@@ -31,14 +33,16 @@ protected:
         r.roleHex = s.roles;
         r.customShadesHex = s.custom_shades;
     }
+    // Defensive: a caller that built the array against a stale bandSteps would
+    // otherwise hand over one the sanitiser drops.
     void sync(Recipe& r) const override { sync_band_overrides(r); }
-    DirtyMask dirty() const override { return DIRTY_PALETTE; }
+    DirtyMask dirty() const override { return DIRTY_COLOUR; }
 };
 
 struct PatternState {
     std::string pattern_id = "square";
     int edge_seed = 0;
-    int outline_width = 1;
+    int outline_width = 2;
 };
 
 class UpdateRecipePatternCommand : public RecipeFieldCommand<PatternState> {
@@ -69,6 +73,8 @@ struct BandState {
     bool hard_edge_b = false;
     bool transparent_b = false;
     double band_bias = 0.0;
+    // bandSteps owns this array's length, so the resize sync() performs is part
+    // of the edit and travels in the snapshot with it.
     std::optional<std::vector<std::string>> custom_shades;
 };
 
@@ -95,6 +101,9 @@ protected:
         r.bandBias = s.band_bias;
         r.customShadesHex = s.custom_shades;
     }
+    // Changing the step count must not discard the user's shades — it resizes
+    // them. So the forward path keeps whatever array is on the recipe and lets
+    // sync() adjust its length; only undo puts a different array back.
     void carry_over(BandState& next, const Recipe& current) const override {
         next.custom_shades = current.customShadesHex;
     }
@@ -166,6 +175,8 @@ protected:
         r.ribbonInvert = s.invert;
         r.customRibbonHex = s.custom_hex;
     }
+    // ribbonShades owns this array's length. Enforced here rather than at the
+    // call sites so a caller passing the previous array cannot invalidate it.
     void sync(Recipe& r) const override { sync_ribbon_overrides(r); }
     DirtyMask dirty() const override { return DIRTY_RIBBON; }
 };
@@ -208,6 +219,7 @@ protected:
         r.geoScaleA = s.a.geo_scale;        r.geoScaleB = s.b.geo_scale;
         r.customTexHexA = s.a.custom_hex;   r.customTexHexB = s.b.custom_hex;
     }
+    // textureShadesA/B own these arrays' lengths.
     void sync(Recipe& r) const override { sync_texture_overrides(r); }
     DirtyMask dirty() const override { return static_cast<DirtyMask>(DIRTY_TEXTURE_A | DIRTY_TEXTURE_B); }
 };

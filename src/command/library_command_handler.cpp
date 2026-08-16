@@ -12,23 +12,19 @@ EditorResult LibraryCommandHandler::add_and_execute_command(
 ) {
     if (!command) return EditorResult::Error("Null command passed to handler");
 
-    // Clear redo history immediately on any new user action
-    redo_stack_.clear();
-
-    // Try merge with the top of undo stack if applicable
-    if (!undo_stack_.empty()) {
-        auto& top = undo_stack_.back();
-        if (top->get_kind() == command->get_kind() &&
-            top->get_target_hash() == command->get_target_hash() &&
-            top->merge_with(command.get())) {
-            // Merged successfully into top command, now re-execute top command
-            return top->execute(handler, cb);
-        }
+    // A merged edit lands on the undo stack just like a fresh one, so both
+    // paths have to invalidate redo — but only once the edit has actually
+    // gone through, or a rejected command would throw away a valid redo.
+    if (!undo_stack_.empty() && undo_stack_.back()->merge_with(command.get())) {
+        EditorResult res = undo_stack_.back()->execute(handler, cb);
+        if (res.success) redo_stack_.clear();
+        return res;
     }
 
     EditorResult res = command->execute(handler, cb);
     if (!res.success) return res;
 
+    redo_stack_.clear();
     undo_stack_.push_back(std::move(command));
     if (undo_stack_.size() > max_history_size_) {
         undo_stack_.pop_front();

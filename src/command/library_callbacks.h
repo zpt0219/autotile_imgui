@@ -11,7 +11,6 @@ enum DirtyMask : uint32_t {
     DIRTY_NONE       = 0,
     DIRTY_SILHOUETTE = 1 << 0,  // pattern / bandSteps / hardEdgeB / bandBias / edgeSeed / outlineWidth
     DIRTY_COLOUR     = 1 << 1,  // role colours / custom shades ramp
-    DIRTY_PALETTE    = 1 << 1,  // alias for DIRTY_COLOUR
     DIRTY_NOISE      = 1 << 2,  // patternNoise / seed / strength / targets
     DIRTY_RIBBON     = 1 << 3,  // ribbon algo / amount / period / shades / invert / ramp
     DIRTY_TEXTURE_A  = 1 << 4,  // textureA algo / amount / shades / seed / scale / ramp

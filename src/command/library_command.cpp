@@ -28,9 +28,9 @@ EditorResult RecipeFieldCommand<State>::execute(LibraryHandler& handler, Library
 
     if (!initialized_) {
         old_ = read(entry->recipe);
-        carry_over(new_, entry->recipe);
         initialized_ = true;
     }
+    carry_over(new_, entry->recipe);
 
     write(entry->recipe, new_);
     sync(entry->recipe);
@@ -43,8 +43,7 @@ EditorResult RecipeFieldCommand<State>::undo(LibraryHandler& handler, LibraryCal
     auto entry = handler.library()->find_by_hash(this->target_hash_);
     if (!entry) return EditorResult::Error("Recipe not found: " + this->target_hash_);
 
-    write(entry->recipe, old_);
-    sync(entry->recipe);
+    write(entry->recipe, old_);   // no sync() here, deliberately
     handler.notify_recipe_updated(entry.get(), dirty(), cb, EditPhase::End);
     return EditorResult::Ok();
 }
@@ -238,7 +237,6 @@ bool RenameRecipeCommand::merge_with(const LibraryCommand* other) {
     if (!o) return false;
     new_name_ = o->new_name_;
     phase_ = o->phase_;
-    timestamp_ = o->timestamp_;
     return true;
 }
 
@@ -347,13 +345,12 @@ EditorResult UpdateExportSettingsCommand::undo(LibraryHandler& handler, LibraryC
 }
 
 bool UpdateExportSettingsCommand::merge_with(const LibraryCommand* other) {
-    if (!other || other->get_kind() != CommandKind::UpdateExportSettings) return false;
-    auto* o = static_cast<const UpdateExportSettingsCommand*>(other);
-    if (phase_ == EditPhase::End) return false;
-
+    // Export settings are library-wide, so both hashes are empty and the
+    // helper's hash check passes trivially.
+    auto* o = cast_merge_target<UpdateExportSettingsCommand>(this, other, CommandKind::UpdateExportSettings);
+    if (!o) return false;
     new_settings_ = o->new_settings_;
     phase_ = o->phase_;
-    timestamp_ = o->timestamp_;
     return true;
 }
 

@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <optional>
+#include <array>
 #include <cstdint>
 #include <tuple>
 
@@ -122,7 +123,9 @@ private:
     std::optional<std::vector<RGB>> rib_ramp_;
     std::optional<std::vector<RGB>> texA_;
     std::optional<std::vector<RGB>> texB_;
-    std::vector<bool> noise_targets_lut_;
+    // Indexed by PatternRole, which is a dense 0..2 enum — see the static_assert
+    // in the constructor if a fourth role is ever added.
+    std::array<bool, 3> noise_targets_lut_{};
 };
 
 // Paint a single tile (tile_size x tile_size x 4 RGBA bytes)

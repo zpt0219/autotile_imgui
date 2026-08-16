@@ -9,12 +9,19 @@ namespace atm {
 
 namespace {
 
+// Registry lookup by id. Indexed rather than scanned because the renderer
+// reaches a texture def once per pixel — a linear walk over the table is ~25
+// string compares for every one of a sheet's 49152 pixels.
 template <typename Def, size_t N>
 const Def* find_by_id(const Def (&defs)[N], const std::string& id) {
-    for (const auto& def : defs) {
-        if (id == def.id) return &def;
-    }
-    return nullptr;
+    static const std::unordered_map<std::string, const Def*> INDEX = [&defs] {
+        std::unordered_map<std::string, const Def*> m;
+        m.reserve(N);
+        for (const auto& def : defs) m.emplace(def.id, &def);
+        return m;
+    }();
+    auto it = INDEX.find(id);
+    return (it == INDEX.end()) ? nullptr : it->second;
 }
 
 template <typename Def, size_t N, typename Label, size_t M>

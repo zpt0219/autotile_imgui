@@ -267,7 +267,9 @@ TilePainter::TilePainter(const std::string& pattern, const RoleColours& colours,
     rib_width_ = ribbon_on_ ? std::max(1.0f, outline_width_px(pattern_, opts_.band_steps, opts_.hard_edge_b, static_cast<float>(opts_.outline_width), opts_.tile_size)) : 1.0f;
     span_ = band_noise_span(pattern_, opts_.band_steps);
 
-    noise_targets_lut_.assign(3, false);
+    static_assert(static_cast<int>(PatternRole::Edge) == 2,
+                  "noise_targets_lut_ is indexed by PatternRole; keep it dense and sized to match");
+    noise_targets_lut_.fill(false);
     for (auto tid : opts_.noise_targets) {
         if (tid == NoiseTargetId::TerrainA) noise_targets_lut_[static_cast<int>(PatternRole::TerrainA)] = true;
         if (tid == NoiseTargetId::TerrainB) noise_targets_lut_[static_cast<int>(PatternRole::TerrainB)] = true;
@@ -287,8 +289,7 @@ void TilePainter::paint_tile_into(int mask, uint8_t* out_rgba, int row_stride_by
     }
 
     auto target_matches = [this](PatternRole r) {
-        int idx = static_cast<int>(r);
-        return idx >= 0 && idx < static_cast<int>(noise_targets_lut_.size()) && noise_targets_lut_[idx];
+        return noise_targets_lut_[static_cast<size_t>(r)];
     };
 
     for (int y = 0; y < tile_size; ++y) {
