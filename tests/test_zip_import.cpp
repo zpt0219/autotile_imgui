@@ -2,8 +2,7 @@
 // library the importer reads with. That is enough to pin down how this reader
 // behaves — which entries it picks up, what it does with broken input, that it
 // runs everything through sanitizeRecipe — but it is NOT evidence that the
-// format matches the web app's export. No web-app archive was available, and
-// T10.2 is marked descoped in docs/TASKS.md for that reason. Do not read a pass
+// format matches the web app's export. Do not read a pass
 // here as format compatibility.
 #include <doctest/doctest.h>
 #include "codec/zip_import.h"

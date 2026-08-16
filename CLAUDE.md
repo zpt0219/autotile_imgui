@@ -14,8 +14,7 @@ library of recipes and batch-exports many.
 web implementation.** A sheet is 256x192 RGBA (8 columns x 6 rows of 32px
 tiles). Given the same recipe, this app's bytes must equal the web app's bytes.
 
-Read `docs/PLAN.md` first — architecture, phases, and the traps. `docs/TASKS.md`
-is the phase-by-phase work breakdown with its acceptance gates.
+See `docs/ARCHITECTURE.md` for full architecture, data flow, and module design.
 
 ## The two directories you must not fight with
 
@@ -90,9 +89,7 @@ or has already cost measurable time.
 
 ## Working rhythm
 
-Do one task from `docs/TASKS.md` at a time and finish its gate before starting
-the next. The gates are cheap and specific on purpose; a phase that "looks done"
-but has not passed its `verify.py` invocation is not done.
+Run the parity check (`corpus/verify.py`) and unit tests after any change. Changes must maintain 1161/1161 passed with maxDelta 0.
 
 When a parity check fails, **read the whole failure report before changing code**.
 It tells you the first differing pixel by slot/mask/tile coordinate, the spread

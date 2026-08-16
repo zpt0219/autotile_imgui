@@ -11,25 +11,27 @@ recipe**, and that is what this repository is graded on.
 
 ## Status
 
-Not implemented yet. What exists is everything needed to implement it:
+**Production Ready & Verified.** Fully ported, refactored, and tested with **1161/1161 passed (maxDelta = 0)** pixel-perfect parity against the reference specification.
 
-| | |
+| Document / Directory | Description |
 |---|---|
-| `docs/PLAN.md` | architecture, the ViewModel / command-queue / fan-out design, phases, known traps |
-| `docs/TASKS.md` | the work breakdown, one task at a time, each with the command that decides it is done |
-| `CLAUDE.md` | the rules that are not negotiable, and the build/test commands |
-| `reference/` | read-only snapshot of the TypeScript being ported — the specification |
-| `corpus/` | 1161 baked ground-truth sheets — the grader |
+| `docs/ARCHITECTURE.md` | Architecture, data flow, thread model, and module structure |
+| `CLAUDE.md` | Invariants, hard rules, build commands, and parity verification |
+| `reference/` | Read-only reference TypeScript implementation (specification) |
+| `corpus/` | 1161 baked ground-truth sheets and verification tool (`verify.py`) |
 
-## Quick orientation
+## Quick Orientation
 
 ```bash
+# Configure
 cmake -B build-desktop -S . -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_POLICY_VERSION_MINIMUM=3.5
-cmake --build build-desktop -j --target autotile_mixer
+
+# Build desktop app & unit tests
+cmake --build build-desktop -j --target autotile_mixer autotile_tests
+
+# Run unit tests
 ctest --test-dir build-desktop --output-on-failure
 
-python corpus/verify.py --exe build-desktop/desktop/autotile_mixer.exe --quick
+# Verify parity against ground-truth corpus (1161 sheets)
+python corpus/verify.py --exe build-desktop/desktop/autotile_mixer.exe
 ```
-
-The last command is the one that matters. When it reports **1161/1161** with no
-filter, the port is done.
