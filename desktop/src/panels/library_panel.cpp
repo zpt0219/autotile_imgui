@@ -1,7 +1,6 @@
 #include "library_panel.h"
 #include "view_model/view_model.h"
 #include "command/library_command.h"
-#include "codec/recipe_codec.h"
 #include "codec/zip_import.h"
 #include "file_dialog.h"
 #include <imgui.h>
@@ -20,12 +19,6 @@ void LibraryPanel::draw(ViewModel& vm) {
         if (ImGui::Button(use_zh ? "+ 新配方" : "+ New")) {
             vm.show_new_recipe_modal = true;
             vm.new_recipe_name_buffer = "New Recipe";
-        }
-        ImGui::SameLine();
-        if (ImGui::Button(use_zh ? "导入代码" : "Import Code")) {
-            vm.show_import_share_modal = true;
-            vm.import_share_code_buffer.clear();
-            vm.import_share_error.clear();
         }
         ImGui::SameLine();
         if (ImGui::Button(use_zh ? "导入 ZIP" : "Import ZIP")) {
@@ -98,11 +91,6 @@ void LibraryPanel::draw(ViewModel& vm) {
                             renaming_hash_ = entry->hash;
                             std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
                             rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
-                        }
-                        if (ImGui::MenuItem(use_zh ? "复制分享代码" : "Copy Share Code")) {
-                            std::string code = atm::encode_recipe(entry->recipe);
-                            ImGui::SetClipboardText(code.c_str());
-                            vm.log("Share code copied to clipboard", "INFO");
                         }
                         ImGui::Separator();
                         if (lib->entries().size() > 1 && ImGui::MenuItem(use_zh ? "删除" : "Delete", nullptr, false, true)) {
@@ -193,11 +181,6 @@ void LibraryPanel::draw(ViewModel& vm) {
                                 std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
                                 rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
                             }
-                            if (ImGui::MenuItem(use_zh ? "复制分享代码" : "Copy Share Code")) {
-                                std::string code = atm::encode_recipe(entry->recipe);
-                                ImGui::SetClipboardText(code.c_str());
-                                vm.log("Share code copied to clipboard", "INFO");
-                            }
                             ImGui::Separator();
                             if (lib->entries().size() > 1 && ImGui::MenuItem(use_zh ? "删除" : "Delete", nullptr, false, true)) {
                                 vm.execute_command(std::make_unique<atm::RemoveRecipeCommand>(entry->hash));
@@ -251,42 +234,6 @@ void LibraryPanel::draw(ViewModel& vm) {
             ImGui::SameLine();
             if (ImGui::Button(use_zh ? "取消" : "Cancel", ImVec2(120, 0))) {
                 vm.show_new_recipe_modal = false;
-                ImGui::CloseCurrentPopup();
-            }
-            ImGui::EndPopup();
-        }
-
-        // Modals: Import Share Code
-        if (vm.show_import_share_modal) {
-            ImGui::OpenPopup("Import Share Code");
-        }
-        if (ImGui::BeginPopupModal("Import Share Code", &vm.show_import_share_modal, ImGuiWindowFlags_AlwaysAutoResize)) {
-            static char code_buf[1024] = { 0 };
-            ImGui::Text("%s", use_zh ? "粘贴来自 Web 工具的 Base64URL 分享代码:" : "Paste Base64URL share code from web tool:");
-            ImGui::InputTextMultiline("##ShareCode", code_buf, sizeof(code_buf), ImVec2(350, 80));
-
-            if (!vm.import_share_error.empty()) {
-                ImGui::TextColored(ImVec4(1.0f, 0.3f, 0.3f, 1.0f), "%s", vm.import_share_error.c_str());
-            }
-
-            ImGui::Spacing();
-            if (ImGui::Button(use_zh ? "导入" : "Import", ImVec2(120, 0))) {
-                auto decoded = atm::decode_recipe(code_buf);
-                if (decoded.has_value()) {
-                    vm.execute_command(std::make_unique<atm::AddRecipeCommand>(*decoded, "Imported Recipe"));
-                    vm.show_import_share_modal = false;
-                    code_buf[0] = 0;
-                    vm.import_share_error.clear();
-                    ImGui::CloseCurrentPopup();
-                } else {
-                    vm.import_share_error = "Invalid or corrupted share code!";
-                }
-            }
-            ImGui::SameLine();
-            if (ImGui::Button(use_zh ? "取消" : "Cancel", ImVec2(120, 0))) {
-                vm.show_import_share_modal = false;
-                code_buf[0] = 0;
-                vm.import_share_error.clear();
                 ImGui::CloseCurrentPopup();
             }
             ImGui::EndPopup();

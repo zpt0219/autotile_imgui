@@ -176,9 +176,6 @@ void App::render_menu_bar() {
             if (ImGui::MenuItem("New Recipe", "Ctrl+N")) {
                 view_model_.show_new_recipe_modal = true;
             }
-            if (ImGui::MenuItem("Import Share Code...", "Ctrl+I")) {
-                view_model_.show_import_share_modal = true;
-            }
             ImGui::Separator();
             if (ImGui::MenuItem("Save Library As...", "Ctrl+S")) {
                 auto path = fd::save_file("Save Recipe Library", "library.atmlib", { "*.atmlib" }, "AutoTile Library (*.atmlib)");

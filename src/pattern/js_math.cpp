@@ -6,6 +6,8 @@
 namespace atm {
 namespace js_math {
 
+// Forwarding, not reimplementing — see the note in js_math.h for why these
+// three keep a seam they do not currently use.
 double sin(double x) {
     return std::sin(x);
 }

@@ -1139,33 +1139,11 @@ const char* get_field_string(const std::string& pattern, int mask) {
     if (pattern == "coast") entries = MASKS_coast;
     if (pattern == "moss") entries = MASKS_moss;
     if (pattern == "billow") entries = MASKS_billow;
-    if (pattern == "wave") entries = MASKS_rounded; // wave shares rounded field
     if (!entries) return nullptr;
     for (const MaskEntry* e = entries; e->mask != -1; ++e) {
         if (e->mask == mask) return e->field;
     }
     return nullptr;
-}
-
-PatternBands get_pattern_bands(const std::string& pattern) {
-    if (pattern == "boulder") return { 8.0f, 10.0f, 12.0f, 14.0f };
-    if (pattern == "thorn")   return { 7.5f, 9.0f, 10.0f, 12.0f };
-    if (pattern == "coast")   return { 7.5f, 9.5f, 11.5f, 13.5f };
-    // square, sharp, rounded, wave, jagged, gravel, moss, billow
-    return { 7.0f, 9.0f, 11.0f, 13.0f };
-}
-
-PatternOffsetRange get_pattern_offset_range(const std::string& pattern) {
-    if (pattern == "square" || pattern == "sharp") return { -8.5f, 6.25f };
-    if (pattern == "rounded" || pattern == "wave") return { -3.75f, 2.75f };
-    if (pattern == "jagged")                       return { -5.5f, 1.0f };
-    if (pattern == "gravel")                       return { -5.25f, 1.5f };
-    if (pattern == "boulder")                      return { -4.0f, 1.25f };
-    if (pattern == "thorn")                        return { -4.5f, 1.25f };
-    if (pattern == "coast")                        return { -3.75f, 2.25f };
-    if (pattern == "moss")                         return { -5.75f, 1.0f };
-    if (pattern == "billow")                       return { -2.75f, 1.0f };
-    return { -3.75f, 2.75f };
 }
 
 } // namespace pattern_data

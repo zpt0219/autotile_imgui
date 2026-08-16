@@ -40,7 +40,18 @@ inline float sqrt(float x) {
     return std::sqrt(x);
 }
 
-// fdlibm / V8 exact Math.sin, Math.cos, Math.atan2, Math.hypot
+// V8's Math.sin / cos / atan2 / hypot.
+//
+// Only `hypot` needed a real reimplementation — V8 uses a compensated form that
+// `std::hypot` does not match. The other three currently forward straight to
+// `std::`, which agreed with V8 on every one of the 1161 corpus sheets and on
+// the 500-row conformance vectors in tests/data/js_math_vectors.json.
+//
+// They stay behind this seam anyway: `std::sin` and friends are not required to
+// be correctly rounded, so a different libm could diverge in the last ulp — and
+// in this project a last-ulp difference is not a small error, it flips a
+// quantiser boundary and repaints a pixel. If that ever happens, drop an fdlibm
+// implementation in here rather than chasing it through the callers.
 double sin(double x);
 double cos(double x);
 double atan2(double y, double x);

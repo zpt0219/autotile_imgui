@@ -1,10 +1,10 @@
 #include "pattern_ribbon.h"
 #include "pattern_texture.h"
+#include "catalog.h"
 #include "pattern_hash.h"
 #include "js_math.h"
 #include <algorithm>
 #include <cmath>
-#include <unordered_map>
 
 namespace atm {
 
@@ -13,10 +13,6 @@ static const int32_t RIBBON_SALT = 0x2c9f;
 
 static inline double modp(double v, double m) {
     return std::fmod(std::fmod(v, m) + m, m);
-}
-
-bool ribbon_uses_invert(const std::string& id) {
-    return id == "bevel" || id == "wave" || id == "rope";
 }
 
 int ribbon_shade_at(
@@ -39,19 +35,12 @@ int ribbon_shade_at(
     double sp = s + static_cast<double>(sd % 32);
     auto cap = [shades](int k) { return std::max(0, std::min(shades, k)); };
 
-    static const std::unordered_map<std::string, std::string> ALONG_SOURCE = {
-        { "along_brick_wall", "brick_wall" },
-        { "along_cobbles2", "cobbles2" },
-        { "along_weave", "weave" },
-        { "along_stone_floor", "stone_floor" },
-        { "along_breeze_block", "breeze_block" },
-        { "along_octagonal", "octagonal" },
-    };
-
-    auto it = ALONG_SOURCE.find(id);
-    if (it != ALONG_SOURCE.end()) {
+    // The along_* motifs are a texture painted along the band axis rather than a
+    // motif of their own; the registry says which texture.
+    const std::string along = ribbon_along_source(id);
+    if (!along.empty()) {
         int ty = std::min(static_cast<int>(width_px - 1.0), static_cast<int>(std::floor(dp * width_px)));
-        return texture_shade_at(it->second, static_cast<int>(std::floor(sp)), ty, seed, static_cast<float>(amount), shades);
+        return texture_shade_at(along, static_cast<int>(std::floor(sp)), ty, seed, static_cast<float>(amount), shades);
     }
 
     if (id == "bevel") {

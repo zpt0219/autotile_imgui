@@ -8,35 +8,45 @@
 
 namespace atm {
 
+// A sparse override array carries "" and nullopt alike to mean "not
+// overridden"; both collapse to nullopt here so the paint layer only ever sees
+// a colour or nothing.
+static std::vector<std::optional<RGB>> parse_sparse_hexes(
+    const std::vector<std::optional<std::string>>& hexes,
+    size_t count
+) {
+    std::vector<std::optional<RGB>> out;
+    out.reserve(count);
+    for (size_t i = 0; i < count && i < hexes.size(); ++i) {
+        const auto& h = hexes[i];
+        if (h.has_value() && !h->empty()) {
+            out.push_back(parse_hex_colour(*h));
+        } else {
+            out.push_back(std::nullopt);
+        }
+    }
+    return out;
+}
+
+// Texture ramps are sliced to the shade count in play and dropped entirely when
+// no slot is actually set — an all-empty array must not shadow the computed ramp.
 static std::optional<std::vector<std::optional<RGB>>> parse_custom_ramp(
     const std::optional<std::vector<std::optional<std::string>>>& hexes,
     int shade_count
 ) {
     if (!hexes.has_value() || hexes->empty()) return std::nullopt;
-    bool any_set = false;
-    for (const auto& h : *hexes) {
-        if (h.has_value() && !h->empty()) any_set = true;
-    }
-    if (!any_set) return std::nullopt;
 
-    std::vector<std::optional<RGB>> sliced;
-    size_t count = std::min(hexes->size(), static_cast<size_t>(shade_count + 1));
-    bool sliced_any = false;
-    for (size_t i = 0; i < count; ++i) {
-        const auto& h = (*hexes)[i];
-        if (h.has_value() && !h->empty()) {
-            sliced.push_back(parse_hex_colour(*h));
-            sliced_any = true;
-        } else {
-            sliced.push_back(std::nullopt);
-        }
+    const size_t count = std::min(hexes->size(), static_cast<size_t>(shade_count + 1));
+    std::vector<std::optional<RGB>> sliced = parse_sparse_hexes(*hexes, count);
+
+    for (const auto& c : sliced) {
+        if (c.has_value()) return sliced;
     }
-    if (!sliced_any) return std::nullopt;
-    return sliced;
+    return std::nullopt;
 }
 
 static double band_offset_px(const Recipe& r) {
-    auto r_range = pattern_data::get_pattern_offset_range(r.patternId);
+    auto r_range = pattern_offset_range(r.patternId);
     double lo = static_cast<double>(r_range.min_off);
     double hi = static_cast<double>(r_range.max_off);
     return (r.bandBias < 0.0) ? -r.bandBias * lo : r.bandBias * hi;
@@ -111,16 +121,10 @@ static RibbonPaintOptions build_ribbon_options(const Recipe& r) {
     ribbon.shades = r.ribbonShades;
     ribbon.seed = r.edgeSeed;
     ribbon.invert = r.ribbonInvert;
+    // Unlike the texture ramps, this one is taken whole or not at all: the
+    // length must match exactly, and an all-empty array is still honoured.
     if (r.customRibbonHex.has_value() && static_cast<int>(r.customRibbonHex->size()) == r.ribbonShades + 1) {
-        std::vector<std::optional<RGB>> custom_rib;
-        for (const auto& item : *r.customRibbonHex) {
-            if (item.has_value() && !item->empty()) {
-                custom_rib.push_back(parse_hex_colour(*item));
-            } else {
-                custom_rib.push_back(std::nullopt);
-            }
-        }
-        ribbon.ramp = custom_rib;
+        ribbon.ramp = parse_sparse_hexes(*r.customRibbonHex, r.customRibbonHex->size());
     }
     return ribbon;
 }

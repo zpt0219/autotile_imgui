@@ -17,19 +17,5 @@ uint8_t char_to_value(char c);
 // Returns nullptr if not found
 const char* get_field_string(const std::string& pattern, int mask);
 
-// Pattern band definitions (distances in field units)
-struct PatternBands {
-    float b0, b1, b2, b3;
-};
-
-PatternBands get_pattern_bands(const std::string& pattern);
-
-// Pattern offset ranges [min, max]
-struct PatternOffsetRange {
-    float min_off, max_off;
-};
-
-PatternOffsetRange get_pattern_offset_range(const std::string& pattern);
-
 } // namespace pattern_data
 } // namespace atm

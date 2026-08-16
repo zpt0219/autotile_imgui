@@ -3,7 +3,6 @@
 #include "handler/library_handler.h"
 #include "command/library_command.h"
 #include "command/library_command_handler.h"
-#include "codec/recipe_codec.h"
 
 using namespace atm;
 
@@ -71,36 +70,4 @@ TEST_CASE("Recipe Library & Command Undo/Redo") {
     res = cmd_handler.redo(handler);
     REQUIRE(res.success);
     CHECK(handler.selected_recipe()->recipe.roleHex.terrainA == "#112233");
-}
-
-TEST_CASE("Recipe Codec Share Code Roundtrip") {
-    Recipe r = get_default_recipe();
-    r.patternId = "thorn";
-    r.roleHex.terrainA = "#123456";
-    r.roleHex.terrainB = "#abcdef";
-    r.roleHex.edge = "#987654";
-    r.edgeSeed = 4242;
-    r.bandSteps = 5;
-    r.hardEdgeB = true;
-    r.bandBias = 0.45;
-    r.ribbonAlgo = "rope";
-    r.ribbonAmount = 0.75;
-    r.textureAlgoA = "hexagon";
-    r.textureAmountA = 0.6;
-
-    std::string code = encode_recipe(r);
-    REQUIRE(!code.empty());
-
-    auto decoded = decode_recipe(code);
-    REQUIRE(decoded.has_value());
-    CHECK(decoded->patternId == "thorn");
-    CHECK(decoded->roleHex.terrainA == "#123456");
-    CHECK(decoded->roleHex.terrainB == "#abcdef");
-    CHECK(decoded->roleHex.edge == "#987654");
-    CHECK(decoded->edgeSeed == 4242);
-    CHECK(decoded->bandSteps == 5);
-    CHECK(decoded->hardEdgeB == true);
-    CHECK(std::abs(decoded->bandBias - 0.45) < 0.015);
-    CHECK(decoded->ribbonAlgo == "rope");
-    CHECK(decoded->textureAlgoA == "hexagon");
 }

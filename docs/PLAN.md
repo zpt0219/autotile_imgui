@@ -10,9 +10,13 @@
 | | web `autotile_mixer` | 桌面 `autotile_imgui` |
 |---|---|---|
 | 目标 | 单张 sheet 精修 + 分享码传播 | 配方库存 + 变体矩阵 + **批量导出** |
-| 输入 | 交互调参 | 配方文件 / 分享码 / web 导出的 zip |
+| 输入 | 交互调参 | 配方文件 / web 导出的 zip |
 | 输出 | 一张 PNG + json + zip | 一批 PNG/json，按命名模板落盘 |
 | 硬约束 | —— | **同一配方渲染出的像素必须与 web 逐字节相同** |
+
+> **分享码（`recipeCodec.ts`）不移植。** 2026-08-15 起 `src/codec/recipe_codec.*`
+> 及其 UI 已从桌面端删除。单张 sheet 的精修与传播是网页版的职责；桌面端只做
+> "一次存一堆预设"，两端之间需要搬运时走 web 导出的 zip（`codec/zip_import`）。
 
 桌面端不复刻 web 那 2000 行 `App.tsx` 的全部旋钮。优先级：配方库 → 变体矩阵 →
 批量导出 → 单张精修面板（够用即可）。
@@ -46,7 +50,6 @@ autotile_imgui/
 │   │   └─ sheet.h/.cpp            # 48 槽拼成 256×192 RGBA
 │   ├─ model/
 │   │   ├─ recipe.h/.cpp           # ← recipe.ts，含 sanitizeRecipe
-│   │   ├─ recipe_codec.h/.cpp     # ← recipeCodec.ts（分享码，P10）
 │   │   ├─ recipe_library.h/.cpp   # 文档模型（= tilemap 的 TileMap）
 │   │   └─ variant_matrix.h/.cpp   # 变体轴叉乘
 │   ├─ handler/library_handler.h/.cpp
@@ -149,7 +152,6 @@ class LibraryHandler {        // ≈ TileMapHandler：文档 + 选择态 + setti
 | `RenameRecipe` | 改名 | ✅（打字式） |
 | `ReorderRecipe` | 拖排序 | ❌ |
 | `SelectRecipe` | 选中 | ❌（照抄 `SelectLayerCommand`，**进栈**：撤销一次参数修改要能跳回那条配方） |
-| `ImportShareCode` | 分享码导入 | ❌ |
 | `AddVariantAxis` / `UpdateVariantAxis` / `RemoveVariantAxis` | 变体矩阵 | 视情况 |
 
 **不进 undo 栈**（IO 副作用，对齐 `save_to_file` 的处理）：
@@ -212,7 +214,7 @@ enum DirtyMask : uint32_t {
    面板实时显示"将生成 N 张"，可预览前 12 张。**这是桌面端相对 web 的核心增量。**
 3. **批量导出**：命名模板（`{name}_{pattern}_{texA}_{size}px`）、输出目录结构、
    PNG + json sidecar + 可选 zip；后台线程池渲染，进度条 + 取消；导出前冲突检查。
-4. **导入桥**：粘贴 web 分享码 / 拖入 web 导出的 zip → 进库。两端唯一的耦合点。
+4. **导入桥**：拖入 web 导出的 zip → 进库。两端唯一的耦合点。
 5. **headless CLI**：`autotile_mixer --headless`，stdin 收 JSON 命令
    （`{"cmd":"load_library"}` / `{"cmd":"batch_export"}` / `{"cmd":"render","recipe":{...},"out":"x.png"}`），
    形状照抄 `headless_commands.cpp`。对拍语料的批量渲染也走这条路（也可直接链核心库）。
@@ -323,7 +325,7 @@ diff 里能直接看到哪些配方哈希变了 → 桌面侧同步之前 CI 是
 | **P7** | `model` + `command` + `handler` + 回调接口 + 猴子测试 | 命令层测试全绿 | P1（**可与 P2–P6 并行**） |
 | **P8** | ImGui 前端：`app` / `view_model` / `sheet_renderer` / 四个核心面板 | 手动 | P6 + P7 |
 | **P9** | 变体矩阵 + 后台线程池 + 进度扇出 + 批量导出面板 | 手动 + 导出结果过 Level D | P8 |
-| **P10** | 桥接：`recipe_codec` 移植（分享码）、web zip 导入 | 分享码 round-trip 测试 | P7 |
+| **P10** | 桥接：web zip 导入 | zip 导入测试 | P7 |
 
 **P0–P7 完全 headless、零 UI 代码。** UI 是简单的部分，放后面；对拍才是难点。
 P7 与 P2–P6 无依赖，可以并行推进。

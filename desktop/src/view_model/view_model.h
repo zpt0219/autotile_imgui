@@ -56,9 +56,6 @@ public:
     void clear_logs();
 
     // Dialog state
-    bool show_import_share_modal = false;
-    std::string import_share_code_buffer;
-    std::string import_share_error;
 
     bool show_new_recipe_modal = false;
     std::string new_recipe_name_buffer = "New Recipe";

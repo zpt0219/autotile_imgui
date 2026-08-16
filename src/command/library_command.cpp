@@ -7,8 +7,8 @@ bool LibraryCommand::merge_with(const LibraryCommand* other) {
     return false;
 }
 
-// ---------------- Helpers for Recipe mutation commands ----------------
-
+// Shared by the two commands that are not RecipeFieldCommand<State> but still
+// coalesce successive edits (rename, export settings).
 template <typename Cmd>
 static const Cmd* cast_merge_target(const LibraryCommand* self, const LibraryCommand* other, CommandKind kind) {
     if (!other || other->get_kind() != kind) return nullptr;
@@ -18,222 +18,39 @@ static const Cmd* cast_merge_target(const LibraryCommand* self, const LibraryCom
     return o;
 }
 
-// Run a field edit forward: snapshot the old values once, write the new ones,
-// then (optionally) re-sync any colour-override array whose length this edit
-// governs. See the invariant block in model/recipe.h.
-//
-// `sync` belongs to the forward path only. `undo_recipe_mutation` deliberately
-// has no equivalent: undo restores the snapshot verbatim, because re-syncing on
-// the way back would rebuild trimmed levels from computed colours and quietly
-// lose the user's. That was a real bug once — see commit e790a50.
-template <typename InitFn, typename ApplyFn, typename SyncFn = std::nullptr_t>
-static EditorResult execute_recipe_mutation(
-    LibraryHandler& handler,
-    const std::string& hash,
-    bool& initialized,
-    InitFn on_init,
-    ApplyFn apply,
-    DirtyMask dirty,
-    LibraryCallbacks* cb,
-    int flag,
-    SyncFn sync = nullptr
-) {
-    auto entry = handler.library()->find_by_hash(hash);
-    if (!entry) return EditorResult::Error("Recipe not found: " + hash);
-    if (!initialized) {
-        on_init(entry->recipe);
-        initialized = true;
-    }
-    apply(entry->recipe);
-    if constexpr (!std::is_null_pointer_v<SyncFn>) {
-        if (sync) sync(entry->recipe);
-    }
-    handler.notify_recipe_updated(entry.get(), dirty, cb, flag);
-    return EditorResult::Ok();
-}
-
-template <typename UndoFn>
-static EditorResult undo_recipe_mutation(
-    LibraryHandler& handler,
-    const std::string& hash,
-    UndoFn undo_apply,
-    DirtyMask dirty,
-    LibraryCallbacks* cb
-) {
-    auto entry = handler.library()->find_by_hash(hash);
-    if (!entry) return EditorResult::Error("Recipe not found: " + hash);
-    undo_apply(entry->recipe);
-    handler.notify_recipe_updated(entry.get(), dirty, cb, 2);
-    return EditorResult::Ok();
-}
-
-// ---------------- UpdateRecipeColoursCommand ----------------
+// The six field commands are all RecipeFieldCommand<State> now: the base does
+// execute / undo / merge_with, the header says which fields each owns, and all
+// that is left here is stashing the incoming values into `new_`.
 
 UpdateRecipeColoursCommand::UpdateRecipeColoursCommand(
-    std::string hash, RoleHex new_roles, std::optional<std::vector<std::string>> new_shades, int flag)
-    : new_roles_(std::move(new_roles)), new_shades_(std::move(new_shades)) {
+    std::string hash, RoleHex new_roles, std::optional<std::vector<std::string>> new_shades, int flag) {
+    new_ = { std::move(new_roles), std::move(new_shades) };
     target_hash_ = std::move(hash);
     flag_ = flag;
 }
-
-EditorResult UpdateRecipeColoursCommand::execute(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return execute_recipe_mutation(
-        handler, target_hash_, initialized_,
-        [&](const Recipe& r) { old_roles_ = r.roleHex; old_shades_ = r.customShadesHex; },
-        [&](Recipe& r) { r.roleHex = new_roles_; r.customShadesHex = new_shades_; },
-        // Defensive sync: a caller that built the array against a stale
-        // bandSteps would otherwise hand over one the sanitiser drops.
-        DIRTY_COLOUR, cb, flag_, sync_band_overrides
-    );
-}
-
-EditorResult UpdateRecipeColoursCommand::undo(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return undo_recipe_mutation(handler, target_hash_, [&](Recipe& r) {
-        r.roleHex = old_roles_;
-        r.customShadesHex = old_shades_;
-    }, DIRTY_COLOUR, cb);
-}
-
-bool UpdateRecipeColoursCommand::merge_with(const LibraryCommand* other) {
-    auto* o = cast_merge_target<UpdateRecipeColoursCommand>(this, other, CommandKind::UpdateRecipeColours);
-    if (!o) return false;
-    new_roles_ = o->new_roles_;
-    new_shades_ = o->new_shades_;
-    flag_ = o->flag_;
-    timestamp_ = o->timestamp_;
-    return true;
-}
-
-// ---------------- UpdateRecipePatternCommand ----------------
 
 UpdateRecipePatternCommand::UpdateRecipePatternCommand(
-    std::string hash, std::string pattern_id, int edge_seed, int outline_width, int flag)
-    : new_pattern_id_(std::move(pattern_id)), new_edge_seed_(edge_seed), new_outline_width_(outline_width) {
+    std::string hash, std::string pattern_id, int edge_seed, int outline_width, int flag) {
+    new_ = { std::move(pattern_id), edge_seed, outline_width };
     target_hash_ = std::move(hash);
     flag_ = flag;
 }
-
-EditorResult UpdateRecipePatternCommand::execute(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return execute_recipe_mutation(
-        handler, target_hash_, initialized_,
-        [&](const Recipe& r) { old_pattern_id_ = r.patternId; old_edge_seed_ = r.edgeSeed; old_outline_width_ = r.outlineWidth; },
-        [&](Recipe& r) { r.patternId = new_pattern_id_; r.edgeSeed = new_edge_seed_; r.outlineWidth = new_outline_width_; },
-        DIRTY_SILHOUETTE, cb, flag_
-    );
-}
-
-EditorResult UpdateRecipePatternCommand::undo(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return undo_recipe_mutation(handler, target_hash_, [&](Recipe& r) {
-        r.patternId = old_pattern_id_;
-        r.edgeSeed = old_edge_seed_;
-        r.outlineWidth = old_outline_width_;
-    }, DIRTY_SILHOUETTE, cb);
-}
-
-bool UpdateRecipePatternCommand::merge_with(const LibraryCommand* other) {
-    auto* o = cast_merge_target<UpdateRecipePatternCommand>(this, other, CommandKind::UpdateRecipePattern);
-    if (!o) return false;
-    new_pattern_id_ = o->new_pattern_id_;
-    new_edge_seed_ = o->new_edge_seed_;
-    new_outline_width_ = o->new_outline_width_;
-    flag_ = o->flag_;
-    timestamp_ = o->timestamp_;
-    return true;
-}
-
-// ---------------- UpdateRecipeBandCommand ----------------
 
 UpdateRecipeBandCommand::UpdateRecipeBandCommand(
-    std::string hash, int band_steps, bool hard_edge_b, bool transparent_b, double band_bias, int flag)
-    : new_band_steps_(band_steps), new_hard_edge_b_(hard_edge_b), new_transparent_b_(transparent_b), new_band_bias_(band_bias) {
+    std::string hash, int band_steps, bool hard_edge_b, bool transparent_b, double band_bias, int flag) {
+    // custom_shades is left empty: the forward write copies the array that is
+    // already on the recipe, then sync() resizes it to the new step count.
+    new_ = { band_steps, hard_edge_b, transparent_b, band_bias, std::nullopt };
     target_hash_ = std::move(hash);
     flag_ = flag;
 }
-
-EditorResult UpdateRecipeBandCommand::execute(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return execute_recipe_mutation(
-        handler, target_hash_, initialized_,
-        [&](const Recipe& r) {
-            old_band_steps_ = r.bandSteps;
-            old_hard_edge_b_ = r.hardEdgeB;
-            old_transparent_b_ = r.transparentB;
-            old_band_bias_ = r.bandBias;
-            // bandSteps owns the length of customShadesHex, so the resize the
-            // sync below performs is part of this edit and must be undone with it.
-            old_custom_shades_ = r.customShadesHex;
-        },
-        [&](Recipe& r) {
-            r.bandSteps = new_band_steps_;
-            r.hardEdgeB = new_hard_edge_b_;
-            r.transparentB = new_transparent_b_;
-            r.bandBias = new_band_bias_;
-        },
-        DIRTY_SILHOUETTE, cb, flag_, sync_band_overrides
-    );
-}
-
-EditorResult UpdateRecipeBandCommand::undo(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return undo_recipe_mutation(handler, target_hash_, [&](Recipe& r) {
-        r.bandSteps = old_band_steps_;
-        r.hardEdgeB = old_hard_edge_b_;
-        r.transparentB = old_transparent_b_;
-        r.bandBias = old_band_bias_;
-        // Restore rather than re-sync: growing then shrinking would otherwise
-        // leave the trimmed levels holding computed colours instead of the user's.
-        r.customShadesHex = old_custom_shades_;
-    }, DIRTY_SILHOUETTE, cb);
-}
-
-bool UpdateRecipeBandCommand::merge_with(const LibraryCommand* other) {
-    auto* o = cast_merge_target<UpdateRecipeBandCommand>(this, other, CommandKind::UpdateRecipeBand);
-    if (!o) return false;
-    new_band_steps_ = o->new_band_steps_;
-    new_hard_edge_b_ = o->new_hard_edge_b_;
-    new_transparent_b_ = o->new_transparent_b_;
-    new_band_bias_ = o->new_band_bias_;
-    flag_ = o->flag_;
-    timestamp_ = o->timestamp_;
-    return true;
-}
-
-// ---------------- UpdateRecipeNoiseCommand ----------------
 
 UpdateRecipeNoiseCommand::UpdateRecipeNoiseCommand(
-    std::string hash, std::vector<NoiseId> noises, int seed, double strength, int flag)
-    : new_noises_(std::move(noises)), new_seed_(seed), new_strength_(strength) {
+    std::string hash, std::vector<NoiseId> noises, int seed, double strength, int flag) {
+    new_ = { std::move(noises), seed, strength };
     target_hash_ = std::move(hash);
     flag_ = flag;
 }
-
-EditorResult UpdateRecipeNoiseCommand::execute(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return execute_recipe_mutation(
-        handler, target_hash_, initialized_,
-        [&](const Recipe& r) { old_noises_ = r.patternNoise; old_seed_ = r.patternNoiseSeed; old_strength_ = r.patternNoiseStrength; },
-        [&](Recipe& r) { r.patternNoise = new_noises_; r.patternNoiseSeed = new_seed_; r.patternNoiseStrength = new_strength_; },
-        DIRTY_NOISE, cb, flag_
-    );
-}
-
-EditorResult UpdateRecipeNoiseCommand::undo(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return undo_recipe_mutation(handler, target_hash_, [&](Recipe& r) {
-        r.patternNoise = old_noises_;
-        r.patternNoiseSeed = old_seed_;
-        r.patternNoiseStrength = old_strength_;
-    }, DIRTY_NOISE, cb);
-}
-
-bool UpdateRecipeNoiseCommand::merge_with(const LibraryCommand* other) {
-    auto* o = cast_merge_target<UpdateRecipeNoiseCommand>(this, other, CommandKind::UpdateRecipeNoise);
-    if (!o) return false;
-    new_noises_ = o->new_noises_;
-    new_seed_ = o->new_seed_;
-    new_strength_ = o->new_strength_;
-    flag_ = o->flag_;
-    timestamp_ = o->timestamp_;
-    return true;
-}
-
-// ---------------- UpdateRecipeRibbonCommand ----------------
 
 UpdateRecipeRibbonCommand::UpdateRecipeRibbonCommand(
     std::string hash,
@@ -244,112 +61,16 @@ UpdateRecipeRibbonCommand::UpdateRecipeRibbonCommand(
     bool invert,
     std::optional<std::vector<std::optional<std::string>>> custom_hex,
     int flag
-) : new_algo_(std::move(algo)), new_amount_(amount), new_period_(period), new_shades_(shades),
-    new_invert_(invert), new_custom_hex_(std::move(custom_hex)) {
+) {
+    new_ = { std::move(algo), amount, period, shades, invert, std::move(custom_hex) };
     target_hash_ = std::move(hash);
     flag_ = flag;
 }
 
-EditorResult UpdateRecipeRibbonCommand::execute(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return execute_recipe_mutation(
-        handler, target_hash_, initialized_,
-        [&](const Recipe& r) {
-            old_algo_ = r.ribbonAlgo;
-            old_amount_ = r.ribbonAmount;
-            old_period_ = r.ribbonPeriod;
-            old_shades_ = r.ribbonShades;
-            old_invert_ = r.ribbonInvert;
-            old_custom_hex_ = r.customRibbonHex;
-        },
-        [&](Recipe& r) {
-            r.ribbonAlgo = new_algo_;
-            r.ribbonAmount = new_amount_;
-            r.ribbonPeriod = new_period_;
-            r.ribbonShades = new_shades_;
-            r.ribbonInvert = new_invert_;
-            r.customRibbonHex = new_custom_hex_;
-        },
-        // ribbonShades owns this array's length. Enforced here rather than at
-        // the call sites so a caller passing the previous array cannot invalidate it.
-        DIRTY_RIBBON, cb, flag_, sync_ribbon_overrides
-    );
-}
-
-EditorResult UpdateRecipeRibbonCommand::undo(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return undo_recipe_mutation(handler, target_hash_, [&](Recipe& r) {
-        r.ribbonAlgo = old_algo_;
-        r.ribbonAmount = old_amount_;
-        r.ribbonPeriod = old_period_;
-        r.ribbonShades = old_shades_;
-        r.ribbonInvert = old_invert_;
-        r.customRibbonHex = old_custom_hex_;
-    }, DIRTY_RIBBON, cb);
-}
-
-bool UpdateRecipeRibbonCommand::merge_with(const LibraryCommand* other) {
-    auto* o = cast_merge_target<UpdateRecipeRibbonCommand>(this, other, CommandKind::UpdateRecipeRibbon);
-    if (!o) return false;
-    new_algo_ = o->new_algo_;
-    new_amount_ = o->new_amount_;
-    new_period_ = o->new_period_;
-    new_shades_ = o->new_shades_;
-    new_invert_ = o->new_invert_;
-    new_custom_hex_ = o->new_custom_hex_;
-    flag_ = o->flag_;
-    timestamp_ = o->timestamp_;
-    return true;
-}
-
-// ---------------- UpdateRecipeTextureCommand ----------------
-
-static void copy_texture_fields(Recipe& dst, const Recipe& src) {
-    dst.textureAlgoA = src.textureAlgoA;
-    dst.textureAlgoB = src.textureAlgoB;
-    dst.textureAmountA = src.textureAmountA;
-    dst.textureAmountB = src.textureAmountB;
-    dst.textureShadesA = src.textureShadesA;
-    dst.textureShadesB = src.textureShadesB;
-    dst.textureSeedA = src.textureSeedA;
-    dst.textureSeedB = src.textureSeedB;
-    dst.cellScaleA = src.cellScaleA;
-    dst.cellScaleB = src.cellScaleB;
-    dst.rippleScaleA = src.rippleScaleA;
-    dst.rippleScaleB = src.rippleScaleB;
-    dst.geoScaleA = src.geoScaleA;
-    dst.geoScaleB = src.geoScaleB;
-    dst.customTexHexA = src.customTexHexA;
-    dst.customTexHexB = src.customTexHexB;
-}
-
-UpdateRecipeTextureCommand::UpdateRecipeTextureCommand(std::string hash, const Recipe& new_state, int flag)
-    : new_recipe_(new_state) {
+UpdateRecipeTextureCommand::UpdateRecipeTextureCommand(std::string hash, const Recipe& new_state, int flag) {
+    new_ = read(new_state);
     target_hash_ = std::move(hash);
     flag_ = flag;
-}
-
-EditorResult UpdateRecipeTextureCommand::execute(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return execute_recipe_mutation(
-        handler, target_hash_, initialized_,
-        [&](const Recipe& r) { old_recipe_ = r; },
-        [&](Recipe& r) { copy_texture_fields(r, new_recipe_); },
-        // textureShadesA/B own these arrays' lengths.
-        static_cast<DirtyMask>(DIRTY_TEXTURE_A | DIRTY_TEXTURE_B), cb, flag_, sync_texture_overrides
-    );
-}
-
-EditorResult UpdateRecipeTextureCommand::undo(LibraryHandler& handler, LibraryCallbacks* cb) {
-    return undo_recipe_mutation(handler, target_hash_, [&](Recipe& r) {
-        copy_texture_fields(r, old_recipe_);
-    }, static_cast<DirtyMask>(DIRTY_TEXTURE_A | DIRTY_TEXTURE_B), cb);
-}
-
-bool UpdateRecipeTextureCommand::merge_with(const LibraryCommand* other) {
-    auto* o = cast_merge_target<UpdateRecipeTextureCommand>(this, other, CommandKind::UpdateRecipeTexture);
-    if (!o) return false;
-    new_recipe_ = o->new_recipe_;
-    flag_ = o->flag_;
-    timestamp_ = o->timestamp_;
-    return true;
 }
 
 // ---------------- AddRecipeCommand ----------------

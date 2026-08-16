@@ -98,30 +98,11 @@ TEST_CASE("U1 Catalog metadata counts and items") {
 
     CHECK(g_scales.size() == 4);
 
-    SUBCASE("Bidirectional check: patterns against sanitize_recipe") {
-        for (const auto& pid : patterns) {
-            nlohmann::json j = { { "patternId", pid } };
-            atm::Recipe r = atm::sanitize_recipe(j);
-            CHECK(r.patternId == pid);
-        }
-    }
-
-    SUBCASE("Bidirectional check: textures against sanitize_recipe") {
-        for (const auto& tid : textures) {
-            nlohmann::json j = { { "textureAlgoA", tid }, { "textureAlgoB", tid } };
-            atm::Recipe r = atm::sanitize_recipe(j);
-            CHECK(r.textureAlgoA == tid);
-            CHECK(r.textureAlgoB == tid);
-        }
-    }
-
-    SUBCASE("Bidirectional check: ribbons against sanitize_recipe") {
-        for (const auto& rid : ribbons) {
-            nlohmann::json j = { { "ribbonAlgo", rid } };
-            atm::Recipe r = atm::sanitize_recipe(j);
-            CHECK(r.ribbonAlgo == rid);
-        }
-    }
+    // The sanitiser's whitelists are *derived* from these catalogues
+    // (is_known_pattern / is_known_texture / is_known_ribbon), so checking that
+    // sanitize_recipe accepts every catalogue entry would only be checking the
+    // catalogue against itself. The check with teeth is the comparison against
+    // reference/*.ts above.
 
     SUBCASE("Geo scale helpers") {
         CHECK(atm::natural_geo_scale("nonslip") == 4);

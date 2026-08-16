@@ -37,6 +37,31 @@ const std::vector<CatalogGroup>& texture_groups();
 const std::vector<CatalogGroup>& ribbon_groups();
 const std::vector<GeoScaleItem>& geo_scales();
 
+// --- per-pattern geometry, served from the pattern registry in catalog.cpp ---
+//
+// Distances are in field units (the baked distance fields are 32x32 with a
+// FIELD_STEP of 0.25), not screen pixels.
+
+struct PatternBands {
+    float b0, b1, b2, b3;
+};
+
+struct PatternOffsetRange {
+    float min_off, max_off;
+};
+
+PatternBands pattern_bands(const std::string& pattern);
+PatternOffsetRange pattern_offset_range(const std::string& pattern);
+
+// Only some silhouettes take an edge re-roll: jittering `sharp` or `rounded`
+// would not read as a variation of them, it would read as a broken outline.
+bool pattern_is_reseedable(const std::string& pattern);
+
+// Which pattern's baked distance field to sample. Almost always the pattern
+// itself — `wave` is the exception: it rides a sine on top of `rounded`'s field
+// rather than carrying one of its own.
+std::string pattern_field_source(const std::string& pattern);
+
 // --- per-texture switches, all served from the one registry in catalog.cpp ---
 int texture_period(const std::string& tex);
 bool texture_uses_amount(const std::string& tex);
@@ -61,8 +86,14 @@ std::set<int> used_texture_shades(
     int32_t seed = 0
 );
 
+// --- per-ribbon switches, served from the ribbon registry in catalog.cpp -----
 bool ribbon_uses_period(const std::string& id);
+bool ribbon_uses_invert(const std::string& id);
 double ribbon_min_width(const std::string& id);
+
+// Non-empty for the along_* motifs: the texture id to paint along the band
+// axis. Empty for every motif that draws itself.
+std::string ribbon_along_source(const std::string& id);
 
 std::set<int> used_ribbon_shades(
     const std::string& id,

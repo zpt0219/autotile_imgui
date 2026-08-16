@@ -806,3 +806,171 @@ STATUS_ENTRYPOINT_NOT_FOUND）失败且没有任何 stdout —— `verify.py` �
    26 → 17），其中包括 `e790a50` 那个 bug 的唯一说明。验收时已全部补回，
    并把"undo 不 re-sync"这条不变量写到了 `execute_recipe_mutation` 的头上。
 6. `docs/TASKS.md` 未动，符合工单要求。
+
+---
+
+## 后续一轮（2026-08-15，验收之后）
+
+验收通过之后又做了一轮，起因是"还剩什么"的复盘。这一轮**发现了两个既有缺陷**，
+其中一个至今未决。
+
+### 1. 三张注册表补齐
+
+纹理的注册表在验收时已补完；这一轮把 pattern 和 ribbon 也做成同样的形状。
+
+| | 之前分散在 | 现在 |
+| :--- | :--- | :--- |
+| pattern | `pattern_groups()` 标签、`get_pattern_bands`、`get_pattern_offset_range`、`RESEEDABLE_PATTERNS`、`wave`→`rounded` 场别名 —— 3 个文件 6 处 | `PATTERN_DEFS`，一行一图案 |
+| ribbon | `ribbon_groups()` 标签、`APERIODIC`、`MIN_WIDTH`、`ribbon_uses_invert`、`ALONG_SOURCE` —— 2 个文件 5 处 | `RIBBON_DEFS`，一行一花纹 |
+
+副作用：`pattern_data.cpp` 现在**只剩机器数据**了（距离场 + 字符 LUT），
+手写的 bands / offset 常量已经搬进注册表；`pattern_data.h` 从 38 行降到 21 行。
+
+`wave` 借用 `rounded` 距离场这条特例，从 `get_field_string` 里的一行注释升级成
+`PatternDef::field_source` 字段，并在 `tests/test_blob47.cpp` 里两端断言
+（注册表怎么说、调用方是否照做）。
+
+**未拆 `texture_registry.h`。** 先前担心"渲染路径 include 了带 UI 文案的头"，
+实测 `catalog.h` 里中文字符数为 0 —— 文案全在 `.cpp`，头文件只有类型声明。
+拆开只会把刚聚拢的一行拆成两半，不做。
+
+### 2. R2.5 收口
+
+`library_command.cpp` **617 → 326 行**。六个字段命令现在都是
+`RecipeFieldCommand<State>`：基类实现一次 `execute` / `undo` / `merge_with`，
+子类只说自己拥有哪些字段（`read` / `write`）、脏位是什么、要不要 `sync`。
+字段列表从出现五遍变成两遍且相邻。头文件相应从 300 涨到 437 行
+（字段列表搬了过去），两个文件合计 917 → 763。
+
+设计上多了一个显式钩子 `carry_over()`：**前向路径沿用而非覆盖的字段**。
+只有 `bandSteps` 用到它 —— 改档数时不能丢掉用户的自定义色阶，要沿用现有数组
+再由 `sync()` 调整长度。第一版漏了这个钩子，前向写会把 `customShadesHex`
+抹成 `nullopt`；`test_overrides` 会抓到，但值得记一笔：
+`e790a50` 那个 bug 有两个方向，undo 侧和前向侧都要防。
+
+### 3. 分享码：新增守卫，并抓到两个缺陷
+
+新增 `tests/test_share_code_coverage.cpp`。它不去比对两张表，而是直接测那个
+真正在意的性质：**每个目录条目都必须能过一次分享码往返**。
+
+**缺陷一（规格级，忠实保留）。** byte 15 只给缎带索引 **3 bit**，而
+`RIBBONS` 有 15 项。索引 ≥ 8 的全部被截断成 `idx & 7`：
+
+```
+speckle(8) -> none      along_stone_floor(12)  -> beads
+along_brick_wall(9) -> bevel   along_breeze_block(13) -> rope
+along_cobbles2(10)  -> dashes  along_octagonal(14)    -> wave
+along_weave(11)     -> ticks
+```
+
+**15 个缎带里有 7 个根本无法分享。** 参考实现是同一个缺陷
+（`reference/recipeCodec.ts:127` 的位布局、`:300` 的解码），所以按 CLAUDE.md
+第 4 条**不修**，改为特征化测试钉住现状。要修得升分享码版本，且必须与 web 端
+同步。
+
+**缺陷二（移植级，已修）。** 编码器用 `std::round`，而 CLAUDE.md 第 3 条明写
+禁止 —— `Math.round(-4.5)` 是 `-4`（向 +∞ 取），`std::round(-4.5)` 是 `-5`
+（远离零取）。参考实现用的正是 `Math.round`
+（`reference/recipeCodec.ts:125/144/147/156/164`），所以 `js_math::round` 才是
+忠实移植。5 处已全部替换。
+
+这不是理论问题：在滑块精度下，`[-1, 0]` 区间里有 **92 个** `bandBias` 取值
+恰好落在平局点上（`-0.005`、`-0.015`、`-0.025`、`-0.045` …），每一个都会
+生成与 web 端差一个单位的分享码。测试用实测出的平局值钉住，并额外断言
+结果**不等于** `std::round` 会给出的值。
+
+（注意 `-0.035` 不是平局值：`-0.035 * 100.0` 在 IEEE 754 下是
+`-3.5000000000000004`，两种规则给同一答案。第一版测试就栽在这里。）
+
+### 4. ⚠️ 未决：byte 15 的一处移植分歧
+
+参考写的是 `ribbonIdx << 2` —— **不掩码**（`reference/recipeCodec.ts:135`）。
+索引 ≥ 8 时溢出会冲进上面的 noiseMask 位，**静默打开图案噪声**。
+本移植写的是 `(ribbon_idx & 7) << 2`（`codec/recipe_codec.cpp:169`），
+noiseMask 保持干净。
+
+两边解出的缎带同样是错的，**但字节不同**。按 CLAUDE.md 第 4 条，
+掩码属于"擅自修正参考实现的怪癖"，忠实的做法是去掉 `& 7`。
+
+**没有动**，因为这会改变本项目对外输出的分享码字节。当前行为已由
+`test_share_code_coverage.cpp` 的 `"this port keeps noiseMask clean where the
+reference does not"` 子用例钉住。**需要决定**：忠实复刻（去掉掩码），
+还是保留现状并把它记为一条有意的偏离。
+
+### 5. 其它
+
+- `js_math.h` 的注释原先声称 `sin`/`cos`/`atan2`/`hypot` 都是 "fdlibm / V8
+  exact"，实际只有 `hypot` 重新实现了，另外三个直接转发 `std::`。
+  注释已改成实话，并说明这层壳为什么值得留着（换 libm 时的接缝）。
+- `sheet.cpp` 里两处 hex 数组转 RGB 的重复合并为 `parse_sparse_hexes`。
+  注意两者语义不同：纹理 ramp 要切片且全空则丢弃，缎带 ramp 长度必须精确匹配
+  且全空也照收 —— 合并后这个差异写在注释里，没有抹平。
+- `tests/test_catalog.cpp` 里三个 "Bidirectional check against sanitize_recipe"
+  子用例已删除：白名单改为从目录派生之后，它们变成了同义反复，不可能失败。
+  真正有牙的是对 `reference/*.ts` 的比对和新增的往返测试。
+
+### 6. 验证
+
+```
+cmake --build build-desktop -j --target autotile_mixer autotile_tests --clean-first
+  → 零 warning，零 error，exit 0
+
+ctest --test-dir build-desktop --output-on-failure
+  → 100% tests passed, 0 tests failed out of 3
+
+build-desktop/tests/autotile_tests.exe
+  → test cases: 22 | 22 passed | 0 failed
+    assertions: 41495 | 41495 passed | 0 failed
+
+python corpus/verify.py --exe build-desktop/desktop/autotile_mixer.exe
+  → passed 1161  failed 0  missing 0
+```
+
+---
+
+## 分享码逻辑已删除（2026-08-15）
+
+**上一节 §3、§4 中与分享码有关的内容至此作废，保留仅为记录。**
+
+产品决定：桌面端不做分享码。单张 sheet 的精修与传播是网页版的职责，桌面端
+只做"一次存一堆 tileset 预设"。两端之间需要搬运配方时走 web 导出的 zip
+（`codec/zip_import`，保留）。
+
+删除的东西：
+
+| 位置 | 内容 |
+| :--- | :--- |
+| `src/codec/recipe_codec.{h,cpp}` | 整个编解码器（423 行） |
+| `tests/test_share_code_coverage.cpp` | 上一节新增的往返守卫，随之删除 |
+| `tests/test_commands.cpp` | `"Recipe Codec Share Code Roundtrip"` 用例 |
+| `desktop/src/panels/library_panel.cpp` | 「导入代码」按钮、两处「复制分享代码」右键项、整个导入弹窗 |
+| `desktop/src/app.cpp` | File 菜单的 `Import Share Code...`（Ctrl+I） |
+| `desktop/src/view_model/view_model.h` | `show_import_share_modal` / `import_share_code_buffer` / `import_share_error` |
+| `desktop/src/main.cpp` | headless 的 `encode` / `decode` 命令 |
+| `src/command/library_command.h` | `CommandKind::ImportShareCode`（本来就没有对应的命令类） |
+
+**随之一起消失的三件事：**
+
+1. **缎带 3 bit 截断缺陷**（7 个缎带无法分享）—— 那纯粹是分享码格式的问题，
+   渲染路径从不经过它。桌面端不再受影响。
+2. **`std::round` vs `Math.round` 的分歧** —— 5 处 `std::round` 全在编码器里，
+   一并删掉了。CLAUDE.md 第 3 条现在在 `src/` 下零违反。
+3. **byte 15 掩码那条未决的移植分歧** —— **已作废，无需再决定。**
+
+**一个意外收获：** 注册表的说明现在可以老实写"加一个纹理只需改 2 个文件"了
+（`catalog.cpp` 一行 + `pattern_texture.cpp` 的算法）。工单里 R4a 那个我判定
+"定得不现实"的门，因为分享码顺序表消失，反而达成了。
+
+验证（删除后重跑）：
+
+```
+cmake --build build-desktop -j --target autotile_mixer autotile_tests
+  → 零 warning，零 error
+
+build-desktop/tests/autotile_tests.exe
+  → test cases: 18 | 18 passed | 0 failed
+    assertions: 41334 | 41334 passed | 0 failed
+
+python corpus/verify.py --exe build-desktop/desktop/autotile_mixer.exe
+  → passed 1161  failed 0  missing 0
+```

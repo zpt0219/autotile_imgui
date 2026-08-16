@@ -2,6 +2,7 @@
 #include "pattern/pattern_data.h"
 #include "pattern/blob47.h"
 #include "pattern/blob47_pattern.h"
+#include "pattern/catalog.h"
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <cstring>
@@ -62,10 +63,23 @@ TEST_CASE("T2.1 Decoded field bounds match reference/generated.ts exactly") {
 // PatternId with no fields of its own, while 'bold' has fields and is not a
 // valid PatternId. Both halves of that oddity are load-bearing; assert the
 // aliasing rather than trusting it.
+// The alias used to live inside get_field_string(); it now lives on the pattern
+// registry as PatternDef::field_source, so pattern_data only holds baked data.
+// Assert it at both ends: the registry says so, and the lookup callers actually
+// use honours it.
 TEST_CASE("T2.1 'wave' aliases the rounded field set, per blob47Pattern.ts") {
+    CHECK(atm::pattern_field_source("wave") == "rounded");
+    CHECK(atm::pattern_field_source("rounded") == "rounded");
+
+    // An id with no registry row falls through to itself, which is what keeps
+    // 'bold' — fields but not a valid PatternId — reachable.
+    CHECK(atm::pattern_field_source("bold") == "bold");
+    CHECK(atm::pattern_data::get_field_string("bold", 0) != nullptr);
+    CHECK(atm::pattern_data::get_field_string("wave", 0) == nullptr);
+
     for (uint8_t mask : atm::BLOB47_MASKS) {
-        const char* wave = atm::pattern_data::get_field_string("wave", mask);
-        const char* rounded = atm::pattern_data::get_field_string("rounded", mask);
+        const char* wave = atm::pattern_field_for_mask("wave", mask);
+        const char* rounded = atm::pattern_field_for_mask("rounded", mask);
         INFO("mask " << (int)mask);
         REQUIRE(wave != nullptr);
         REQUIRE(rounded != nullptr);

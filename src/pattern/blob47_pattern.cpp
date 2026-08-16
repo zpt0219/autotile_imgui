@@ -1,5 +1,6 @@
 #include "blob47_pattern.h"
 #include "pattern_data.h"
+#include "catalog.h"
 #include "pattern_noise.h"
 #include "pattern_hash.h"
 #include "js_math.h"
@@ -7,7 +8,6 @@
 #include <cmath>
 #include <cstring>
 #include <stdexcept>
-#include <unordered_set>
 
 namespace atm {
 
@@ -31,7 +31,7 @@ std::vector<float> bands_for(
     bool hard_edge_b,
     float outline_width
 ) {
-    auto base = pattern_data::get_pattern_bands(pattern);
+    auto base = pattern_bands(pattern);
     float adjusted[4] = { base.b0, base.b1, base.b2, base.b3 };
     if (outline_width > 0.0f) {
         float mid = (base.b1 + base.b2) / 2.0f;
@@ -78,22 +78,18 @@ int band_noise_span(const std::string& pattern, int steps) {
 }
 
 float clamp_offset(const std::string& pattern, float offset_px) {
-    auto r = pattern_data::get_pattern_offset_range(pattern);
+    auto r = pattern_offset_range(pattern);
     return std::max(r.min_off, std::min(r.max_off, offset_px));
 }
 
-static const std::unordered_set<std::string> RESEEDABLE_PATTERNS = {
-    "wave", "jagged", "gravel", "boulder", "thorn", "coast", "moss", "billow"
-};
-
 float edge_jitter_amplitude(const std::string& pattern, float offset_px) {
-    if (!RESEEDABLE_PATTERNS.count(pattern)) return 0.0f;
-    auto r = pattern_data::get_pattern_offset_range(pattern);
+    if (!pattern_is_reseedable(pattern)) return 0.0f;
+    auto r = pattern_offset_range(pattern);
     return std::max(0.0f, r.max_off - std::max(0.0f, clamp_offset(pattern, offset_px)));
 }
 
 const char* pattern_field_for_mask(const std::string& pattern, int mask) {
-    return pattern_data::get_field_string(pattern, mask);
+    return pattern_data::get_field_string(pattern_field_source(pattern), mask);
 }
 
 static double edge_noise(double u, double v, int32_t seed) {

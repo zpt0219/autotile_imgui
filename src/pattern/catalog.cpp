@@ -7,31 +7,106 @@
 
 namespace atm {
 
+// --- the pattern registry ---------------------------------------------------
+//
+// One row per silhouette. Row order is the picker's display order. Adding a
+// pattern means a row here plus its baked distance field in pattern_data.cpp.
+
+enum class PatternGroup {
+    Clean,
+    Irregular
+};
+
+struct PatternDef {
+    const char*  id;
+    PatternGroup group;
+    const char*  zh;
+    const char*  en;
+    PatternBands bands;
+    PatternOffsetRange offset;
+    bool         reseedable;    // does an edge seed jitter this silhouette
+    const char*  field_source;  // nullptr = uses its own baked field
+};
+
+static const PatternDef PATTERN_DEFS[] = {
+    { "square",  PatternGroup::Clean,     "纯直角 · 方角描边", "Square — 90° right angles",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -8.50f, 6.25f }, false, nullptr },
+    { "rounded", PatternGroup::Clean,     "圆润 · 全四级过渡", "Rounded — soft corners, full ramp",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -3.75f, 2.75f }, false, nullptr },
+    { "sharp",   PatternGroup::Clean,     "硬边 · 弧角描边", "Sharp — rounded corners, outline",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -8.50f, 6.25f }, false, nullptr },
+    // wave has no field of its own; it modulates rounded's with a sine.
+    { "wave",    PatternGroup::Clean,     "波浪 · 规则圆弧边", "Wave — regular circular arc edge",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -3.75f, 2.75f }, true,  "rounded" },
+
+    { "jagged",  PatternGroup::Irregular, "粗糙 · 岩石碎边", "Jagged — rough rocky edge",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -5.50f, 1.00f }, true,  nullptr },
+    { "gravel",  PatternGroup::Irregular, "砂砾 · 细碎颗粒边", "Gravel — fine crumbling edge",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -5.25f, 1.50f }, true,  nullptr },
+    { "boulder", PatternGroup::Irregular, "巨砾 · 大块起伏", "Boulder — large rolling masses",
+      { 8.0f, 10.0f, 12.0f, 14.0f }, { -4.00f, 1.25f }, true,  nullptr },
+    { "billow",  PatternGroup::Irregular, "云絮 · 扇贝鼓边", "Billow — scalloped bulges",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -2.75f, 1.00f }, true,  nullptr },
+    { "coast",   PatternGroup::Irregular, "海岸 · 多层碎屑", "Coast — multi-scale fractal edge",
+      { 7.5f, 9.5f, 11.5f, 13.5f }, { -3.75f, 2.25f }, true,  nullptr },
+    { "moss",    PatternGroup::Irregular, "苔藓 · 团簇细胞", "Moss — clustered cellular edge",
+      { 7.0f, 9.0f, 11.0f, 13.0f }, { -5.75f, 1.00f }, true,  nullptr },
+    { "thorn",   PatternGroup::Irregular, "荆棘 · 尖刺边", "Thorn — spiky ridged edge",
+      { 7.5f, 9.0f, 10.0f, 12.0f }, { -4.50f, 1.25f }, true,  nullptr },
+};
+
+static const PatternDef* find_pattern_def(const std::string& pattern) {
+    for (const auto& def : PATTERN_DEFS) {
+        if (pattern == def.id) return &def;
+    }
+    return nullptr;
+}
+
 const std::vector<CatalogGroup>& pattern_groups() {
-    static const std::vector<CatalogGroup> groups = {
-        {
-            "规整边缘", "Clean edges",
-            {
-                { "square", "纯直角 · 方角描边", "Square — 90° right angles" },
-                { "rounded", "圆润 · 全四级过渡", "Rounded — soft corners, full ramp" },
-                { "sharp", "硬边 · 弧角描边", "Sharp — rounded corners, outline" },
-                { "wave", "波浪 · 规则圆弧边", "Wave — regular circular arc edge" },
-            }
-        },
-        {
-            "不规则边缘", "Irregular edges",
-            {
-                { "jagged", "粗糙 · 岩石碎边", "Jagged — rough rocky edge" },
-                { "gravel", "砂砾 · 细碎颗粒边", "Gravel — fine crumbling edge" },
-                { "boulder", "巨砾 · 大块起伏", "Boulder — large rolling masses" },
-                { "billow", "云絮 · 扇贝鼓边", "Billow — scalloped bulges" },
-                { "coast", "海岸 · 多层碎屑", "Coast — multi-scale fractal edge" },
-                { "moss", "苔藓 · 团簇细胞", "Moss — clustered cellular edge" },
-                { "thorn", "荆棘 · 尖刺边", "Thorn — spiky ridged edge" },
-            }
-        }
+    struct GroupLabel { PatternGroup group; const char* zh; const char* en; };
+    static const GroupLabel LABELS[] = {
+        { PatternGroup::Clean,     "规整边缘", "Clean edges" },
+        { PatternGroup::Irregular, "不规则边缘", "Irregular edges" },
     };
+
+    static const std::vector<CatalogGroup> groups = [] {
+        std::vector<CatalogGroup> out;
+        out.reserve(sizeof(LABELS) / sizeof(LABELS[0]));
+        for (const auto& label : LABELS) {
+            CatalogGroup group{ label.zh, label.en, {} };
+            for (const auto& def : PATTERN_DEFS) {
+                if (def.group == label.group) {
+                    group.items.push_back({ def.id, def.zh, def.en });
+                }
+            }
+            out.push_back(std::move(group));
+        }
+        return out;
+    }();
     return groups;
+}
+
+// The fallbacks below reproduce what the old if-chains in pattern_data.cpp
+// returned for an id they did not recognise.
+PatternBands pattern_bands(const std::string& pattern) {
+    auto* def = find_pattern_def(pattern);
+    return def ? def->bands : PatternBands{ 7.0f, 9.0f, 11.0f, 13.0f };
+}
+
+PatternOffsetRange pattern_offset_range(const std::string& pattern) {
+    auto* def = find_pattern_def(pattern);
+    return def ? def->offset : PatternOffsetRange{ -3.75f, 2.75f };
+}
+
+bool pattern_is_reseedable(const std::string& pattern) {
+    auto* def = find_pattern_def(pattern);
+    return def ? def->reseedable : false;
+}
+
+std::string pattern_field_source(const std::string& pattern) {
+    auto* def = find_pattern_def(pattern);
+    if (def && def->field_source) return def->field_source;
+    return pattern;
 }
 
 // --- the texture registry --------------------------------------------------
@@ -39,9 +114,8 @@ const std::vector<CatalogGroup>& pattern_groups() {
 // One row per texture, holding everything declarative about it. This table is
 // the single source of truth for the picker (grouping + labels), the sanitiser
 // whitelist, and the per-texture switches the renderer reads. Adding a texture
-// means adding one row here, one row to `TEXTURES` in `codec/recipe_codec.cpp`
-// (append only — its index is the share-code byte) and the algorithm itself in
-// `pattern_texture.cpp`.
+// means one row here and the algorithm itself in `pattern_texture.cpp` — two
+// files, nothing else to keep in step.
 //
 // Row order is the picker's display order; it must stay grouped, because
 // `texture_groups()` is built by walking this table in order.
@@ -160,35 +234,99 @@ const std::vector<CatalogGroup>& texture_groups() {
     return groups;
 }
 
+// --- the ribbon registry ----------------------------------------------------
+//
+// One row per motif.
+
+enum class RibbonGroup {
+    Motif,
+    AlongAxis
+};
+
+struct RibbonDef {
+    const char* id;
+    RibbonGroup group;
+    const char* zh;
+    const char* en;
+    bool uses_period;      // is the "period" control live
+    bool uses_invert;      // does the invert flag flip this motif's depth
+    double min_width;      // ribbon narrower than this cannot show the motif
+    const char* along_source;  // non-null: paint this texture along the band axis
+};
+
+static const RibbonDef RIBBON_DEFS[] = {
+    { "none",    RibbonGroup::Motif, "纯色 · 不加花纹", "Flat — no motif",
+      false, false, 1.0, nullptr },
+    { "bevel",   RibbonGroup::Motif, "倒角 · 内亮外暗", "Bevel — lit inside, dark out",
+      false, true,  2.0, nullptr },
+    { "dashes",  RibbonGroup::Motif, "虚线 · 等距断口", "Dashes — evenly broken",
+      true,  false, 1.0, nullptr },
+    { "ticks",   RibbonGroup::Motif, "齿纹 · 垂直短划", "Ticks — perpendicular strokes",
+      true,  false, 2.0, nullptr },
+    { "beads",   RibbonGroup::Motif, "珠链 · 等距圆点", "Beads — dots along the edge",
+      true,  false, 3.0, nullptr },
+    { "rope",    RibbonGroup::Motif, "缆绳 · 斜向绞纹", "Rope — slanted twist",
+      true,  true,  3.0, nullptr },
+    { "wave",    RibbonGroup::Motif, "波浪 · 起伏高光", "Wave — undulating highlight",
+      true,  true,  3.0, nullptr },
+    { "grain",   RibbonGroup::Motif, "颗粒 · 带内碎点", "Grain — scatter in the ribbon",
+      false, false, 1.0, nullptr },
+    { "speckle", RibbonGroup::Motif, "沿边细点 · 均匀", "Speckle — even fine dots",
+      false, false, 1.0, nullptr },
+
+    { "along_brick_wall",   RibbonGroup::AlongAxis, "砖墙 · 沿边一列砖", "Brick wall — one course",
+      false, false, 3.0, "brick_wall" },
+    { "along_cobbles2",     RibbonGroup::AlongAxis, "细密砖 · 沿边小块", "Cobbles — fine bricks",
+      false, false, 3.0, "cobbles2" },
+    { "along_weave",        RibbonGroup::AlongAxis, "编织 · 沿边菱格", "Weave — diagonal braid",
+      false, false, 3.0, "weave" },
+    { "along_stone_floor",  RibbonGroup::AlongAxis, "石板 · 沿边不规则块", "Stone — irregular slabs",
+      false, false, 3.0, "stone_floor" },
+    { "along_breeze_block", RibbonGroup::AlongAxis, "通风砖 · 沿边细孔", "Breeze block — perforated",
+      false, false, 3.0, "breeze_block" },
+    { "along_octagonal",    RibbonGroup::AlongAxis, "八边形 · 沿边切角砖", "Octagonal — chamfered",
+      false, false, 3.0, "octagonal" },
+};
+
+static const RibbonDef* find_ribbon_def(const std::string& id) {
+    for (const auto& def : RIBBON_DEFS) {
+        if (id == def.id) return &def;
+    }
+    return nullptr;
+}
+
 const std::vector<CatalogGroup>& ribbon_groups() {
-    static const std::vector<CatalogGroup> groups = {
-        {
-            "带内花纹", "Ribbon motifs",
-            {
-                { "none", "纯色 · 不加花纹", "Flat — no motif" },
-                { "bevel", "倒角 · 内亮外暗", "Bevel — lit inside, dark out" },
-                { "dashes", "虚线 · 等距断口", "Dashes — evenly broken" },
-                { "ticks", "齿纹 · 垂直短划", "Ticks — perpendicular strokes" },
-                { "beads", "珠链 · 等距圆点", "Beads — dots along the edge" },
-                { "rope", "缆绳 · 斜向绞纹", "Rope — slanted twist" },
-                { "wave", "波浪 · 起伏高光", "Wave — undulating highlight" },
-                { "grain", "颗粒 · 带内碎点", "Grain — scatter in the ribbon" },
-                { "speckle", "沿边细点 · 均匀", "Speckle — even fine dots" },
-            }
-        },
-        {
-            "沿轴纹理", "Textures laid along the axis",
-            {
-                { "along_brick_wall", "砖墙 · 沿边一列砖", "Brick wall — one course" },
-                { "along_cobbles2", "细密砖 · 沿边小块", "Cobbles — fine bricks" },
-                { "along_weave", "编织 · 沿边菱格", "Weave — diagonal braid" },
-                { "along_stone_floor", "石板 · 沿边不规则块", "Stone — irregular slabs" },
-                { "along_breeze_block", "通风砖 · 沿边细孔", "Breeze block — perforated" },
-                { "along_octagonal", "八边形 · 沿边切角砖", "Octagonal — chamfered" },
-            }
-        }
+    struct GroupLabel { RibbonGroup group; const char* zh; const char* en; };
+    static const GroupLabel LABELS[] = {
+        { RibbonGroup::Motif,     "带内花纹", "Ribbon motifs" },
+        { RibbonGroup::AlongAxis, "沿轴纹理", "Textures laid along the axis" },
     };
+
+    static const std::vector<CatalogGroup> groups = [] {
+        std::vector<CatalogGroup> out;
+        out.reserve(sizeof(LABELS) / sizeof(LABELS[0]));
+        for (const auto& label : LABELS) {
+            CatalogGroup group{ label.zh, label.en, {} };
+            for (const auto& def : RIBBON_DEFS) {
+                if (def.group == label.group) {
+                    group.items.push_back({ def.id, def.zh, def.en });
+                }
+            }
+            out.push_back(std::move(group));
+        }
+        return out;
+    }();
     return groups;
+}
+
+bool ribbon_uses_invert(const std::string& id) {
+    auto* def = find_ribbon_def(id);
+    return def ? def->uses_invert : false;
+}
+
+std::string ribbon_along_source(const std::string& id) {
+    auto* def = find_ribbon_def(id);
+    return (def && def->along_source) ? def->along_source : std::string();
 }
 
 const std::vector<GeoScaleItem>& geo_scales() {
@@ -285,28 +423,15 @@ std::set<int> used_texture_shades(
 }
 
 bool ribbon_uses_period(const std::string& id) {
-    static const std::vector<std::string> APERIODIC = {
-        "none", "bevel", "grain", "speckle",
-        "along_brick_wall", "along_cobbles2", "along_weave",
-        "along_stone_floor", "along_breeze_block", "along_octagonal"
-    };
-    return std::find(APERIODIC.begin(), APERIODIC.end(), id) == APERIODIC.end();
+    auto* def = find_ribbon_def(id);
+    return def ? def->uses_period : false;
 }
 
 double ribbon_min_width(const std::string& id) {
-    static const std::unordered_map<std::string, double> MIN_WIDTH = {
-        { "none", 1.0 },
-        { "bevel", 2.0 }, { "dashes", 1.0 }, { "ticks", 2.0 },
-        { "beads", 3.0 }, { "rope", 3.0 }, { "wave", 3.0 },
-        { "grain", 1.0 }, { "speckle", 1.0 },
-        { "along_brick_wall", 3.0 }, { "along_cobbles2", 3.0 },
-        { "along_weave", 3.0 }, { "along_stone_floor", 3.0 },
-        { "along_breeze_block", 3.0 }, { "along_octagonal", 3.0 }
-    };
-    auto it = MIN_WIDTH.find(id);
-    if (it != MIN_WIDTH.end()) return it->second;
-    return 1.0;
+    auto* def = find_ribbon_def(id);
+    return def ? def->min_width : 1.0;
 }
+
 
 std::set<int> used_ribbon_shades(
     const std::string& id,

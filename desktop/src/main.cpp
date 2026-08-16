@@ -7,7 +7,6 @@
 #include "model/recipe.h"
 #include "model/recipe_library.h"
 #include "pattern/sheet.h"
-#include "codec/recipe_codec.h"
 #include "app.h"
 
 namespace fs = std::filesystem;
@@ -130,18 +129,6 @@ static int run_headless() {
             std::string cmd = j.value("cmd", "");
             if (cmd == "ping") {
                 std::cout << R"({"status":"ok","pong":true})" << std::endl;
-            } else if (cmd == "encode") {
-                atm::Recipe r = atm::sanitize_recipe(j.value("recipe", nlohmann::json::object()));
-                std::string code = atm::encode_recipe(r);
-                std::cout << nlohmann::json{ { "status", "ok" }, { "code", code } }.dump() << std::endl;
-            } else if (cmd == "decode") {
-                std::string code = j.value("code", "");
-                auto r = atm::decode_recipe(code);
-                if (r.has_value()) {
-                    std::cout << nlohmann::json{ { "status", "ok" }, { "recipe", recipe_to_json(*r) } }.dump() << std::endl;
-                } else {
-                    std::cout << R"({"status":"error","message":"Invalid share code"})" << std::endl;
-                }
             } else if (cmd == "exit" || cmd == "quit") {
                 break;
             } else {
