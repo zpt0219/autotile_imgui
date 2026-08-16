@@ -78,11 +78,11 @@ atm::EditorResult ViewModel::redo() {
     return res;
 }
 
-void ViewModel::onLibraryLoaded(int flag) {
+void ViewModel::onLibraryLoaded(atm::EditPhase phase) {
     thumbnail_cache_.clear();
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
-        p->onLibraryLoaded(flag);
+        p->onLibraryLoaded(phase);
     }
     if (handler_.selected_recipe()) {
         sheet_renderer_.update(handler_.selected_recipe()->recipe, atm::PaintOverrides{}, atm::DIRTY_ALL);
@@ -90,40 +90,40 @@ void ViewModel::onLibraryLoaded(int flag) {
     log("Library loaded", "INFO");
 }
 
-void ViewModel::onLibraryListUpdated(int flag) {
+void ViewModel::onLibraryListUpdated(atm::EditPhase phase) {
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
-        p->onLibraryListUpdated(flag);
+        p->onLibraryListUpdated(phase);
     }
 }
 
-void ViewModel::onRecipeSelected(atm::RecipeEntry* entry, int flag) {
+void ViewModel::onRecipeSelected(atm::RecipeEntry* entry, atm::EditPhase phase) {
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
-        p->onRecipeSelected(entry, flag);
+        p->onRecipeSelected(entry, phase);
     }
     if (entry) {
         sheet_renderer_.update(entry->recipe, atm::PaintOverrides{}, atm::DIRTY_ALL);
     }
 }
 
-void ViewModel::onRecipeUpdated(atm::RecipeEntry* entry, atm::DirtyMask dirty, int flag) {
+void ViewModel::onRecipeUpdated(atm::RecipeEntry* entry, atm::DirtyMask dirty, atm::EditPhase phase) {
     if (entry) {
         thumbnail_cache_.invalidate(entry->hash);
     }
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
-        p->onRecipeUpdated(entry, dirty, flag);
+        p->onRecipeUpdated(entry, dirty, phase);
     }
     if (entry && handler_.selected_recipe() && entry->hash == handler_.selected_recipe()->hash) {
         sheet_renderer_.update(entry->recipe, atm::PaintOverrides{}, dirty);
     }
 }
 
-void ViewModel::onVariantAxesUpdated(int flag) {
+void ViewModel::onVariantAxesUpdated(atm::EditPhase phase) {
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
-        p->onVariantAxesUpdated(flag);
+        p->onVariantAxesUpdated(phase);
     }
 }
 
@@ -131,15 +131,15 @@ void ViewModel::onVariantAxesUpdated(int flag) {
 // drain_progress_queue() does the real work on the main thread. Doing the work
 // here as well would reintroduce the race the queue exists to remove, so this
 // deliberately stays a one-liner rather than a second copy of the fan-out.
-void ViewModel::onBatchProgress(const atm::BatchProgress& progress, int flag) {
-    (void)flag;
+void ViewModel::onBatchProgress(const atm::BatchProgress& progress, atm::EditPhase phase) {
+    (void)phase;
     queue_batch_progress(progress);
 }
 
-void ViewModel::onExportSettingsUpdated(int flag) {
+void ViewModel::onExportSettingsUpdated(atm::EditPhase phase) {
     auto panels_snapshot = panels_;
     for (auto* p : panels_snapshot) {
-        p->onExportSettingsUpdated(flag);
+        p->onExportSettingsUpdated(phase);
     }
 }
 
@@ -167,7 +167,7 @@ void ViewModel::drain_progress_queue() {
         }
         auto panels_snapshot = panels_;
         for (auto* p : panels_snapshot) {
-            p->onBatchProgress(progress, 0);
+            p->onBatchProgress(progress, atm::EditPhase::Begin);
         }
     }
 }

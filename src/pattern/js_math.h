@@ -63,5 +63,18 @@ inline float cos(float x) { return static_cast<float>(cos(static_cast<double>(x)
 inline float atan2(float y, float x) { return static_cast<float>(atan2(static_cast<double>(y), static_cast<double>(x))); }
 inline float hypot(float x, float y) { return static_cast<float>(hypot(static_cast<double>(x), static_cast<double>(y))); }
 
+// JS modulo wrap ((v % n) + n) % n
+inline int wrap(int v, int n) {
+    return ((v % n) + n) % n;
+}
+
+inline double wrap(double v, double n) {
+    return std::fmod(std::fmod(v, n) + n, n);
+}
+
+inline float wrap(float v, float n) {
+    return std::fmod(std::fmod(v, n) + n, n);
+}
+
 } // namespace js_math
 } // namespace atm

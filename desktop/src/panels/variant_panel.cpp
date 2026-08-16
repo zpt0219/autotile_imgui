@@ -29,20 +29,17 @@ void VariantPanel::draw(ViewModel& vm) {
         ImGui::Checkbox(use_zh ? "所有表面纹理 (26 种纹理)" : "All Textures (26 surface textures)", &use_all_textures_);
         ImGui::Checkbox(use_zh ? "所有边缘花纹 (15 种花纹)" : "All Ribbon Motifs (15 motifs)", &use_all_ribbons_);
 
-        std::vector<std::string> all_pats;
-        for (const auto& g : atm::pattern_groups()) {
-            for (const auto& item : g.items) all_pats.push_back(item.id);
-        }
+        auto collect_ids = [](const std::vector<atm::CatalogGroup>& groups) {
+            std::vector<std::string> ids;
+            for (const auto& g : groups) {
+                for (const auto& item : g.items) ids.push_back(item.id);
+            }
+            return ids;
+        };
 
-        std::vector<std::string> all_texs;
-        for (const auto& g : atm::texture_groups()) {
-            for (const auto& item : g.items) all_texs.push_back(item.id);
-        }
-
-        std::vector<std::string> all_ribs;
-        for (const auto& g : atm::ribbon_groups()) {
-            for (const auto& item : g.items) all_ribs.push_back(item.id);
-        }
+        std::vector<std::string> all_pats = collect_ids(atm::pattern_groups());
+        std::vector<std::string> all_texs = collect_ids(atm::texture_groups());
+        std::vector<std::string> all_ribs = collect_ids(atm::ribbon_groups());
 
         int total_variants = 1;
         if (use_all_patterns_) total_variants *= static_cast<int>(all_pats.size());

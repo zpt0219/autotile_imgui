@@ -84,7 +84,7 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
             int idx = rand_int(0, static_cast<int>(handler.library()->entries().size()) - 1);
             std::string hash = handler.library()->entries()[idx]->hash;
             cmd_handler.add_and_execute_command(
-                std::make_unique<RenameRecipeCommand>(hash, "Renamed " + std::to_string(i), 0),
+                std::make_unique<RenameRecipeCommand>(hash, "Renamed " + std::to_string(i), EditPhase::Begin),
                 handler
             );
         } else if (action == 4) {
@@ -100,7 +100,7 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
                 shades = std::vector<std::string>(steps + 2, "#112233");
             }
             cmd_handler.add_and_execute_command(
-                std::make_unique<UpdateRecipeColoursCommand>(hash, roles, shades, 0),
+                std::make_unique<UpdateRecipeColoursCommand>(hash, roles, shades, EditPhase::Begin),
                 handler
             );
         } else if (action == 5) {
@@ -108,7 +108,7 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
             std::string hash = handler.library()->entries()[idx]->hash;
             int new_steps = rand_int(3, 5);
             cmd_handler.add_and_execute_command(
-                std::make_unique<UpdateRecipeBandCommand>(hash, new_steps, rand_int(0, 1) == 1, rand_int(0, 1) == 1, 0.0, 0),
+                std::make_unique<UpdateRecipeBandCommand>(hash, new_steps, rand_int(0, 1) == 1, rand_int(0, 1) == 1, 0.0, EditPhase::Begin),
                 handler
             );
         } else if (action == 6) {
@@ -133,7 +133,7 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
                     break;
             }
             cmd_handler.add_and_execute_command(
-                std::make_unique<UpdateRecipeRibbonCommand>(hash, "bevel", 0.5, 4, new_shades, false, rib_hex, 0),
+                std::make_unique<UpdateRecipeRibbonCommand>(hash, "bevel", 0.5, 4, new_shades, false, rib_hex, EditPhase::Begin),
                 handler
             );
         } else if (action == 7) {
@@ -152,14 +152,14 @@ TEST_CASE("Command Stack Monkey Fuzz Testing with Overrides and Resizing") {
                 nr.customTexHexB = std::vector<std::optional<std::string>>(nr.textureShadesB + 1, "#778899");
             }
             cmd_handler.add_and_execute_command(
-                std::make_unique<UpdateRecipeTextureCommand>(hash, nr, 0),
+                std::make_unique<UpdateRecipeTextureCommand>(hash, nr, EditPhase::Begin),
                 handler
             );
         } else {
             int idx = rand_int(0, static_cast<int>(handler.library()->entries().size()) - 1);
             std::string hash = handler.library()->entries()[idx]->hash;
             cmd_handler.add_and_execute_command(
-                std::make_unique<UpdateRecipePatternCommand>(hash, "wave", rand_int(0, 1000), rand_int(1, 4), 0),
+                std::make_unique<UpdateRecipePatternCommand>(hash, "wave", rand_int(0, 1000), rand_int(1, 4), EditPhase::Begin),
                 handler
             );
         }

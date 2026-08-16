@@ -35,4 +35,13 @@ int blob_index_for_mask(uint8_t mask);
 // 0..47 slot on sheet for raw neighbourhood mask
 int blob_slot_for_mask(uint8_t mask);
 
+template <typename F>
+inline void for_each_blob47_tile(F&& func) {
+    for (size_t i = 0; i < BLOB47_LAYOUT.size(); ++i) {
+        int col = static_cast<int>(i % BLOB47_COLS);
+        int row = static_cast<int>(i / BLOB47_COLS);
+        func(i, col, row, BLOB47_LAYOUT[i]);
+    }
+}
+
 } // namespace atm

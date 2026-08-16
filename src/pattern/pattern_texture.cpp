@@ -14,14 +14,6 @@ const RGB WATER_DOT_COLOUR = { 215, 215, 215 };
 const RGB DEFAULT_TEXTURE_TERRAIN_A = texture_colour({ 58, 127, 201 }, 1.0f);
 const RGB DEFAULT_TEXTURE_TERRAIN_B = texture_colour({ 93, 168, 50 }, 1.0f);
 
-static inline int wrapN(int v, int n) {
-    return ((v % n) + n) % n;
-}
-
-static inline double wrapN_f(double v, double n) {
-    return std::fmod(std::fmod(v, n) + n, n);
-}
-
 static const int BAKED_RANKS = 4;
 static const int JOINT_RANK = 4;
 static const int FACE_RANKS = 4;
@@ -49,10 +41,10 @@ static int baked_shade(
     bool joint_at_zero = false
 ) {
     int m = size - 1;
-    int px = wrapN(x + static_cast<int>(seed & m), size);
-    int py = wrapN(y + static_cast<int>((seed >> 4) & m), size);
+    int px = js_math::wrap(x + static_cast<int>(seed & m), size);
+    int py = js_math::wrap(y + static_cast<int>((seed >> 4) & m), size);
     int raw = table[py * size + px] - '0';
-    return rank_to_shade(joint_at_zero ? wrapN(raw - 1, BAKED_RANKS + 1) : raw, amount, shades);
+    return rank_to_shade(joint_at_zero ? js_math::wrap(raw - 1, BAKED_RANKS + 1) : raw, amount, shades);
 }
 
 static inline float smooth(float t) {
@@ -62,24 +54,24 @@ static inline float smooth(float t) {
 static float ripple_field(int x, int y, int32_t seed, float per_x) {
     const int per_y = 32;
     float fx = (static_cast<float>(x) / 32.0f) * per_x;
-    int iy = ((y % per_y) + per_y) % per_y;
+    int iy = js_math::wrap(y, per_y);
     int x0 = static_cast<int>(std::floor(fx));
     float u = smooth(fx - static_cast<float>(x0));
     int iper_x = static_cast<int>(per_x);
     auto h = [iy, seed, iper_x](int ix) {
-        return hash01(((ix % iper_x) + iper_x) % iper_x, iy, seed);
+        return hash01(js_math::wrap(ix, iper_x), iy, seed);
     };
     return h(x0) * (1.0f - u) + h(x0 + 1) * u;
 }
 
 static float ripple_diag_field(int x, int y, int32_t seed, float per_diag) {
-    int diag_line = wrapN(x - y, 32);
+    int diag_line = js_math::wrap(x - y, 32);
     float along = (static_cast<float>(x + y) / 32.0f) * per_diag;
     int x0 = static_cast<int>(std::floor(along));
     float u = smooth(along - static_cast<float>(x0));
     int iper_diag = static_cast<int>(per_diag);
     auto h = [diag_line, seed, iper_diag](int ix) {
-        return hash01(((ix % iper_diag) + iper_diag) % iper_diag, diag_line, seed);
+        return hash01(js_math::wrap(ix, iper_diag), diag_line, seed);
     };
     return h(x0) * (1.0f - u) + h(x0 + 1) * u;
 }
@@ -101,8 +93,8 @@ static VoronoiRes cells_at(int x, int y, int32_t seed, int per) {
         for (int dx = -1; dx <= 1; ++dx) {
             int ix = cx + dx;
             int iy = cy + dy;
-            int wx = ((ix % per) + per) % per;
-            int wy = ((iy % per) + per) % per;
+            int wx = js_math::wrap(ix, per);
+            int wy = js_math::wrap(iy, per);
 
             // Jitter salts for cell Voronoi sites. Reference: renderSheet.ts cells()
             float px = (per >= 3)
@@ -146,7 +138,7 @@ static int cells_shade(int x, int y, int32_t seed, int per, float amount, int sh
 }
 
 static int deal_face_rank(int cell_x, int cell_y, int32_t seed) {
-    if (seed == 0) return wrapN(cell_x, 2) + 2 * wrapN(cell_y, 2);
+    if (seed == 0) return js_math::wrap(cell_x, 2) + 2 * js_math::wrap(cell_y, 2);
     // Face rank randomisation salt (0x9e3779b9). Reference: renderSheet.ts square()
     return static_cast<int>(std::floor(hash01(cell_x, cell_y, seed ^ 0x9e3779b9) * static_cast<float>(FACE_RANKS)));
 }
@@ -157,7 +149,7 @@ static int square_rank(int x_in, int y_in, int n_in, int32_t seed = 0) {
     double n = static_cast<double>(n_in);
     double S = 32.0 / n;
     auto to_grout = [S](double v) {
-        double u = wrapN_f(v, S);
+        double u = js_math::wrap(v, S);
         return std::min(u + 1.0, S - 1.0 - u);
     };
     double e = std::min(to_grout(x), to_grout(y));
@@ -166,10 +158,10 @@ static int square_rank(int x_in, int y_in, int n_in, int32_t seed = 0) {
 }
 
 static int iso_face_rank(int cell_x, int cell_y, int n, int32_t seed) {
-    int a = wrapN(cell_x - cell_y, 4 * n);
-    if (seed == 0) return wrapN(a, FACE_RANKS);
+    int a = js_math::wrap(cell_x - cell_y, 4 * n);
+    if (seed == 0) return js_math::wrap(a, FACE_RANKS);
     // Isometric face rank salt (0x9e3779b9). Reference: renderSheet.ts isometric()
-    return static_cast<int>(std::floor(hash01(a, wrapN(cell_x + cell_y, 2 * n), seed ^ 0x9e3779b9) * static_cast<float>(FACE_RANKS)));
+    return static_cast<int>(std::floor(hash01(a, js_math::wrap(cell_x + cell_y, 2 * n), seed ^ 0x9e3779b9) * static_cast<float>(FACE_RANKS)));
 }
 
 struct IsoCell {
@@ -216,6 +208,10 @@ static int isometric_rank(int x_in, int y_in, int n_in, int32_t seed = 0) {
 static int isometric_grid_rank(int x_in, int y_in, int n_in) {
     auto c = iso_cell_at(static_cast<double>(x_in), static_cast<double>(y_in), static_cast<double>(n_in));
     if (c.is_joint) return JOINT_RANK;
+    // 3D Cube faces:
+    //   Rank 2: Top face (illuminated)
+    //   Rank 0: Left face (dark / shaded)
+    //   Rank 1: Right face (mid-tone)
     if (c.rel_y < 0.0 && std::abs(c.rel_x) < c.W * (1.0 - std::abs(c.rel_y) / c.H)) return 2;
     return c.rel_x < 0.0 ? 0 : 1;
 }
@@ -227,9 +223,15 @@ static int brick_bond_rank(int x_in, int y_in, int n_in) {
     double bw = 32.0 / n;
     double bh = 16.0 / n;
     int course = static_cast<int>(std::floor(y / bh));
-    double ry = wrapN_f(y, bh);
-    double vx = wrapN_f(x - static_cast<double>(wrapN(course, 2)) * (bw / 2.0), bw);
+    double ry = js_math::wrap(y, bh);
+    double vx = js_math::wrap(x - static_cast<double>(js_math::wrap(course, 2)) * (bw / 2.0), bw);
 
+    // Brick mortar & bevel ranks:
+    //   Rank 3: Horizontal bed mortar groove
+    //   Rank 4: Vertical head mortar joint
+    //   Rank 1: Top bevel highlight
+    //   Rank 2: Bottom shadow lip
+    //   Rank 0: Flat brick body
     if (ry == 0.0) return 3;
     if (vx == 0.0) return 4;
     if (ry == 1.0 && bh >= 5.0) return 1;
@@ -278,8 +280,8 @@ static int hexagon_rank(int x_in, int y_in, int n_in) {
     if (edge < 0.5) return JOINT_RANK;
 
     static const int HEX_FACES[2][2] = { { 0, 1 }, { 2, 3 } };
-    int col_idx = wrapN(bc, 2);
-    int row_idx = wrapN(br + static_cast<int>(std::floor(static_cast<double>(bc) / 2.0)), 2);
+    int col_idx = js_math::wrap(bc, 2);
+    int row_idx = js_math::wrap(br + static_cast<int>(std::floor(static_cast<double>(bc) / 2.0)), 2);
     return HEX_FACES[col_idx][row_idx];
 }
 
@@ -289,23 +291,24 @@ static int octagonal_rank(int x_in, int y_in, int n_in, int32_t seed = 0) {
     double n = static_cast<double>(n_in);
     double S = 32.0 / n;
     double H = S / 2.0;
-    double ux = wrapN_f(x + 1.0, S);
-    double uy = wrapN_f(y + 1.0, S);
+    double ux = js_math::wrap(x + 1.0, S);
+    double uy = js_math::wrap(y + 1.0, S);
     double dx = std::abs(ux - H);
     double dy = std::abs(uy - H);
     double C = js_math::round(S * 0.6875);
     double m = dx + dy;
     auto face = [x, y, S, n_in, seed]() {
-        int cx = wrapN(static_cast<int>(std::floor((x + 1.0) / S)), n_in);
-        int cy = wrapN(static_cast<int>(std::floor((y + 1.0) / S)), n_in);
+        int cx = js_math::wrap(static_cast<int>(std::floor((x + 1.0) / S)), n_in);
+        int cy = js_math::wrap(static_cast<int>(std::floor((y + 1.0) / S)), n_in);
         static const int OCT_FACES[4] = { 0, 1, 2, 0 };
-        if (seed == 0) return OCT_FACES[wrapN(cx, 2) + 2 * wrapN(cy, 2)];
+        if (seed == 0) return OCT_FACES[js_math::wrap(cx, 2) + 2 * js_math::wrap(cy, 2)];
         // Octagonal face rank salt (0x9e3779b9). Reference: renderSheet.ts octagonal()
         return static_cast<int>(std::floor(hash01(cx, cy, seed ^ 0x9e3779b9) * 3.0f));
     };
-    const int SQUARE_RANK = FACE_RANKS - 1;
-    if (dx == H || dy == H) return (m <= C) ? JOINT_RANK : SQUARE_RANK;
-    if (m > C) return SQUARE_RANK;
+    // Chamfer square corner fill rank in 4-rank palette (0..3)
+    const int CHAMFER_INFILL_RANK = FACE_RANKS - 1; // 3
+    if (dx == H || dy == H) return (m <= C) ? JOINT_RANK : CHAMFER_INFILL_RANK;
+    if (m > C) return CHAMFER_INFILL_RANK;
     if (m == C) return JOINT_RANK;
     return face();
 }
@@ -315,30 +318,34 @@ static int nonslip_rank(int x_in, int y_in, int n_in, float amount = 1.0f) {
     int u = std::max(1, static_cast<int>(js_math::round(4.0 / n)));
     int S = 8 * u;
     auto inR = [S](int v, int lo, int hi) {
-        int w = wrapN(v, S);
+        int w = js_math::wrap(v, S);
         return w >= lo && w <= hi;
     };
     int s = x_in + y_in;
     int d = x_in - y_in;
-    int ax = wrapN(x_in, S);
+    int ax = js_math::wrap(x_in, S);
     int core = std::max(1, std::min(4 * u - 1, static_cast<int>(js_math::round(3.0 * static_cast<double>(u) * std::min(1.0, static_cast<double>(amount))))));
 
+    // Diagonal grip ribs:
+    //   Positive slope: Rank 3 (core) / Rank 1 (edge border)
     if (inR(s, 2 * u, 2 * u + 1) && ax <= core - 1) return 3;
     if (inR(s, 2 * u + 2, 2 * u + 2) && ax <= core) return 1;
     if (inR(s, 2 * u + 1, 2 * u + 2) && ax == core) return 1;
 
+    //   Negative slope: Rank 4 (core) / Rank 2 (edge border)
     bool coreB = inR(d, S - 1, S - 1) || inR(d, 0, 0);
     if (coreB && ax >= 4 * u && ax <= 4 * u + core - 1) return 4;
     if (inR(d, S - 2, S - 2) && ax >= 4 * u && ax <= 4 * u + core - 1) return 2;
     if (coreB && ax == 4 * u + core) return 2;
 
+    // Background base
     return 0;
 }
 
 template <typename F>
 static int geo_shade(F rank_fn, int x, int y, uint32_t seed, float amount, int shades, int n) {
-    int gx = wrapN(x + static_cast<int>(seed & 31), 32);
-    int gy = wrapN(y + static_cast<int>((seed >> 4) & 31), 32);
+    int gx = js_math::wrap(x + static_cast<int>(seed & 31), 32);
+    int gy = js_math::wrap(y + static_cast<int>((seed >> 4) & 31), 32);
     return rank_to_shade(rank_fn(gx, gy, n), amount, shades);
 }
 
@@ -354,56 +361,85 @@ int texture_shade_at(
     int geo_scale
 ) {
     if (texture == "none" || amount <= 0.0f || shades < 1) return 0;
+    TextureKind kind = texture_kind(texture);
+    if (kind == TextureKind::None) return 0;
+
     uint32_t s = js_math::urshift(static_cast<uint32_t>(seed ^ TEXTURE_SALT), 0);
     int geo = std::max(1, geo_scale);
 
-    if (texture == "weave") return baked_shade(WEAVE, 16, x, y, s, amount, shades);
-    if (texture == "paving") return baked_shade(PAVING, 32, x, y, s, amount, shades);
-    if (texture == "paving3") return baked_shade(PAVING3, 32, x, y, s, amount, shades);
-    if (texture == "paving5") return baked_shade(PAVING5, 32, x, y, s, amount, shades);
+    switch (kind) {
+        case TextureKind::Weave:
+            return baked_shade(WEAVE, 16, x, y, s, amount, shades);
+        case TextureKind::Paving:
+            return baked_shade(PAVING, 32, x, y, s, amount, shades);
+        case TextureKind::Paving3:
+            return baked_shade(PAVING3, 32, x, y, s, amount, shades);
+        case TextureKind::Paving5:
+            return baked_shade(PAVING5, 32, x, y, s, amount, shades);
 
-    bool rot = texture_joint_at_rank_0(texture);
+        case TextureKind::StoneFloor:
+            return baked_shade(STONE_FLOOR, 32, x, y, s, amount, shades, true);
+        case TextureKind::BreezeBlock:
+            return baked_shade(BREEZE_BLOCK, 32, x, y, s, amount, shades, true);
+        case TextureKind::BrickWall:
+            return baked_shade(BRICK_WALL, 32, x, y, s, amount, shades, true);
+        case TextureKind::Cobbles2:
+            return baked_shade(COBBLES2, 16, x, y, s, amount, shades, true);
+        case TextureKind::BrickFloor:
+            return baked_shade(BRICK_FLOOR, 16, x, y, s, amount, shades, true);
 
-    if (texture == "stone_floor") return baked_shade(STONE_FLOOR, 32, x, y, s, amount, shades, rot);
-    if (texture == "breeze_block") return baked_shade(BREEZE_BLOCK, 32, x, y, s, amount, shades, rot);
-    if (texture == "brick_wall") return baked_shade(BRICK_WALL, 32, x, y, s, amount, shades, rot);
-    if (texture == "cobbles2") return baked_shade(COBBLES2, 16, x, y, s, amount, shades, rot);
-    if (texture == "brick_floor") return baked_shade(BRICK_FLOOR, 16, x, y, s, amount, shades, rot);
+        case TextureKind::Hexagon:
+            return geo_shade([](int gx, int gy, int gn) { return hexagon_rank(gx, gy, gn); }, x, y, s, amount, shades, geo);
+        case TextureKind::BrickBond:
+            return geo_shade([](int gx, int gy, int gn) { return brick_bond_rank(gx, gy, gn); }, x, y, s, amount, shades, geo);
 
-    if (texture == "hexagon") return geo_shade([](int gx, int gy, int gn) { return hexagon_rank(gx, gy, gn); }, x, y, s, amount, shades, geo);
-    if (texture == "brick_bond") return geo_shade([](int gx, int gy, int gn) { return brick_bond_rank(gx, gy, gn); }, x, y, s, amount, shades, geo);
+        case TextureKind::Isometric:
+            return geo_shade([seed](int gx, int gy, int gn) { return isometric_rank(gx, gy, gn, seed); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
+        case TextureKind::IsometricGrid:
+            return geo_shade([](int gx, int gy, int gn) { return isometric_grid_rank(gx, gy, gn); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
+        case TextureKind::Octagonal:
+            return geo_shade([seed](int gx, int gy, int gn) { return octagonal_rank(gx, gy, gn, seed); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
+        case TextureKind::Square:
+            return geo_shade([seed](int gx, int gy, int gn) { return square_rank(gx, gy, gn, seed); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
 
-    if (texture == "isometric") return geo_shade([seed](int gx, int gy, int gn) { return isometric_rank(gx, gy, gn, seed); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
-    if (texture == "isometric_grid") return geo_shade([](int gx, int gy, int gn) { return isometric_grid_rank(gx, gy, gn); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
-    if (texture == "octagonal") return geo_shade([seed](int gx, int gy, int gn) { return octagonal_rank(gx, gy, gn, seed); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
-    if (texture == "square") return geo_shade([seed](int gx, int gy, int gn) { return square_rank(gx, gy, gn, seed); }, x, y, static_cast<uint32_t>(seed), amount, shades, geo);
+        case TextureKind::Water: {
+            int rank = baked_shade(WATER, 32, x, y, s, 1.0f, shades);
+            if (rank == 0 || amount >= 1.0f) return rank;
+            // Water subpixel noise salt (0x2f6e2b1). Reference: renderSheet.ts water()
+            return (hash01(js_math::wrap(x, 32), js_math::wrap(y, 32), s ^ 0x2f6e2b1) < amount) ? rank : 0;
+        }
+        case TextureKind::Field:
+            return baked_shade(FIELD, 32, x, y, s, amount, shades);
+        case TextureKind::Rubble:
+            return baked_shade(RUBBLE, 32, x, y, s, amount, shades);
 
-    if (texture == "water") {
-        int rank = baked_shade(WATER, 32, x, y, s, 1.0f, shades);
-        if (rank == 0 || amount >= 1.0f) return rank;
-        // Water subpixel noise salt (0x2f6e2b1). Reference: renderSheet.ts water()
-        return (hash01(wrapN(x, 32), wrapN(y, 32), s ^ 0x2f6e2b1) < amount) ? rank : 0;
+        case TextureKind::Nonslip:
+            return geo_shade([amount](int gx, int gy, int gn) { return nonslip_rank(gx, gy, gn, amount); }, x, y, s, 1.0f, shades, geo);
+
+        case TextureKind::Cells: {
+            int c_scale = std::max(MIN_CELL_SCALE, std::min(MAX_CELL_SCALE, cell_scale));
+            return cells_shade(x, y, s, c_scale, amount, shades);
+        }
+
+        case TextureKind::Ripple:
+        case TextureKind::RippleDiag:
+        case TextureKind::White:
+        case TextureKind::Blue:
+        case TextureKind::Ordered: {
+            float r_scale = static_cast<float>(std::max(MIN_RIPPLE_SCALE, std::min(MAX_RIPPLE_SCALE, ripple_scale)));
+            float n = (kind == TextureKind::Ripple) ? ripple_field(x, y, s, r_scale)
+                    : (kind == TextureKind::RippleDiag) ? ripple_diag_field(x, y, s, r_scale)
+                    : sample_noise(parse_noise_id(texture), x, y, s);
+
+            float cut = 1.0f - std::min(1.0f, amount);
+            if (n < cut) return 0;
+            float u = (cut >= 1.0f) ? 1.0f : (n - cut) / (1.0f - cut);
+            return std::min(shades, 1 + static_cast<int>(std::floor(static_cast<float>(shades) * u * u)));
+        }
+
+        default:
+            return 0;
     }
-    if (texture == "field") return baked_shade(FIELD, 32, x, y, s, amount, shades);
-    if (texture == "rubble") return baked_shade(RUBBLE, 32, x, y, s, amount, shades);
-
-    if (texture == "nonslip") {
-        return geo_shade([amount](int gx, int gy, int gn) { return nonslip_rank(gx, gy, gn, amount); }, x, y, s, 1.0f, shades, geo);
-    }
-    if (texture == "cells") {
-        int c_scale = std::max(MIN_CELL_SCALE, std::min(MAX_CELL_SCALE, cell_scale));
-        return cells_shade(x, y, s, c_scale, amount, shades);
-    }
-
-    float r_scale = static_cast<float>(std::max(MIN_RIPPLE_SCALE, std::min(MAX_RIPPLE_SCALE, ripple_scale)));
-    float n = (texture == "ripple") ? ripple_field(x, y, s, r_scale)
-            : (texture == "ripple_diag") ? ripple_diag_field(x, y, s, r_scale)
-            : sample_noise(parse_noise_id(texture), x, y, s);
-
-    float cut = 1.0f - std::min(1.0f, amount);
-    if (n < cut) return 0;
-    float u = (cut >= 1.0f) ? 1.0f : (n - cut) / (1.0f - cut);
-    return std::min(shades, 1 + static_cast<int>(std::floor(static_cast<float>(shades) * u * u)));
 }
 
 static double luminance(RGB c) {

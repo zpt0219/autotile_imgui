@@ -1,5 +1,4 @@
 #include "library_command_handler.h"
-#include <chrono>
 
 namespace atm {
 
@@ -13,10 +12,8 @@ EditorResult LibraryCommandHandler::add_and_execute_command(
 ) {
     if (!command) return EditorResult::Error("Null command passed to handler");
 
-    int64_t now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()
-    ).count();
-    command->set_timestamp(now_ms);
+    // Clear redo history immediately on any new user action
+    redo_stack_.clear();
 
     // Try merge with the top of undo stack if applicable
     if (!undo_stack_.empty()) {
@@ -36,7 +33,6 @@ EditorResult LibraryCommandHandler::add_and_execute_command(
     if (undo_stack_.size() > max_history_size_) {
         undo_stack_.pop_front();
     }
-    redo_stack_.clear();
 
     return res;
 }
@@ -60,7 +56,7 @@ EditorResult LibraryCommandHandler::redo(LibraryHandler& handler, LibraryCallbac
     auto cmd = std::move(redo_stack_.back());
     redo_stack_.pop_back();
 
-    EditorResult res = cmd->redo(handler, cb);
+    EditorResult res = cmd->execute(handler, cb);
     if (!res.success) return res;
 
     undo_stack_.push_back(std::move(cmd));

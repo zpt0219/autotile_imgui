@@ -7,6 +7,34 @@
 
 namespace atm {
 
+namespace {
+
+template <typename Def, size_t N>
+const Def* find_by_id(const Def (&defs)[N], const std::string& id) {
+    for (const auto& def : defs) {
+        if (id == def.id) return &def;
+    }
+    return nullptr;
+}
+
+template <typename Def, size_t N, typename Label, size_t M>
+std::vector<CatalogGroup> build_catalog_groups(const Def (&defs)[N], const Label (&labels)[M]) {
+    std::vector<CatalogGroup> out;
+    out.reserve(M);
+    for (const auto& label : labels) {
+        CatalogGroup group{ label.zh, label.en, {} };
+        for (const auto& def : defs) {
+            if (def.group == label.group) {
+                group.items.push_back({ def.id, def.zh, def.en });
+            }
+        }
+        out.push_back(std::move(group));
+    }
+    return out;
+}
+
+} // namespace
+
 // --- the pattern registry ---------------------------------------------------
 //
 // One row per silhouette. Row order is the picker's display order. Adding a
@@ -56,10 +84,7 @@ static const PatternDef PATTERN_DEFS[] = {
 };
 
 static const PatternDef* find_pattern_def(const std::string& pattern) {
-    for (const auto& def : PATTERN_DEFS) {
-        if (pattern == def.id) return &def;
-    }
-    return nullptr;
+    return find_by_id(PATTERN_DEFS, pattern);
 }
 
 const std::vector<CatalogGroup>& pattern_groups() {
@@ -69,20 +94,7 @@ const std::vector<CatalogGroup>& pattern_groups() {
         { PatternGroup::Irregular, "不规则边缘", "Irregular edges" },
     };
 
-    static const std::vector<CatalogGroup> groups = [] {
-        std::vector<CatalogGroup> out;
-        out.reserve(sizeof(LABELS) / sizeof(LABELS[0]));
-        for (const auto& label : LABELS) {
-            CatalogGroup group{ label.zh, label.en, {} };
-            for (const auto& def : PATTERN_DEFS) {
-                if (def.group == label.group) {
-                    group.items.push_back({ def.id, def.zh, def.en });
-                }
-            }
-            out.push_back(std::move(group));
-        }
-        return out;
-    }();
+    static const std::vector<CatalogGroup> groups = build_catalog_groups(PATTERN_DEFS, LABELS);
     return groups;
 }
 
@@ -130,6 +142,7 @@ enum class TextureGroup {
 
 struct TextureDef {
     const char*  id;
+    TextureKind  kind;
     TextureGroup group;
     const char*  zh;
     const char*  en;
@@ -142,69 +155,71 @@ struct TextureDef {
 };
 
 static const TextureDef TEXTURE_DEFS[] = {
-    { "none",           TextureGroup::None,       "无纹理", "None",
+    { "none",           TextureKind::None,          TextureGroup::None,       "无纹理", "None",
       16, false, false, false, 1, false },
 
-    { "field",          TextureGroup::Nature,     "草地颗粒 · Field", "Field — grassy ground",
+    { "field",          TextureKind::Field,         TextureGroup::Nature,     "草地颗粒 · Field", "Field — grassy ground",
       32, false, false, false, 1, false },
-    { "rubble",         TextureGroup::Nature,     "碎石地面 · Rubble", "Rubble — broken stone",
+    { "rubble",         TextureKind::Rubble,        TextureGroup::Nature,     "碎石地面 · Rubble", "Rubble — broken stone",
       32, false, false, false, 1, false },
-    { "ripple",         TextureGroup::Nature,     "水面波纹 · Ripples", "Ripples — short horizontal dashes",
+    { "ripple",         TextureKind::Ripple,        TextureGroup::Nature,     "水面波纹 · Ripples", "Ripples — short horizontal dashes",
       32, true,  false, false, 1, false },
-    { "ripple_diag",    TextureGroup::Nature,     "斜向水波 · Diagonal Ripples", "Diagonal Ripples — 45° short dashes",
+    { "ripple_diag",    TextureKind::RippleDiag,    TextureGroup::Nature,     "斜向水波 · Diagonal Ripples", "Diagonal Ripples — 45° short dashes",
       32, true,  false, false, 1, false },
-    { "water",          TextureGroup::Nature,     "水面边线 · Water", "Water — edge lines only",
+    { "water",          TextureKind::Water,         TextureGroup::Nature,     "水面边线 · Water", "Water — edge lines only",
       32, true,  false, false, 1, false },
 
-    { "cells",          TextureGroup::Procedural, "多边形细胞 · Voronoi 细胞网格", "Polygonal Cells — Voronoi cell mesh",
+    { "cells",          TextureKind::Cells,         TextureGroup::Procedural, "多边形细胞 · Voronoi 细胞网格", "Polygonal Cells — Voronoi cell mesh",
       32, false, false, false, 1, false },
-    { "square",         TextureGroup::Procedural, "正方形铺砖 · 可调尺寸", "Square — plain square paving, sizeable",
+    { "square",         TextureKind::Square,        TextureGroup::Procedural, "正方形铺砖 · 可调尺寸", "Square — plain square paving, sizeable",
       32, false, false, true,  2, false },
-    { "hexagon",        TextureGroup::Procedural, "规则六边形 · 可调尺寸", "Hexagon — regular hexagonal tiles, sizeable",
+    { "hexagon",        TextureKind::Hexagon,       TextureGroup::Procedural, "规则六边形 · 可调尺寸", "Hexagon — regular hexagonal tiles, sizeable",
       32, false, false, true,  1, true  },
-    { "isometric",      TextureGroup::Procedural, "等距菱形块 · 可调尺寸", "Isometric — diamond blocks, sizeable",
+    { "isometric",      TextureKind::Isometric,     TextureGroup::Procedural, "等距菱形块 · 可调尺寸", "Isometric — diamond blocks, sizeable",
       32, false, false, true,  1, false },
-    { "isometric_grid", TextureGroup::Procedural, "等距立体方块 · 可调尺寸", "Isometric Grid — 3D cube mesh, sizeable",
+    { "isometric_grid", TextureKind::IsometricGrid, TextureGroup::Procedural, "等距立体方块 · 可调尺寸", "Isometric Grid — 3D cube mesh, sizeable",
       32, false, false, true,  1, true  },
-    { "octagonal",      TextureGroup::Procedural, "八边切角砖 (32px)", "Octagonal — chamfered square tiles (32)",
+    { "octagonal",      TextureKind::Octagonal,     TextureGroup::Procedural, "八边切角砖 (32px)", "Octagonal — chamfered square tiles (32)",
       32, false, false, true,  2, false },
-    { "nonslip",        TextureGroup::Procedural, "交叉防滑纹 · 可调尺寸", "Non-slip — textured grip, sizeable",
+    { "nonslip",        TextureKind::Nonslip,       TextureGroup::Procedural, "交叉防滑纹 · 可调尺寸", "Non-slip — textured grip, sizeable",
       32, true,  false, true,  4, true  },
 
-    { "brick_wall",     TextureGroup::Masonry,    "错缝砖墙 (32px)", "Brick Wall — running-bond masonry (32)",
+    { "brick_wall",     TextureKind::BrickWall,     TextureGroup::Masonry,    "错缝砖墙 (32px)", "Brick Wall — running-bond masonry (32)",
       16, false, true,  false, 1, false },
-    { "brick_bond",     TextureGroup::Masonry,    "程序化错缝砖 · 可调尺寸", "Running Bond — procedural offset bricks, sizeable",
+    { "brick_bond",     TextureKind::BrickBond,     TextureGroup::Masonry,    "程序化错缝砖 · 可调尺寸", "Running Bond — procedural offset bricks, sizeable",
       32, false, false, true,  2, true  },
-    { "cobbles2",       TextureGroup::Masonry,    "细密错缝砖 (16px)", "Cobbles2 — fine running-bond bricks",
+    { "cobbles2",       TextureKind::Cobbles2,      TextureGroup::Masonry,    "细密错缝砖 (16px)", "Cobbles2 — fine running-bond bricks",
       16, false, true,  false, 1, false },
-    { "brick_floor",    TextureGroup::Masonry,    "45° 斜铺砖 (16px)", "Brick Floor — diagonal 45° bond",
+    { "brick_floor",    TextureKind::BrickFloor,    TextureGroup::Masonry,    "45° 斜铺砖 (16px)", "Brick Floor — diagonal 45° bond",
       16, false, true,  false, 1, false },
-    { "weave",          TextureGroup::Masonry,    "菱格编织砖 (16px)", "Weave — diagonal interlocking bricks",
+    { "weave",          TextureKind::Weave,         TextureGroup::Masonry,    "菱格编织砖 (16px)", "Weave — diagonal interlocking bricks",
       16, false, false, false, 1, false },
-    { "breeze_block",   TextureGroup::Masonry,    "镂空通风砖 (32px)", "Breeze Block — perforated masonry (32)",
+    { "breeze_block",   TextureKind::BreezeBlock,   TextureGroup::Masonry,    "镂空通风砖 (32px)", "Breeze Block — perforated masonry (32)",
       32, false, true,  false, 1, false },
-    { "paving",         TextureGroup::Masonry,    "乱砌石板 (32px)", "Paving — random ashlar flags (32)",
+    { "paving",         TextureKind::Paving,        TextureGroup::Masonry,    "乱砌石板 (32px)", "Paving — random ashlar flags (32)",
       32, false, false, false, 1, false },
-    { "paving3",        TextureGroup::Masonry,    "等距立体方块 (32px)", "Paving3 — isometric cubes (32)",
+    { "paving3",        TextureKind::Paving3,       TextureGroup::Masonry,    "等距立体方块 (32px)", "Paving3 — isometric cubes (32)",
       32, false, false, false, 1, false },
-    { "paving5",        TextureGroup::Masonry,    "曲边咬合铺砖 (32px)", "Paving5 — interlocking curved pavers (32)",
+    { "paving5",        TextureKind::Paving5,       TextureGroup::Masonry,    "曲边咬合铺砖 (32px)", "Paving5 — interlocking curved pavers (32)",
       32, false, false, false, 1, false },
-    { "stone_floor",    TextureGroup::Masonry,    "不规则石板地面 (32px)", "Stone Floor — irregular stone slabs (32)",
+    { "stone_floor",    TextureKind::StoneFloor,    TextureGroup::Masonry,    "不规则石板地面 (32px)", "Stone Floor — irregular stone slabs (32)",
       32, false, true,  false, 1, false },
 
-    { "white",          TextureGroup::Speckle,    "白噪散点 · 随机沙粒", "White speckle — random sand",
+    { "white",          TextureKind::White,         TextureGroup::Speckle,    "白噪散点 · 随机沙粒", "White speckle — random sand",
       16, true,  false, false, 1, false },
-    { "blue",           TextureGroup::Speckle,    "蓝噪散点 · 均匀细颗粒", "Blue speckle — even fine grain",
+    { "blue",           TextureKind::Blue,          TextureGroup::Speckle,    "蓝噪散点 · 均匀细颗粒", "Blue speckle — even fine grain",
       16, true,  false, false, 1, false },
-    { "ordered",        TextureGroup::Speckle,    "有序网点 · 规则半调", "Ordered — regular halftone",
+    { "ordered",        TextureKind::Ordered,       TextureGroup::Speckle,    "有序网点 · 规则半调", "Ordered — regular halftone",
       16, true,  false, false, 1, false },
 };
 
 static const TextureDef* find_texture_def(const std::string& tex) {
-    for (const auto& def : TEXTURE_DEFS) {
-        if (tex == def.id) return &def;
-    }
-    return nullptr;
+    return find_by_id(TEXTURE_DEFS, tex);
+}
+
+TextureKind texture_kind(const std::string& tex) {
+    auto* def = find_texture_def(tex);
+    return def ? def->kind : TextureKind::Unknown;
 }
 
 const std::vector<CatalogGroup>& texture_groups() {
@@ -217,20 +232,7 @@ const std::vector<CatalogGroup>& texture_groups() {
         { TextureGroup::Speckle,    "散点与半调噪声", "Speckle & Noise" },
     };
 
-    static const std::vector<CatalogGroup> groups = [] {
-        std::vector<CatalogGroup> out;
-        out.reserve(sizeof(LABELS) / sizeof(LABELS[0]));
-        for (const auto& label : LABELS) {
-            CatalogGroup group{ label.zh, label.en, {} };
-            for (const auto& def : TEXTURE_DEFS) {
-                if (def.group == label.group) {
-                    group.items.push_back({ def.id, def.zh, def.en });
-                }
-            }
-            out.push_back(std::move(group));
-        }
-        return out;
-    }();
+    static const std::vector<CatalogGroup> groups = build_catalog_groups(TEXTURE_DEFS, LABELS);
     return groups;
 }
 
@@ -289,10 +291,7 @@ static const RibbonDef RIBBON_DEFS[] = {
 };
 
 static const RibbonDef* find_ribbon_def(const std::string& id) {
-    for (const auto& def : RIBBON_DEFS) {
-        if (id == def.id) return &def;
-    }
-    return nullptr;
+    return find_by_id(RIBBON_DEFS, id);
 }
 
 const std::vector<CatalogGroup>& ribbon_groups() {
@@ -302,20 +301,7 @@ const std::vector<CatalogGroup>& ribbon_groups() {
         { RibbonGroup::AlongAxis, "沿轴纹理", "Textures laid along the axis" },
     };
 
-    static const std::vector<CatalogGroup> groups = [] {
-        std::vector<CatalogGroup> out;
-        out.reserve(sizeof(LABELS) / sizeof(LABELS[0]));
-        for (const auto& label : LABELS) {
-            CatalogGroup group{ label.zh, label.en, {} };
-            for (const auto& def : RIBBON_DEFS) {
-                if (def.group == label.group) {
-                    group.items.push_back({ def.id, def.zh, def.en });
-                }
-            }
-            out.push_back(std::move(group));
-        }
-        return out;
-    }();
+    static const std::vector<CatalogGroup> groups = build_catalog_groups(RIBBON_DEFS, LABELS);
     return groups;
 }
 
@@ -431,7 +417,6 @@ double ribbon_min_width(const std::string& id) {
     auto* def = find_ribbon_def(id);
     return def ? def->min_width : 1.0;
 }
-
 
 std::set<int> used_ribbon_shades(
     const std::string& id,

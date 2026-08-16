@@ -62,7 +62,38 @@ bool pattern_is_reseedable(const std::string& pattern);
 // rather than carrying one of its own.
 std::string pattern_field_source(const std::string& pattern);
 
+enum class TextureKind {
+    None,
+    Field,
+    Rubble,
+    Ripple,
+    RippleDiag,
+    Water,
+    Cells,
+    Square,
+    Hexagon,
+    Isometric,
+    IsometricGrid,
+    Octagonal,
+    Nonslip,
+    BrickWall,
+    BrickBond,
+    Cobbles2,
+    BrickFloor,
+    Weave,
+    BreezeBlock,
+    Paving,
+    Paving3,
+    Paving5,
+    StoneFloor,
+    White,
+    Blue,
+    Ordered,
+    Unknown
+};
+
 // --- per-texture switches, all served from the one registry in catalog.cpp ---
+TextureKind texture_kind(const std::string& tex);
 int texture_period(const std::string& tex);
 bool texture_uses_amount(const std::string& tex);
 bool texture_joint_at_rank_0(const std::string& tex);

@@ -168,25 +168,24 @@ std::string render_level_grid(const Recipe& recipe, const PaintOverrides& overri
 
     std::vector<std::string> rows(SHEET_HEIGHT, std::string(SHEET_WIDTH, '0'));
 
-    for (size_t i = 0; i < BLOB47_LAYOUT.size(); ++i) {
-        int col = static_cast<int>(i % BLOB47_COLS);
-        int row = static_cast<int>(i / BLOB47_COLS);
-        FieldParams fp{
-            static_cast<float>(opts.offset_px),
-            SHEET_TILE_SIZE,
-            opts.band_steps,
-            opts.hard_edge_b,
-            opts.edge_seed,
-            static_cast<float>(opts.outline_width)
-        };
-        std::string grid = pattern_levels_for_mask(a.pattern_id, BLOB47_LAYOUT[i], fp);
+    FieldParams fp{
+        static_cast<float>(opts.offset_px),
+        SHEET_TILE_SIZE,
+        opts.band_steps,
+        opts.hard_edge_b,
+        opts.edge_seed,
+        static_cast<float>(opts.outline_width)
+    };
+
+    for_each_blob47_tile([&](size_t /*i*/, int col, int row, uint8_t mask) {
+        std::string grid = pattern_levels_for_mask(a.pattern_id, mask, fp);
 
         for (int y = 0; y < SHEET_TILE_SIZE; ++y) {
             int dst_y = row * SHEET_TILE_SIZE + y;
             int dst_x = col * SHEET_TILE_SIZE;
             std::memcpy(&rows[dst_y][dst_x], &grid[y * SHEET_TILE_SIZE], SHEET_TILE_SIZE);
         }
-    }
+    });
 
     std::string out;
     out.reserve(SHEET_WIDTH * SHEET_HEIGHT);
@@ -200,19 +199,15 @@ std::vector<uint8_t> render_sheet_rgba(const Recipe& recipe, const PaintOverride
     PaintArgs a = recipe_to_paint_args(recipe, overrides);
     std::vector<uint8_t> out(SHEET_WIDTH * SHEET_HEIGHT * 4, 0);
 
-    for (size_t i = 0; i < BLOB47_LAYOUT.size(); ++i) {
-        int col = static_cast<int>(i % BLOB47_COLS);
-        int row = static_cast<int>(i / BLOB47_COLS);
-        auto tile = paint_pattern_tile_rgba(a.pattern_id, BLOB47_LAYOUT[i], a.role_colours, a.opts);
+    TilePainter painter(a.pattern_id, a.role_colours, a.opts);
+
+    for_each_blob47_tile([&](size_t /*i*/, int col, int row, uint8_t mask) {
         int x0 = col * SHEET_TILE_SIZE;
         int y0 = row * SHEET_TILE_SIZE;
+        uint8_t* dst = &out[(y0 * SHEET_WIDTH + x0) * 4];
+        painter.paint_tile_into(mask, dst, SHEET_WIDTH * 4);
+    });
 
-        for (int y = 0; y < SHEET_TILE_SIZE; ++y) {
-            int src_offset = y * SHEET_TILE_SIZE * 4;
-            int dst_offset = ((y0 + y) * SHEET_WIDTH + x0) * 4;
-            std::memcpy(&out[dst_offset], &tile[src_offset], SHEET_TILE_SIZE * 4);
-        }
-    }
     return out;
 }
 

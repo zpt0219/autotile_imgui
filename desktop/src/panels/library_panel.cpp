@@ -56,6 +56,24 @@ void LibraryPanel::draw(ViewModel& vm) {
         std::string filter_str(search_filter_);
         std::transform(filter_str.begin(), filter_str.end(), filter_str.begin(), ::tolower);
 
+        auto draw_recipe_context_menu = [&](atm::RecipeEntry* entry) {
+            if (ImGui::BeginPopupContextItem()) {
+                if (ImGui::MenuItem(use_zh ? "复制副本" : "Duplicate")) {
+                    vm.execute_command(std::make_unique<atm::DuplicateRecipeCommand>(entry->hash));
+                }
+                if (ImGui::MenuItem(use_zh ? "重命名" : "Rename")) {
+                    renaming_hash_ = entry->hash;
+                    std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
+                    rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
+                }
+                ImGui::Separator();
+                if (lib->entries().size() > 1 && ImGui::MenuItem(use_zh ? "删除" : "Delete", nullptr, false, true)) {
+                    vm.execute_command(std::make_unique<atm::RemoveRecipeCommand>(entry->hash));
+                }
+                ImGui::EndPopup();
+            }
+        };
+
         ImGui::BeginChild("RecipeListChild", ImVec2(0, 0), true);
         if (lib) {
             std::vector<atm::RecipeEntry*> filtered_entries;
@@ -82,22 +100,7 @@ void LibraryPanel::draw(ViewModel& vm) {
                         vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
                     }
 
-                    // Context Menu
-                    if (ImGui::BeginPopupContextItem()) {
-                        if (ImGui::MenuItem(use_zh ? "复制副本" : "Duplicate")) {
-                            vm.execute_command(std::make_unique<atm::DuplicateRecipeCommand>(entry->hash));
-                        }
-                        if (ImGui::MenuItem(use_zh ? "重命名" : "Rename")) {
-                            renaming_hash_ = entry->hash;
-                            std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
-                            rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
-                        }
-                        ImGui::Separator();
-                        if (lib->entries().size() > 1 && ImGui::MenuItem(use_zh ? "删除" : "Delete", nullptr, false, true)) {
-                            vm.execute_command(std::make_unique<atm::RemoveRecipeCommand>(entry->hash));
-                        }
-                        ImGui::EndPopup();
-                    }
+                    draw_recipe_context_menu(entry);
 
                     ImGui::PopID();
                 }
@@ -171,22 +174,7 @@ void LibraryPanel::draw(ViewModel& vm) {
                             vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
                         }
 
-                        // Context Menu
-                        if (ImGui::BeginPopupContextItem()) {
-                            if (ImGui::MenuItem(use_zh ? "复制副本" : "Duplicate")) {
-                                vm.execute_command(std::make_unique<atm::DuplicateRecipeCommand>(entry->hash));
-                            }
-                            if (ImGui::MenuItem(use_zh ? "重命名" : "Rename")) {
-                                renaming_hash_ = entry->hash;
-                                std::strncpy(rename_buffer_, entry->name.c_str(), sizeof(rename_buffer_) - 1);
-                                rename_buffer_[sizeof(rename_buffer_) - 1] = 0;
-                            }
-                            ImGui::Separator();
-                            if (lib->entries().size() > 1 && ImGui::MenuItem(use_zh ? "删除" : "Delete", nullptr, false, true)) {
-                                vm.execute_command(std::make_unique<atm::RemoveRecipeCommand>(entry->hash));
-                            }
-                            ImGui::EndPopup();
-                        }
+                        draw_recipe_context_menu(entry);
 
                         // Caption & Tooltip
                         ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 96.0f);
@@ -249,7 +237,7 @@ void LibraryPanel::draw(ViewModel& vm) {
             ImGui::Spacing();
 
             if (ImGui::Button(use_zh ? "保存" : "Save", ImVec2(120, 0))) {
-                vm.execute_command(std::make_unique<atm::RenameRecipeCommand>(renaming_hash_, rename_buffer_, 2));
+                vm.execute_command(std::make_unique<atm::RenameRecipeCommand>(renaming_hash_, rename_buffer_, atm::EditPhase::End));
                 renaming_hash_.clear();
                 ImGui::CloseCurrentPopup();
             }

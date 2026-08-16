@@ -95,6 +95,36 @@ struct PaintOptions {
     bool transparent_b = false;
 };
 
+class TilePainter {
+public:
+    TilePainter(const std::string& pattern, const RoleColours& colours, const PaintOptions& opts);
+
+    void paint_tile_into(int mask, uint8_t* out_rgba, int row_stride_bytes = 0) const;
+    std::vector<uint8_t> paint_tile_rgba(int mask) const;
+
+    const std::string& pattern() const { return pattern_; }
+    const RoleColours& colours() const { return colours_; }
+    const PaintOptions& options() const { return opts_; }
+
+private:
+    std::string pattern_;
+    RoleColours colours_;
+    PaintOptions opts_;
+    std::vector<RGB> ramp_;
+    std::vector<PatternLevelDef> level_defs_;
+    FieldParams fp_;
+    int solid_ = 0;
+    int edge_level_ = -1;
+    int rib_shades_ = 1;
+    bool ribbon_on_ = false;
+    float rib_width_ = 1.0f;
+    int span_ = 0;
+    std::optional<std::vector<RGB>> rib_ramp_;
+    std::optional<std::vector<RGB>> texA_;
+    std::optional<std::vector<RGB>> texB_;
+    std::vector<bool> noise_targets_lut_;
+};
+
 // Paint a single tile (tile_size x tile_size x 4 RGBA bytes)
 std::vector<uint8_t> paint_pattern_tile_rgba(
     const std::string& pattern,

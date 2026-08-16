@@ -19,7 +19,7 @@ LibraryHandler::LibraryHandler(std::unique_ptr<RecipeLibrary> library)
     }
 }
 
-void LibraryHandler::set_library(std::unique_ptr<RecipeLibrary> lib, LibraryCallbacks* cb, int flag) {
+void LibraryHandler::set_library(std::unique_ptr<RecipeLibrary> lib, LibraryCallbacks* cb, EditPhase phase) {
     library_ = std::move(lib);
     selected_ = (library_ && !library_->entries().empty()) ? library_->entries().front().get() : nullptr;
     multi_selected_hashes_.clear();
@@ -27,54 +27,54 @@ void LibraryHandler::set_library(std::unique_ptr<RecipeLibrary> lib, LibraryCall
         multi_selected_hashes_.push_back(selected_->hash);
     }
     if (cb) {
-        cb->onLibraryLoaded(flag);
-        cb->onRecipeSelected(selected_, flag);
+        cb->onLibraryLoaded(phase);
+        cb->onRecipeSelected(selected_, phase);
     }
 }
 
-void LibraryHandler::select_recipe(const std::string& hash, LibraryCallbacks* cb, int flag) {
+void LibraryHandler::select_recipe(const std::string& hash, LibraryCallbacks* cb, EditPhase phase) {
     if (!library_) {
         selected_ = nullptr;
         multi_selected_hashes_.clear();
-        if (cb) cb->onRecipeSelected(nullptr, flag);
+        if (cb) cb->onRecipeSelected(nullptr, phase);
         return;
     }
     auto entry = library_->find_by_hash(hash);
-    select_recipe(entry.get(), cb, flag);
+    select_recipe(entry.get(), cb, phase);
 }
 
-void LibraryHandler::select_recipe(RecipeEntry* entry, LibraryCallbacks* cb, int flag) {
+void LibraryHandler::select_recipe(RecipeEntry* entry, LibraryCallbacks* cb, EditPhase phase) {
     selected_ = entry;
     multi_selected_hashes_.clear();
     if (selected_) {
         multi_selected_hashes_.push_back(selected_->hash);
     }
     if (cb) {
-        cb->onRecipeSelected(selected_, flag);
+        cb->onRecipeSelected(selected_, phase);
     }
 }
 
-void LibraryHandler::notify_recipe_updated(RecipeEntry* entry, DirtyMask dirty, LibraryCallbacks* cb, int flag) {
+void LibraryHandler::notify_recipe_updated(RecipeEntry* entry, DirtyMask dirty, LibraryCallbacks* cb, EditPhase phase) {
     if (cb) {
-        cb->onRecipeUpdated(entry, dirty, flag);
+        cb->onRecipeUpdated(entry, dirty, phase);
     }
 }
 
-void LibraryHandler::notify_list_updated(LibraryCallbacks* cb, int flag) {
+void LibraryHandler::notify_list_updated(LibraryCallbacks* cb, EditPhase phase) {
     if (cb) {
-        cb->onLibraryListUpdated(flag);
+        cb->onLibraryListUpdated(phase);
     }
 }
 
-void LibraryHandler::notify_axes_updated(LibraryCallbacks* cb, int flag) {
+void LibraryHandler::notify_axes_updated(LibraryCallbacks* cb, EditPhase phase) {
     if (cb) {
-        cb->onVariantAxesUpdated(flag);
+        cb->onVariantAxesUpdated(phase);
     }
 }
 
-void LibraryHandler::notify_export_settings_updated(LibraryCallbacks* cb, int flag) {
+void LibraryHandler::notify_export_settings_updated(LibraryCallbacks* cb, EditPhase phase) {
     if (cb) {
-        cb->onExportSettingsUpdated(flag);
+        cb->onExportSettingsUpdated(phase);
     }
 }
 

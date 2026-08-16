@@ -174,7 +174,7 @@ Recipe sanitize_recipe(const nlohmann::json& raw) {
         for (const auto& item : raw["patternNoise"]) {
             if (item.is_string()) {
                 std::string s = item.get<std::string>();
-                if (s == "white" || s == "blue" || s == "ordered") {
+                if (is_known_noise(s)) {
                     r.patternNoise.push_back(parse_noise_id(s));
                 }
             }
@@ -221,6 +221,16 @@ Recipe sanitize_recipe(const nlohmann::json& raw) {
     return r;
 }
 
+static nlohmann::json sparse_hex_to_json(const std::optional<std::vector<std::optional<std::string>>>& opt) {
+    if (!opt.has_value()) return nullptr;
+    nlohmann::json arr = nlohmann::json::array();
+    for (const auto& item : *opt) {
+        if (item.has_value()) arr.push_back(*item);
+        else arr.push_back(nullptr);
+    }
+    return arr;
+}
+
 nlohmann::json recipe_to_json(const Recipe& r) {
     nlohmann::json j;
     j["roleHex"]["terrainA"] = r.roleHex.terrainA;
@@ -254,17 +264,7 @@ nlohmann::json recipe_to_json(const Recipe& r) {
     j["ribbonPeriod"] = r.ribbonPeriod;
     j["ribbonShades"] = r.ribbonShades;
     j["ribbonInvert"] = r.ribbonInvert;
-
-    if (r.customRibbonHex.has_value()) {
-        nlohmann::json arr = nlohmann::json::array();
-        for (const auto& item : *r.customRibbonHex) {
-            if (item.has_value()) arr.push_back(*item);
-            else arr.push_back(nullptr);
-        }
-        j["customRibbonHex"] = arr;
-    } else {
-        j["customRibbonHex"] = nullptr;
-    }
+    j["customRibbonHex"] = sparse_hex_to_json(r.customRibbonHex);
 
     j["textureAlgoA"] = r.textureAlgoA;
     j["textureAlgoB"] = r.textureAlgoB;
@@ -282,27 +282,8 @@ nlohmann::json recipe_to_json(const Recipe& r) {
     j["geoScaleB"] = r.geoScaleB;
 
     nlohmann::json ctex;
-    if (r.customTexHexA.has_value()) {
-        nlohmann::json arr = nlohmann::json::array();
-        for (const auto& item : *r.customTexHexA) {
-            if (item.has_value()) arr.push_back(*item);
-            else arr.push_back(nullptr);
-        }
-        ctex["terrainA"] = arr;
-    } else {
-        ctex["terrainA"] = nullptr;
-    }
-
-    if (r.customTexHexB.has_value()) {
-        nlohmann::json arr = nlohmann::json::array();
-        for (const auto& item : *r.customTexHexB) {
-            if (item.has_value()) arr.push_back(*item);
-            else arr.push_back(nullptr);
-        }
-        ctex["terrainB"] = arr;
-    } else {
-        ctex["terrainB"] = nullptr;
-    }
+    ctex["terrainA"] = sparse_hex_to_json(r.customTexHexA);
+    ctex["terrainB"] = sparse_hex_to_json(r.customTexHexB);
     j["customTexHex"] = ctex;
 
     return j;

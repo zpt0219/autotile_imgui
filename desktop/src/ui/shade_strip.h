@@ -2,6 +2,7 @@
 
 #include "ui_constants.h"
 #include "pattern/pattern_paint.h"
+#include "command/library_callbacks.h"
 #include <imgui.h>
 #include <string>
 #include <vector>
@@ -12,13 +13,19 @@
 namespace atm_desktop {
 namespace ui {
 
+inline atm::EditPhase current_drag_phase() {
+    if (ImGui::IsItemDeactivatedAfterEdit()) return atm::EditPhase::End;
+    if (ImGui::IsItemActivated()) return atm::EditPhase::Begin;
+    return atm::EditPhase::Continue;
+}
+
 // Swatch strip for full band replacement (all-or-nothing mode)
 inline bool draw_band_shade_strip(
     const char* id,
     int steps,
     const atm::RoleColours& roles,
     std::optional<std::vector<std::string>>& custom_shades,
-    std::function<void(const std::optional<std::vector<std::string>>& new_shades, int flag)> on_change
+    std::function<void(const std::optional<std::vector<std::string>>& new_shades, atm::EditPhase phase)> on_change
 ) {
     bool modified = false;
     size_t count = static_cast<size_t>(steps + 2);
@@ -35,10 +42,10 @@ inline bool draw_band_shade_strip(
                 hexes[i] = (i < default_ramp.size()) ? atm::to_hex_colour(default_ramp[i]) : "#ffffff";
             }
             custom_shades = hexes;
-            on_change(custom_shades, 2);
+            on_change(custom_shades, atm::EditPhase::End);
         } else {
             custom_shades = std::nullopt;
-            on_change(std::nullopt, 2);
+            on_change(std::nullopt, atm::EditPhase::End);
         }
         modified = true;
     }
@@ -87,8 +94,7 @@ inline bool draw_band_shade_strip(
                         static_cast<uint8_t>(fcol[1] * 255),
                         static_cast<uint8_t>(fcol[2] * 255)
                     });
-                    int flag = ImGui::IsItemDeactivatedAfterEdit() ? 2 : (ImGui::IsItemActivated() ? 0 : 1);
-                    on_change(custom_shades, flag);
+                    on_change(custom_shades, current_drag_phase());
                     modified = true;
                 }
                 ImGui::EndPopup();
@@ -106,7 +112,7 @@ inline bool draw_sparse_shade_strip(
     const std::vector<atm::RGB>& default_colors,
     const std::set<int>& used_shades,
     std::optional<std::vector<std::optional<std::string>>>& custom_shades,
-    std::function<void(const std::optional<std::vector<std::optional<std::string>>>& new_shades, int flag)> on_change
+    std::function<void(const std::optional<std::vector<std::optional<std::string>>>& new_shades, atm::EditPhase phase)> on_change
 ) {
     bool modified = false;
 
@@ -161,7 +167,7 @@ inline bool draw_sparse_shade_strip(
                 if (!any_left) {
                     custom_shades = std::nullopt;
                 }
-                on_change(custom_shades, 2);
+                on_change(custom_shades, atm::EditPhase::End);
                 modified = true;
             }
             ImGui::EndPopup();
@@ -183,8 +189,7 @@ inline bool draw_sparse_shade_strip(
                     static_cast<uint8_t>(fcol[1] * 255),
                     static_cast<uint8_t>(fcol[2] * 255)
                 });
-                int flag = ImGui::IsItemDeactivatedAfterEdit() ? 2 : (ImGui::IsItemActivated() ? 0 : 1);
-                on_change(custom_shades, flag);
+                on_change(custom_shades, current_drag_phase());
                 modified = true;
             }
             ImGui::EndPopup();

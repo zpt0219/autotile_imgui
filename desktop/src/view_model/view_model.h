@@ -42,13 +42,13 @@ public:
     void unregister_panel(IPanel* panel);
 
     // Callbacks from LibraryHandler (fan_out to all panels)
-    void onLibraryLoaded(int flag) override;
-    void onLibraryListUpdated(int flag) override;
-    void onRecipeSelected(atm::RecipeEntry* entry, int flag) override;
-    void onRecipeUpdated(atm::RecipeEntry* entry, atm::DirtyMask dirty, int flag) override;
-    void onVariantAxesUpdated(int flag) override;
-    void onBatchProgress(const atm::BatchProgress& progress, int flag) override;
-    void onExportSettingsUpdated(int flag) override;
+    void onLibraryLoaded(atm::EditPhase phase = atm::EditPhase::Begin) override;
+    void onLibraryListUpdated(atm::EditPhase phase = atm::EditPhase::Begin) override;
+    void onRecipeSelected(atm::RecipeEntry* entry, atm::EditPhase phase = atm::EditPhase::Begin) override;
+    void onRecipeUpdated(atm::RecipeEntry* entry, atm::DirtyMask dirty, atm::EditPhase phase = atm::EditPhase::Begin) override;
+    void onVariantAxesUpdated(atm::EditPhase phase = atm::EditPhase::Begin) override;
+    void onBatchProgress(const atm::BatchProgress& progress, atm::EditPhase phase = atm::EditPhase::Begin) override;
+    void onExportSettingsUpdated(atm::EditPhase phase = atm::EditPhase::Begin) override;
 
     // Logging (thread-safe)
     void log(const std::string& msg, const std::string& level = "INFO");

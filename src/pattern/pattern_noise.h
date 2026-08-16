@@ -20,6 +20,7 @@ enum class NoiseTargetId {
 
 NoiseId parse_noise_id(const std::string& name);
 std::string noise_id_to_string(NoiseId id);
+bool is_known_noise(const std::string& name);
 
 NoiseTargetId parse_noise_target_id(const std::string& name);
 std::string noise_target_id_to_string(NoiseTargetId id);

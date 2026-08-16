@@ -41,12 +41,12 @@ TEST_CASE("Changing bandSteps keeps customShadesHex valid through save/load") {
     RoleHex roles = handler.selected_recipe()->recipe.roleHex;
     std::vector<std::string> shades(static_cast<size_t>(steps0) + 2, "#112233");
     REQUIRE(cmd.add_and_execute_command(
-        std::make_unique<UpdateRecipeColoursCommand>(hash, roles, shades, 2), handler).success);
+        std::make_unique<UpdateRecipeColoursCommand>(hash, roles, shades, EditPhase::End), handler).success);
     REQUIRE(handler.selected_recipe()->recipe.customShadesHex.has_value());
 
     for (int target : { 5, 3, 4 }) {
         REQUIRE(cmd.add_and_execute_command(
-            std::make_unique<UpdateRecipeBandCommand>(hash, target, false, false, 0.0, 2), handler).success);
+            std::make_unique<UpdateRecipeBandCommand>(hash, target, false, false, 0.0, EditPhase::End), handler).success);
 
         const Recipe& r = handler.selected_recipe()->recipe;
         INFO("bandSteps -> " << target);
@@ -75,13 +75,13 @@ TEST_CASE("Changing ribbonShades and textureShades keeps their overrides valid")
         const Recipe& r0 = handler.selected_recipe()->recipe;
         std::vector<std::optional<std::string>> rib(static_cast<size_t>(r0.ribbonShades) + 1, std::string("#aabbcc"));
         REQUIRE(cmd.add_and_execute_command(std::make_unique<UpdateRecipeRibbonCommand>(
-            hash, "bevel", 0.5, 4, r0.ribbonShades, false, rib, 2), handler).success);
+            hash, "bevel", 0.5, 4, r0.ribbonShades, false, rib, EditPhase::End), handler).success);
 
         for (int target : { 3, 1, 2 }) {
             // Deliberately hand over the *previous* array, as the panel does.
             auto stale = handler.selected_recipe()->recipe.customRibbonHex;
             REQUIRE(cmd.add_and_execute_command(std::make_unique<UpdateRecipeRibbonCommand>(
-                hash, "bevel", 0.5, 4, target, false, stale, 2), handler).success);
+                hash, "bevel", 0.5, 4, target, false, stale, EditPhase::End), handler).success);
 
             const Recipe& r = handler.selected_recipe()->recipe;
             INFO("ribbonShades -> " << target);
@@ -99,14 +99,14 @@ TEST_CASE("Changing ribbonShades and textureShades keeps their overrides valid")
         nr.customTexHexB = std::vector<std::optional<std::string>>(
             static_cast<size_t>(nr.textureShadesB) + 1, std::string("#778899"));
         REQUIRE(cmd.add_and_execute_command(
-            std::make_unique<UpdateRecipeTextureCommand>(hash, nr, 2), handler).success);
+            std::make_unique<UpdateRecipeTextureCommand>(hash, nr, EditPhase::End), handler).success);
 
         for (int target : { 4, 1, 3 }) {
             Recipe next = handler.selected_recipe()->recipe;  // carries the stale arrays
             next.textureShadesA = target;
             next.textureShadesB = target;
             REQUIRE(cmd.add_and_execute_command(
-                std::make_unique<UpdateRecipeTextureCommand>(hash, next, 2), handler).success);
+                std::make_unique<UpdateRecipeTextureCommand>(hash, next, EditPhase::End), handler).success);
 
             const Recipe& r = handler.selected_recipe()->recipe;
             INFO("textureShades -> " << target);
@@ -132,7 +132,7 @@ TEST_CASE("Undo restores the user's colours rather than the grown defaults") {
     RoleHex roles = handler.selected_recipe()->recipe.roleHex;
     std::vector<std::string> shades(static_cast<size_t>(steps0) + 2, "#0f0f0f");
     REQUIRE(cmd.add_and_execute_command(
-        std::make_unique<UpdateRecipeColoursCommand>(hash, roles, shades, 2), handler).success);
+        std::make_unique<UpdateRecipeColoursCommand>(hash, roles, shades, EditPhase::End), handler).success);
 
     const auto before = handler.selected_recipe()->recipe.customShadesHex;
     REQUIRE(before.has_value());
@@ -140,7 +140,7 @@ TEST_CASE("Undo restores the user's colours rather than the grown defaults") {
     // Grow, then shrink back. Re-syncing on undo instead of restoring would
     // leave the trimmed levels holding computed colours, not "#0f0f0f".
     REQUIRE(cmd.add_and_execute_command(
-        std::make_unique<UpdateRecipeBandCommand>(hash, 5, false, false, 0.0, 2), handler).success);
+        std::make_unique<UpdateRecipeBandCommand>(hash, 5, false, false, 0.0, EditPhase::End), handler).success);
     REQUIRE(cmd.undo(handler).success);
 
     const Recipe& r = handler.selected_recipe()->recipe;

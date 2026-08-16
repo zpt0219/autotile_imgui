@@ -11,10 +11,6 @@ namespace atm {
 // Ribbon seed perturbation salt. Reference: renderSheet.ts ribbonShadeAt()
 static const int32_t RIBBON_SALT = 0x2c9f;
 
-static inline double modp(double v, double m) {
-    return std::fmod(std::fmod(v, m) + m, m);
-}
-
 int ribbon_shade_at(
     const std::string& id,
     double s,
@@ -48,13 +44,13 @@ int ribbon_shade_at(
         return cap(static_cast<int>(js_math::round(static_cast<double>(std::min(shades, k)) * amount)));
     }
     if (id == "dashes") {
-        return (modp(sp, T) < T * amount) ? shades : 0;
+        return (js_math::wrap(sp, T) < T * amount) ? shades : 0;
     }
     if (id == "ticks") {
-        return (modp(sp, T) < 1.0) ? cap(static_cast<int>(js_math::round(static_cast<double>(shades) * amount))) : 0;
+        return (js_math::wrap(sp, T) < 1.0) ? cap(static_cast<int>(js_math::round(static_cast<double>(shades) * amount))) : 0;
     }
     if (id == "beads") {
-        double ds = modp(sp + T / 2.0, T) - T / 2.0;
+        double ds = js_math::wrap(sp + T / 2.0, T) - T / 2.0;
         double dd = (dp - 0.5) * width_px;
         double r = std::max(1.0, amount * std::min(T / 2.0, width_px / 2.0));
         double q = std::sqrt(ds * ds + dd * dd);
@@ -62,7 +58,7 @@ int ribbon_shade_at(
         return (q > r - 1.0) ? cap(shades - 1) : shades;
     }
     if (id == "rope") {
-        double u = modp(sp + dp * width_px, T) / T;
+        double u = js_math::wrap(sp + dp * width_px, T) / T;
         if (u >= amount) return 0;
         double t = (amount <= 0.0) ? 0.0 : u / amount;
         return cap(1 + static_cast<int>(std::floor(static_cast<double>(shades - 1) * (1.0 - std::abs(2.0 * t - 1.0)))));

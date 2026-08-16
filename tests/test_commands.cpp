@@ -14,7 +14,7 @@ TEST_CASE("Recipe Library & Command Undo/Redo") {
     std::string orig_hash = handler.selected_recipe()->hash;
 
     // 1. Rename command
-    auto rename_cmd = std::make_unique<RenameRecipeCommand>(orig_hash, "My First Recipe", 0);
+    auto rename_cmd = std::make_unique<RenameRecipeCommand>(orig_hash, "My First Recipe", EditPhase::Begin);
     auto res = cmd_handler.add_and_execute_command(std::move(rename_cmd), handler);
     REQUIRE(res.success);
     CHECK(handler.selected_recipe()->name == "My First Recipe");
@@ -34,7 +34,7 @@ TEST_CASE("Recipe Library & Command Undo/Redo") {
     roles.terrainA = "#112233";
     roles.terrainB = "#445566";
     roles.edge = "#778899";
-    auto col_cmd = std::make_unique<UpdateRecipeColoursCommand>(second_hash, roles, std::nullopt, 0);
+    auto col_cmd = std::make_unique<UpdateRecipeColoursCommand>(second_hash, roles, std::nullopt, EditPhase::Begin);
     res = cmd_handler.add_and_execute_command(std::move(col_cmd), handler);
     REQUIRE(res.success);
     CHECK(handler.selected_recipe()->recipe.roleHex.terrainA == "#112233");

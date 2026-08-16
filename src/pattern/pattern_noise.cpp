@@ -19,6 +19,10 @@ std::string noise_id_to_string(NoiseId id) {
     }
 }
 
+bool is_known_noise(const std::string& name) {
+    return name == "white" || name == "blue" || name == "ordered";
+}
+
 NoiseTargetId parse_noise_target_id(const std::string& name) {
     if (name == "terrainA") return NoiseTargetId::TerrainA;
     if (name == "terrainB") return NoiseTargetId::TerrainB;
