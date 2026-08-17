@@ -92,17 +92,28 @@ const char* pattern_field_for_mask(const std::string& pattern, int mask) {
     return pattern_data::get_field_string(pattern_field_source(pattern), mask);
 }
 
+// -----------------------------------------------------------------------------
+// Procedural Edge Perturbation & Field Sampling Algorithms
+// -----------------------------------------------------------------------------
+
+/**
+ * 2D periodic value noise with Hermite cubic interpolation.
+ *
+ * Evaluates a 4x4 periodic grid across PATTERN_TILE_SIZE, hashing grid corner
+ * coordinates with `hash_bits` to obtain pseudo-random corner values in [-1, 1].
+ * Used by reseedable patterns (rough, jagged, bumpy, etc.) to jitter the edge.
+ */
 static double edge_noise(double u, double v, int32_t seed) {
-    const double per = 4.0;
-    double fx = (u / static_cast<double>(pattern_data::PATTERN_TILE_SIZE)) * per;
-    double fy = (v / static_cast<double>(pattern_data::PATTERN_TILE_SIZE)) * per;
+    constexpr double NOISE_PERIOD = 4.0;
+    double fx = (u / static_cast<double>(pattern_data::PATTERN_TILE_SIZE)) * NOISE_PERIOD;
+    double fy = (v / static_cast<double>(pattern_data::PATTERN_TILE_SIZE)) * NOISE_PERIOD;
     int32_t x0 = static_cast<int32_t>(std::floor(fx));
     int32_t y0 = static_cast<int32_t>(std::floor(fy));
     auto fade = [](double t) { return t * t * (3.0 - 2.0 * t); };
     double tx = fade(fx - static_cast<double>(x0));
     double ty = fade(fy - static_cast<double>(y0));
-    auto h = [seed, per](int32_t ix, int32_t iy) -> double {
-        int32_t iper = static_cast<int32_t>(per);
+    auto h = [seed, NOISE_PERIOD](int32_t ix, int32_t iy) -> double {
+        int32_t iper = static_cast<int32_t>(NOISE_PERIOD);
         int32_t wx = ((ix % iper) + iper) % iper;
         int32_t wy = ((iy % iper) + iper) % iper;
         return (static_cast<double>(hash_bits(wx, wy, seed)) / 4294967296.0) * 2.0 - 1.0;
@@ -112,6 +123,13 @@ static double edge_noise(double u, double v, int32_t seed) {
     return a * (1.0 - ty) + b * ty;
 }
 
+/**
+ * Bilinear distance field sampler.
+ *
+ * Samples the N x N character-encoded distance field at continuous coordinate (u, v),
+ * clamping out-of-bound samples and multiplying by FIELD_STEP (0.25) to convert
+ * raw character indices into field distance units.
+ */
 static double sample_field(const char* field, int N, double u, double v) {
     double scale = static_cast<double>(N) / static_cast<double>(pattern_data::PATTERN_TILE_SIZE);
     double fu = u * scale;
@@ -130,6 +148,13 @@ static double sample_field(const char* field, int N, double u, double v) {
     return (a * (1.0 - ty) + b * ty) * static_cast<double>(pattern_data::FIELD_STEP);
 }
 
+/**
+ * Procedural sine wave displacement for the "wave" pattern silhouette.
+ *
+ * Replicates the TypeScript reference `renderSheet.ts -> wave()`.
+ * Computes the distance field gradient vector (gx, gy) to project sine wave
+ * displacements perpendicular to the contour line, with smooth boundary falloff.
+ */
 static double wave_offset_at(
     const char* field,
     double u,
@@ -138,15 +163,19 @@ static double wave_offset_at(
     int edge_seed,
     double off
 ) {
-    double wavelength = 16.0;
-    double preset_amp = 1.4;
+    constexpr double DEFAULT_WAVELENGTH = 16.0;
+    constexpr double ALT_WAVELENGTH = 32.0;
+    constexpr double DEFAULT_PRESET_AMP = 1.4;
+
+    double wavelength = DEFAULT_WAVELENGTH;
+    double preset_amp = DEFAULT_PRESET_AMP;
     double phase = 0.0;
     if (edge_seed != 0) {
         // Phase hash for the wave pattern (salt: 0x1f3b2a). Reference: renderSheet.ts wave()
         int32_t n1 = js_math::imul(edge_seed, 374761393) ^ 0x1f3b2a;
         n1 = js_math::imul(n1 ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n1), 13))), 1274126177);
         int32_t hash = std::abs(n1 ^ (static_cast<int32_t>(js_math::urshift(static_cast<uint32_t>(n1), 16))));
-        wavelength = ((hash & 1) == 0) ? 16.0 : 32.0;
+        wavelength = ((hash & 1) == 0) ? DEFAULT_WAVELENGTH : ALT_WAVELENGTH;
         preset_amp = 1.3 + static_cast<double>(hash % 8) * 0.1;
         phase = static_cast<double>(hash % 13);
     }
@@ -154,6 +183,7 @@ static double wave_offset_at(
     double headroom = static_cast<double>(edge_jitter_amplitude("wave", static_cast<float>(off)));
     double wave_amp = std::max(0.0, std::min(preset_amp, headroom));
 
+    // Spatial gradient estimation using central differences
     double gx = sample_field(field, pattern_data::PATTERN_TILE_SIZE, u + 0.5, v) - sample_field(field, pattern_data::PATTERN_TILE_SIZE, u - 0.5, v);
     double gy = sample_field(field, pattern_data::PATTERN_TILE_SIZE, u, v + 0.5) - sample_field(field, pattern_data::PATTERN_TILE_SIZE, u, v - 0.5);
     double len_sq = gx * gx + gy * gy;
@@ -168,6 +198,7 @@ static double wave_offset_at(
     double wv = js_math::sin((2.0 * js_math::PI * (v + phase)) / wavelength);
     double wave_val = wy2 * wu + wx2 * wv;
 
+    // Fade wave displacement smoothly away from the boundary band (d_base around 2.5)
     double border_fade = std::max(0.0, std::min(1.0, (d_base - 2.5) / 2.0));
     return wave_amp * border_fade * wave_val;
 }
@@ -220,6 +251,13 @@ static double radius_at(double c, int n) {
     return std::max(1.0, std::min(GRAD_RADIUS, std::min(c, static_cast<double>(n - 1) - c)));
 }
 
+/**
+ * Variable-radius box-filtered directional gradient estimator.
+ *
+ * Computes partial derivative along horizontal (du) or vertical (dv) axis
+ * by averaging differences across a kernel of radius r, dynamically clamped
+ * to avoid sampling outside the [0, N-1] field domain near edges.
+ */
 static double derivative(const char* field, int N, double u, double v, bool horizontal) {
     auto at = [field, N, horizontal, u, v](double d, double k) {
         return horizontal ? sample_field(field, N, u + d, v + k) : sample_field(field, N, u + k, v + d);

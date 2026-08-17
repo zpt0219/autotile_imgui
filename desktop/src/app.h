@@ -41,6 +41,7 @@ private:
     LogPanel log_panel_;
 
     bool is_running_ = false;
+    bool first_frame_ = true;
 };
 
 } // namespace atm_desktop

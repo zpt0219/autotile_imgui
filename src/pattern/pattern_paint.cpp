@@ -135,6 +135,14 @@ struct GrainResult {
     bool grained;
 };
 
+/**
+ * Procedural grain / halftone noise displacement per-pixel.
+ *
+ * Checks whether the current pixel level qualifies for noise displacement
+ * according to `opts.noise_targets` (TerrainA, TerrainB, Edge). If perturbed,
+ * steps the quantized level by `step * span` and applies either custom noise
+ * color overrides (e.g. `opts.noise_colours.edge`) or samples the adjusted ramp.
+ */
 template <typename TargetMatcher>
 static GrainResult apply_grain(
     int level,
@@ -180,46 +188,45 @@ static GrainResult apply_grain(
     return { rgb, next_lvl, true };
 }
 
-static std::optional<RGB> pick_overlay(
+/**
+ * Selects surface texture or ribbon motif overlay color at the given pixel.
+ * Priority hierarchy:
+ *   1. Ribbon Motif (if on Edge level)
+ *   2. Texture A (if on interior solid TerrainA level)
+ *   3. Texture B (if on exterior background TerrainB level 0)
+ */
+std::optional<RGB> TilePainter::pick_overlay(
     int level,
     int x,
     int y,
     int p,
-    int solid,
-    int edge_level,
-    const PaintOptions& opts,
-    const std::optional<std::vector<RGB>>& rib_ramp,
-    const std::optional<BandCoords>& coords,
-    float rib_width,
-    int rib_shades,
-    const std::optional<std::vector<RGB>>& texA,
-    const std::optional<std::vector<RGB>>& texB
-) {
-    if (rib_ramp.has_value() && coords.has_value() && level == edge_level) {
+    const std::optional<BandCoords>& coords
+) const {
+    if (ribbon_ramp_.has_value() && coords.has_value() && level == edge_level_) {
         int k = ribbon_shade_at(
-            opts.ribbon.algo, coords->s[p], coords->depth[p], rib_width,
-            opts.ribbon.seed, opts.ribbon.amount, rib_shades, opts.ribbon.period, opts.ribbon.invert
+            opts_.ribbon.algo, coords->s[p], coords->depth[p], ribbon_width_,
+            opts_.ribbon.seed, opts_.ribbon.amount, ribbon_shades_, opts_.ribbon.period, opts_.ribbon.invert
         );
-        if (k > 0 && k < static_cast<int>(rib_ramp->size())) {
-            return (*rib_ramp)[k];
+        if (k > 0 && k < static_cast<int>(ribbon_ramp_->size())) {
+            return (*ribbon_ramp_)[k];
         }
-    } else if (texA.has_value() && level == solid) {
+    } else if (texture_ramp_a_.has_value() && level == solid_) {
         int k = texture_shade_at(
-            opts.texture.a.algo, x, y, opts.texture.a.seed, static_cast<float>(opts.texture.a.amount),
-            std::max(1, opts.texture.a.shades),
-            opts.texture.a.cellScale, opts.texture.a.rippleScale, opts.texture.a.geoScale
+            opts_.texture.a.algo, x, y, opts_.texture.a.seed, static_cast<float>(opts_.texture.a.amount),
+            std::max(1, opts_.texture.a.shades),
+            opts_.texture.a.cellScale, opts_.texture.a.rippleScale, opts_.texture.a.geoScale
         );
-        if (k > 0 && k < static_cast<int>(texA->size())) {
-            return (*texA)[k];
+        if (k > 0 && k < static_cast<int>(texture_ramp_a_->size())) {
+            return (*texture_ramp_a_)[k];
         }
-    } else if (texB.has_value() && level == 0) {
+    } else if (texture_ramp_b_.has_value() && level == 0) {
         int k = texture_shade_at(
-            opts.texture.b.algo, x, y, opts.texture.b.seed, static_cast<float>(opts.texture.b.amount),
-            std::max(1, opts.texture.b.shades),
-            opts.texture.b.cellScale, opts.texture.b.rippleScale, opts.texture.b.geoScale
+            opts_.texture.b.algo, x, y, opts_.texture.b.seed, static_cast<float>(opts_.texture.b.amount),
+            std::max(1, opts_.texture.b.shades),
+            opts_.texture.b.cellScale, opts_.texture.b.rippleScale, opts_.texture.b.geoScale
         );
-        if (k > 0 && k < static_cast<int>(texB->size())) {
-            return (*texB)[k];
+        if (k > 0 && k < static_cast<int>(texture_ramp_b_->size())) {
+            return (*texture_ramp_b_)[k];
         }
     }
     return std::nullopt;
@@ -242,11 +249,11 @@ TilePainter::TilePainter(const std::string& pattern, const RoleColours& colours,
     solid_ = static_cast<int>(ramp_.size()) - 1;
 
     if (opts_.texture.a.algo != "none" && opts_.texture.a.amount > 0.0) {
-        texA_ = texture_ramp(colours_.terrainA, opts_.texture.a.colour, std::max(1, opts_.texture.a.shades), opts_.texture.a.ramp);
+        texture_ramp_a_ = texture_ramp(colours_.terrainA, opts_.texture.a.colour, std::max(1, opts_.texture.a.shades), opts_.texture.a.ramp);
     }
 
     if (!opts_.transparent_b && opts_.texture.b.algo != "none" && opts_.texture.b.amount > 0.0) {
-        texB_ = texture_ramp(colours_.terrainB, opts_.texture.b.colour, std::max(1, opts_.texture.b.shades), opts_.texture.b.ramp);
+        texture_ramp_b_ = texture_ramp(colours_.terrainB, opts_.texture.b.colour, std::max(1, opts_.texture.b.shades), opts_.texture.b.ramp);
     }
 
     edge_level_ = -1;
@@ -257,15 +264,15 @@ TilePainter::TilePainter(const std::string& pattern, const RoleColours& colours,
         }
     }
 
-    rib_shades_ = std::max(1, opts_.ribbon.shades);
-    ribbon_on_ = (opts_.ribbon.algo != "none" && opts_.ribbon.amount > 0.0);
+    ribbon_shades_ = std::max(1, opts_.ribbon.shades);
+    ribbon_enabled_ = (opts_.ribbon.algo != "none" && opts_.ribbon.amount > 0.0);
 
-    if (ribbon_on_ && edge_level_ >= 0) {
-        rib_ramp_ = texture_ramp(ramp_[edge_level_], opts_.ribbon.colour, rib_shades_, opts_.ribbon.ramp);
+    if (ribbon_enabled_ && edge_level_ >= 0) {
+        ribbon_ramp_ = texture_ramp(ramp_[edge_level_], opts_.ribbon.colour, ribbon_shades_, opts_.ribbon.ramp);
     }
 
-    rib_width_ = ribbon_on_ ? std::max(1.0f, outline_width_px(pattern_, opts_.band_steps, opts_.hard_edge_b, static_cast<float>(opts_.outline_width), opts_.tile_size)) : 1.0f;
-    span_ = band_noise_span(pattern_, opts_.band_steps);
+    ribbon_width_ = ribbon_enabled_ ? std::max(1.0f, outline_width_px(pattern_, opts_.band_steps, opts_.hard_edge_b, static_cast<float>(opts_.outline_width), opts_.tile_size)) : 1.0f;
+    noise_span_ = band_noise_span(pattern_, opts_.band_steps);
 
     static_assert(static_cast<int>(PatternRole::Edge) == 2,
                   "noise_targets_lut_ is indexed by PatternRole; keep it dense and sized to match");
@@ -284,7 +291,7 @@ void TilePainter::paint_tile_into(int mask, uint8_t* out_rgba, int row_stride_by
     std::string grid = pattern_levels_for_mask(pattern_, mask, fp_);
 
     std::optional<BandCoords> coords;
-    if (ribbon_on_ && mask >= 0) {
+    if (ribbon_enabled_ && mask >= 0) {
         coords = pattern_band_coords(pattern_, mask, fp_);
     }
 
@@ -298,10 +305,10 @@ void TilePainter::paint_tile_into(int mask, uint8_t* out_rgba, int row_stride_by
             int p = y * tile_size + x;
             int level = grid[p] - '0';
 
-            auto grain = apply_grain(level, x, y, opts_, ramp_, level_defs_, solid_, span_, target_matches);
+            auto grain = apply_grain(level, x, y, opts_, ramp_, level_defs_, solid_, noise_span_, target_matches);
             RGB rgb = grain.rgb;
             if (!grain.grained) {
-                if (auto overlay = pick_overlay(level, x, y, p, solid_, edge_level_, opts_, rib_ramp_, coords, rib_width_, rib_shades_, texA_, texB_)) {
+                if (auto overlay = pick_overlay(level, x, y, p, coords)) {
                     rgb = *overlay;
                 }
             }

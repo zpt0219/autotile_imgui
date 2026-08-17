@@ -202,6 +202,256 @@ static void draw_texture_tab(
     ImGui::EndTabItem();
 }
 
+static void draw_palette_section(
+    ViewModel& vm,
+    const std::string& hash,
+    const atm::Recipe& r,
+    bool use_zh
+) {
+    if (!ImGui::CollapsingHeader(use_zh ? "调色板与角色 (Palette & Roles)" : "Palette & Roles", ImGuiTreeNodeFlags_DefaultOpen)) {
+        return;
+    }
+
+    atm::RGB colA = atm::parse_hex_colour(r.roleHex.terrainA);
+    atm::RGB colB = atm::parse_hex_colour(r.roleHex.terrainB);
+    atm::RGB colE = atm::parse_hex_colour(r.roleHex.edge);
+
+    float fA[3] = { colA.r / 255.0f, colA.g / 255.0f, colA.b / 255.0f };
+    float fB[3] = { colB.r / 255.0f, colB.g / 255.0f, colB.b / 255.0f };
+    float fE[3] = { colE.r / 255.0f, colE.g / 255.0f, colE.b / 255.0f };
+
+    bool changed = false;
+    atm::EditPhase phase = atm::EditPhase::Continue;
+
+    if (ImGui::ColorEdit3(use_zh ? "地形 A (Terrain A)" : "Terrain A", fA, ImGuiColorEditFlags_NoInputs)) {
+        changed = true;
+        phase = ui::current_drag_phase();
+    }
+    if (ImGui::ColorEdit3(use_zh ? "地形 B (Terrain B)" : "Terrain B", fB, ImGuiColorEditFlags_NoInputs)) {
+        changed = true;
+        phase = ui::current_drag_phase();
+    }
+    if (ImGui::ColorEdit3(use_zh ? "描边 (Edge)" : "Edge", fE, ImGuiColorEditFlags_NoInputs)) {
+        changed = true;
+        phase = ui::current_drag_phase();
+    }
+
+    if (changed) {
+        atm::RoleHex new_roles;
+        new_roles.terrainA = atm::to_hex_colour({ static_cast<uint8_t>(fA[0]*255), static_cast<uint8_t>(fA[1]*255), static_cast<uint8_t>(fA[2]*255) });
+        new_roles.terrainB = atm::to_hex_colour({ static_cast<uint8_t>(fB[0]*255), static_cast<uint8_t>(fB[1]*255), static_cast<uint8_t>(fB[2]*255) });
+        new_roles.edge = atm::to_hex_colour({ static_cast<uint8_t>(fE[0]*255), static_cast<uint8_t>(fE[1]*255), static_cast<uint8_t>(fE[2]*255) });
+        vm.execute_command(std::make_unique<atm::UpdateRecipeColoursCommand>(hash, new_roles, r.customShadesHex, phase));
+    }
+
+    ImGui::Separator();
+    ImGui::TextDisabled("%s", use_zh ? "色带覆盖 (Band Overrides):" : "Band Shade Overrides:");
+    atm::RoleColours roles{ colA, colB, colE };
+    auto custom_shades_copy = r.customShadesHex;
+    ui::draw_band_shade_strip("Band", r.bandSteps, roles, custom_shades_copy, [&](const auto& new_shades, atm::EditPhase ph) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeColoursCommand>(hash, r.roleHex, new_shades, ph));
+    });
+}
+
+static void draw_silhouette_section(
+    ViewModel& vm,
+    const std::string& hash,
+    const atm::Recipe& r,
+    bool use_zh
+) {
+    if (!ImGui::CollapsingHeader(use_zh ? "轮廓与边界 (Silhouette & Boundary)" : "Silhouette & Boundary", ImGuiTreeNodeFlags_DefaultOpen)) {
+        return;
+    }
+
+    auto new_pat = ui::grouped_combo(use_zh ? "轮廓形状 (Pattern)" : "Pattern", atm::pattern_groups(), r.patternId, use_zh);
+    if (new_pat.has_value() && *new_pat != r.patternId) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipePatternCommand>(hash, *new_pat, r.edgeSeed, r.outlineWidth, atm::EditPhase::End));
+    }
+
+    int seed = r.edgeSeed;
+    if (ui::drag_int_with_dice(use_zh ? "边缘种子 (Edge Seed)" : "Edge Seed", &seed, 0, 99999, "EdgeSeed")) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipePatternCommand>(hash, r.patternId, seed, r.outlineWidth, atm::EditPhase::End));
+    }
+
+    int outline = r.outlineWidth;
+    if (ImGui::SliderInt(use_zh ? "描边宽度 (Outline Px)" : "Outline Width (px)", &outline, 1, 4)) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipePatternCommand>(hash, r.patternId, r.edgeSeed, outline, ui::current_drag_phase()));
+    }
+
+    int steps = r.bandSteps;
+    if (ImGui::SliderInt(use_zh ? "过渡阶数 (Band Steps)" : "Band Steps", &steps, 3, 5)) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, steps, r.hardEdgeB, r.transparentB, r.bandBias, ui::current_drag_phase()));
+    }
+
+    float bias = static_cast<float>(r.bandBias);
+    if (ImGui::SliderFloat(use_zh ? "过渡偏置 (Band Bias)" : "Band Bias", &bias, -1.0f, 1.0f, "%.2f")) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, r.bandSteps, r.hardEdgeB, r.transparentB, static_cast<double>(bias), ui::current_drag_phase()));
+    }
+
+    bool hard_edge = r.hardEdgeB;
+    if (ImGui::Checkbox(use_zh ? "B 侧硬边缘 (Hard Edge B)" : "Hard Edge B", &hard_edge)) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, r.bandSteps, hard_edge, r.transparentB, r.bandBias, atm::EditPhase::End));
+    }
+
+    bool trans_b = r.transparentB;
+    if (ImGui::Checkbox(use_zh ? "B 侧透明 (Transparent B)" : "Transparent Terrain B", &trans_b)) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, r.bandSteps, r.hardEdgeB, trans_b, r.bandBias, atm::EditPhase::End));
+    }
+}
+
+static void draw_noise_section(
+    ViewModel& vm,
+    const std::string& hash,
+    const atm::Recipe& r,
+    bool use_zh
+) {
+    if (!ImGui::CollapsingHeader(use_zh ? "颗粒噪声 (Grain Noise)" : "Grain Noise", ImGuiTreeNodeFlags_DefaultOpen)) {
+        return;
+    }
+
+    bool has_white = false, has_blue = false, has_ordered = false;
+    for (auto n : r.patternNoise) {
+        if (n == atm::NoiseId::White) has_white = true;
+        if (n == atm::NoiseId::Blue) has_blue = true;
+        if (n == atm::NoiseId::Ordered) has_ordered = true;
+    }
+
+    bool noise_changed = false;
+    if (ImGui::Checkbox(use_zh ? "白噪声 (White)" : "White Noise", &has_white)) noise_changed = true;
+    ImGui::SameLine();
+    if (ImGui::Checkbox(use_zh ? "蓝噪声 (Blue)" : "Blue Noise", &has_blue)) noise_changed = true;
+    ImGui::SameLine();
+    if (ImGui::Checkbox(use_zh ? "拜耳半调 (Ordered)" : "Ordered Bayer", &has_ordered)) noise_changed = true;
+
+    if (noise_changed) {
+        std::vector<atm::NoiseId> new_noises;
+        if (has_white) new_noises.push_back(atm::NoiseId::White);
+        if (has_blue) new_noises.push_back(atm::NoiseId::Blue);
+        if (has_ordered) new_noises.push_back(atm::NoiseId::Ordered);
+        vm.execute_command(std::make_unique<atm::UpdateRecipeNoiseCommand>(hash, new_noises, r.patternNoiseSeed, r.patternNoiseStrength, atm::EditPhase::End));
+    }
+
+    float strength = static_cast<float>(r.patternNoiseStrength);
+    if (ImGui::SliderFloat(use_zh ? "噪声强度 (Strength)" : "Noise Strength", &strength, 0.0f, 2.0f, "%.2f")) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeNoiseCommand>(hash, r.patternNoise, r.patternNoiseSeed, static_cast<double>(strength), ui::current_drag_phase()));
+    }
+
+    int nseed = r.patternNoiseSeed;
+    if (ui::drag_int_with_dice(use_zh ? "噪声种子 (Noise Seed)" : "Noise Seed", &nseed, 0, 99999, "NoiseSeed")) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeNoiseCommand>(hash, r.patternNoise, nseed, r.patternNoiseStrength, atm::EditPhase::End));
+    }
+}
+
+static void draw_ribbon_section(
+    ViewModel& vm,
+    const std::string& hash,
+    const atm::Recipe& r,
+    bool use_zh
+) {
+    if (!ImGui::CollapsingHeader(use_zh ? "花纹 (Ribbon Motif)" : "Ribbon Motif", ImGuiTreeNodeFlags_DefaultOpen)) {
+        return;
+    }
+
+    auto new_rib = ui::grouped_combo(use_zh ? "花纹类型 (Motif)" : "Motif Algo", atm::ribbon_groups(), r.ribbonAlgo, use_zh);
+    if (new_rib.has_value() && *new_rib != r.ribbonAlgo) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
+            hash, *new_rib, r.ribbonAmount, r.ribbonPeriod, r.ribbonShades, r.ribbonInvert, r.customRibbonHex, atm::EditPhase::End
+        ));
+    }
+
+    // Minimum width warning
+    double min_w = atm::ribbon_min_width(r.ribbonAlgo);
+    if (r.ribbonAlgo != "none" && r.outlineWidth < min_w) {
+        ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
+            use_zh ? "⚠ 当前描边宽度 %dpx 小于本花纹所需最小宽度 %.0fpx" : "⚠ Current outline width %dpx < minimum required %.0fpx",
+            r.outlineWidth, min_w);
+    }
+
+    float amount = static_cast<float>(r.ribbonAmount);
+    if (ImGui::SliderFloat(use_zh ? "花纹强度 (Amount)" : "Duty / Amount", &amount, 0.0f, 1.0f, "%.2f")) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
+            hash, r.ribbonAlgo, static_cast<double>(amount), r.ribbonPeriod, r.ribbonShades, r.ribbonInvert, r.customRibbonHex, ui::current_drag_phase()
+        ));
+    }
+
+    // Period (greyed-out if aperiodic)
+    bool period_active = atm::ribbon_uses_period(r.ribbonAlgo);
+    if (!period_active) ImGui::BeginDisabled();
+    int period = r.ribbonPeriod;
+    if (ImGui::SliderInt(use_zh ? "周期 (Period Px)" : "Period (px)", &period, 1, 16)) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
+            hash, r.ribbonAlgo, r.ribbonAmount, period, r.ribbonShades, r.ribbonInvert, r.customRibbonHex, ui::current_drag_phase()
+        ));
+    }
+    if (!period_active) {
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            ImGui::SetTooltip("%s", use_zh ? "本算法不使用此参数" : "This algorithm does not use Period");
+        }
+    }
+
+    int shades = r.ribbonShades;
+    if (ImGui::SliderInt(use_zh ? "层次数 (Shades)" : "Shades Count", &shades, 1, 3)) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
+            hash, r.ribbonAlgo, r.ribbonAmount, r.ribbonPeriod, shades, r.ribbonInvert, r.customRibbonHex, ui::current_drag_phase()
+        ));
+    }
+
+    // Invert (greyed-out if unflippable)
+    bool invert_active = atm::ribbon_uses_invert(r.ribbonAlgo);
+    if (!invert_active) ImGui::BeginDisabled();
+    bool invert = r.ribbonInvert;
+    if (ImGui::Checkbox(use_zh ? "反转高光 (Invert)" : "Invert Ribbon", &invert)) {
+        vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
+            hash, r.ribbonAlgo, r.ribbonAmount, r.ribbonPeriod, r.ribbonShades, invert, r.customRibbonHex, atm::EditPhase::End
+        ));
+    }
+    if (!invert_active) {
+        ImGui::EndDisabled();
+        if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+            ImGui::SetTooltip("%s", use_zh ? "本算法不使用此参数" : "This algorithm cannot be inverted");
+        }
+    }
+
+    // Ribbon Color Overrides Strip
+    if (r.ribbonAlgo != "none") {
+        ImGui::Separator();
+        ImGui::TextDisabled("%s", use_zh ? "花纹配色覆盖 (Ribbon Palette):" : "Ribbon Palette Overrides:");
+        auto used_shades = atm::used_ribbon_shades(r.ribbonAlgo, r.outlineWidth, r.ribbonAmount, r.ribbonShades, r.ribbonPeriod, r.ribbonInvert);
+
+        size_t num_shades = static_cast<size_t>(r.ribbonShades + 1);
+        std::vector<atm::RGB> default_ribbon_colors(num_shades);
+        atm::RGB edge_col = atm::parse_hex_colour(r.roleHex.edge);
+        for (size_t i = 0; i < num_shades; ++i) {
+            default_ribbon_colors[i] = atm::shade_colour(edge_col, atm::PatternRole::Edge, static_cast<float>(i) / std::max(1, r.ribbonShades));
+        }
+
+        auto custom_ribbon_copy = r.customRibbonHex;
+        ui::draw_sparse_shade_strip("RibbonStrip", num_shades, default_ribbon_colors, used_shades, custom_ribbon_copy, [&](const auto& new_hexes, atm::EditPhase ph) {
+            vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
+                hash, r.ribbonAlgo, r.ribbonAmount, r.ribbonPeriod, r.ribbonShades, r.ribbonInvert, new_hexes, ph
+            ));
+        });
+    }
+}
+
+static void draw_textures_section(
+    ViewModel& vm,
+    const std::string& hash,
+    const atm::Recipe& r,
+    bool use_zh
+) {
+    if (!ImGui::CollapsingHeader(use_zh ? "表面纹理 (Surface Textures)" : "Surface Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
+        return;
+    }
+
+    if (ImGui::BeginTabBar("TerrainTexturesTabBar")) {
+        draw_texture_tab(vm, hash, r, /*is_tab_a=*/true, use_zh);
+        draw_texture_tab(vm, hash, r, /*is_tab_a=*/false, use_zh);
+        ImGui::EndTabBar();
+    }
+}
+
 void RecipePanel::draw(ViewModel& vm) {
     if (!open_) return;
 
@@ -217,215 +467,11 @@ void RecipePanel::draw(ViewModel& vm) {
         const auto& r = selected->recipe;
         bool use_zh = vm.use_zh;
 
-        // ---------------- 1. Palette & Roles ----------------
-        if (ImGui::CollapsingHeader(use_zh ? "调色板与角色 (Palette & Roles)" : "Palette & Roles", ImGuiTreeNodeFlags_DefaultOpen)) {
-            atm::RGB colA = atm::parse_hex_colour(r.roleHex.terrainA);
-            atm::RGB colB = atm::parse_hex_colour(r.roleHex.terrainB);
-            atm::RGB colE = atm::parse_hex_colour(r.roleHex.edge);
-
-            float fA[3] = { colA.r / 255.0f, colA.g / 255.0f, colA.b / 255.0f };
-            float fB[3] = { colB.r / 255.0f, colB.g / 255.0f, colB.b / 255.0f };
-            float fE[3] = { colE.r / 255.0f, colE.g / 255.0f, colE.b / 255.0f };
-
-            bool changed = false;
-            atm::EditPhase phase = atm::EditPhase::Continue;
-
-            if (ImGui::ColorEdit3(use_zh ? "地形 A (Terrain A)" : "Terrain A", fA, ImGuiColorEditFlags_NoInputs)) {
-                changed = true;
-                phase = ui::current_drag_phase();
-            }
-            if (ImGui::ColorEdit3(use_zh ? "地形 B (Terrain B)" : "Terrain B", fB, ImGuiColorEditFlags_NoInputs)) {
-                changed = true;
-                phase = ui::current_drag_phase();
-            }
-            if (ImGui::ColorEdit3(use_zh ? "描边 (Edge)" : "Edge", fE, ImGuiColorEditFlags_NoInputs)) {
-                changed = true;
-                phase = ui::current_drag_phase();
-            }
-
-            if (changed) {
-                atm::RoleHex new_roles;
-                new_roles.terrainA = atm::to_hex_colour({ static_cast<uint8_t>(fA[0]*255), static_cast<uint8_t>(fA[1]*255), static_cast<uint8_t>(fA[2]*255) });
-                new_roles.terrainB = atm::to_hex_colour({ static_cast<uint8_t>(fB[0]*255), static_cast<uint8_t>(fB[1]*255), static_cast<uint8_t>(fB[2]*255) });
-                new_roles.edge = atm::to_hex_colour({ static_cast<uint8_t>(fE[0]*255), static_cast<uint8_t>(fE[1]*255), static_cast<uint8_t>(fE[2]*255) });
-                vm.execute_command(std::make_unique<atm::UpdateRecipeColoursCommand>(hash, new_roles, r.customShadesHex, phase));
-            }
-
-            ImGui::Separator();
-            ImGui::TextDisabled("%s", use_zh ? "色带覆盖 (Band Overrides):" : "Band Shade Overrides:");
-            atm::RoleColours roles{ colA, colB, colE };
-            auto custom_shades_copy = r.customShadesHex;
-            ui::draw_band_shade_strip("Band", r.bandSteps, roles, custom_shades_copy, [&](const auto& new_shades, atm::EditPhase ph) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeColoursCommand>(hash, r.roleHex, new_shades, ph));
-            });
-        }
-
-        // ---------------- 2. Silhouette & Boundary ----------------
-        if (ImGui::CollapsingHeader(use_zh ? "轮廓与边界 (Silhouette & Boundary)" : "Silhouette & Boundary", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto new_pat = ui::grouped_combo(use_zh ? "轮廓形状 (Pattern)" : "Pattern", atm::pattern_groups(), r.patternId, use_zh);
-            if (new_pat.has_value() && *new_pat != r.patternId) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipePatternCommand>(hash, *new_pat, r.edgeSeed, r.outlineWidth, atm::EditPhase::End));
-            }
-
-            int seed = r.edgeSeed;
-            if (ui::drag_int_with_dice(use_zh ? "边缘种子 (Edge Seed)" : "Edge Seed", &seed, 0, 99999, "EdgeSeed")) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipePatternCommand>(hash, r.patternId, seed, r.outlineWidth, atm::EditPhase::End));
-            }
-
-            int outline = r.outlineWidth;
-            if (ImGui::SliderInt(use_zh ? "描边宽度 (Outline Px)" : "Outline Width (px)", &outline, 1, 4)) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipePatternCommand>(hash, r.patternId, r.edgeSeed, outline, ui::current_drag_phase()));
-            }
-
-            int steps = r.bandSteps;
-            if (ImGui::SliderInt(use_zh ? "过渡阶数 (Band Steps)" : "Band Steps", &steps, 3, 5)) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, steps, r.hardEdgeB, r.transparentB, r.bandBias, ui::current_drag_phase()));
-            }
-
-            float bias = static_cast<float>(r.bandBias);
-            if (ImGui::SliderFloat(use_zh ? "过渡偏置 (Band Bias)" : "Band Bias", &bias, -1.0f, 1.0f, "%.2f")) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, r.bandSteps, r.hardEdgeB, r.transparentB, static_cast<double>(bias), ui::current_drag_phase()));
-            }
-
-            bool hard_edge = r.hardEdgeB;
-            if (ImGui::Checkbox(use_zh ? "B 侧硬边缘 (Hard Edge B)" : "Hard Edge B", &hard_edge)) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, r.bandSteps, hard_edge, r.transparentB, r.bandBias, atm::EditPhase::End));
-            }
-
-            bool trans_b = r.transparentB;
-            if (ImGui::Checkbox(use_zh ? "B 侧透明 (Transparent B)" : "Transparent Terrain B", &trans_b)) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeBandCommand>(hash, r.bandSteps, r.hardEdgeB, trans_b, r.bandBias, atm::EditPhase::End));
-            }
-        }
-
-        // ---------------- 3. Grain Noise ----------------
-        if (ImGui::CollapsingHeader(use_zh ? "颗粒噪声 (Grain Noise)" : "Grain Noise", ImGuiTreeNodeFlags_DefaultOpen)) {
-            bool has_white = false, has_blue = false, has_ordered = false;
-            for (auto n : r.patternNoise) {
-                if (n == atm::NoiseId::White) has_white = true;
-                if (n == atm::NoiseId::Blue) has_blue = true;
-                if (n == atm::NoiseId::Ordered) has_ordered = true;
-            }
-
-            bool noise_changed = false;
-            if (ImGui::Checkbox(use_zh ? "白噪声 (White)" : "White Noise", &has_white)) noise_changed = true;
-            ImGui::SameLine();
-            if (ImGui::Checkbox(use_zh ? "蓝噪声 (Blue)" : "Blue Noise", &has_blue)) noise_changed = true;
-            ImGui::SameLine();
-            if (ImGui::Checkbox(use_zh ? "拜耳半调 (Ordered)" : "Ordered Bayer", &has_ordered)) noise_changed = true;
-
-            if (noise_changed) {
-                std::vector<atm::NoiseId> new_noises;
-                if (has_white) new_noises.push_back(atm::NoiseId::White);
-                if (has_blue) new_noises.push_back(atm::NoiseId::Blue);
-                if (has_ordered) new_noises.push_back(atm::NoiseId::Ordered);
-                vm.execute_command(std::make_unique<atm::UpdateRecipeNoiseCommand>(hash, new_noises, r.patternNoiseSeed, r.patternNoiseStrength, atm::EditPhase::End));
-            }
-
-            float strength = static_cast<float>(r.patternNoiseStrength);
-            if (ImGui::SliderFloat(use_zh ? "噪声强度 (Strength)" : "Noise Strength", &strength, 0.0f, 2.0f, "%.2f")) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeNoiseCommand>(hash, r.patternNoise, r.patternNoiseSeed, static_cast<double>(strength), ui::current_drag_phase()));
-            }
-
-            int nseed = r.patternNoiseSeed;
-            if (ui::drag_int_with_dice(use_zh ? "噪声种子 (Noise Seed)" : "Noise Seed", &nseed, 0, 99999, "NoiseSeed")) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeNoiseCommand>(hash, r.patternNoise, nseed, r.patternNoiseStrength, atm::EditPhase::End));
-            }
-        }
-
-        // ---------------- 4. Ribbon Motif ----------------
-        if (ImGui::CollapsingHeader(use_zh ? "花纹 (Ribbon Motif)" : "Ribbon Motif", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto new_rib = ui::grouped_combo(use_zh ? "花纹类型 (Motif)" : "Motif Algo", atm::ribbon_groups(), r.ribbonAlgo, use_zh);
-            if (new_rib.has_value() && *new_rib != r.ribbonAlgo) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
-                    hash, *new_rib, r.ribbonAmount, r.ribbonPeriod, r.ribbonShades, r.ribbonInvert, r.customRibbonHex, atm::EditPhase::End
-                ));
-            }
-
-            // Minimum width warning
-            double min_w = atm::ribbon_min_width(r.ribbonAlgo);
-            if (r.ribbonAlgo != "none" && r.outlineWidth < min_w) {
-                ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
-                    use_zh ? "⚠ 当前描边宽度 %dpx 小于本花纹所需最小宽度 %.0fpx" : "⚠ Current outline width %dpx < minimum required %.0fpx",
-                    r.outlineWidth, min_w);
-            }
-
-            float amount = static_cast<float>(r.ribbonAmount);
-            if (ImGui::SliderFloat(use_zh ? "花纹强度 (Amount)" : "Duty / Amount", &amount, 0.0f, 1.0f, "%.2f")) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
-                    hash, r.ribbonAlgo, static_cast<double>(amount), r.ribbonPeriod, r.ribbonShades, r.ribbonInvert, r.customRibbonHex, ui::current_drag_phase()
-                ));
-            }
-
-            // Period (greyed-out if aperiodic)
-            bool period_active = atm::ribbon_uses_period(r.ribbonAlgo);
-            if (!period_active) ImGui::BeginDisabled();
-            int period = r.ribbonPeriod;
-            if (ImGui::SliderInt(use_zh ? "周期 (Period Px)" : "Period (px)", &period, 1, 16)) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
-                    hash, r.ribbonAlgo, r.ribbonAmount, period, r.ribbonShades, r.ribbonInvert, r.customRibbonHex, ui::current_drag_phase()
-                ));
-            }
-            if (!period_active) {
-                ImGui::EndDisabled();
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                    ImGui::SetTooltip("%s", use_zh ? "本算法不使用此参数" : "This algorithm does not use Period");
-                }
-            }
-
-            int shades = r.ribbonShades;
-            if (ImGui::SliderInt(use_zh ? "层次数 (Shades)" : "Shades Count", &shades, 1, 3)) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
-                    hash, r.ribbonAlgo, r.ribbonAmount, r.ribbonPeriod, shades, r.ribbonInvert, r.customRibbonHex, ui::current_drag_phase()
-                ));
-            }
-
-            // Invert (greyed-out if unflippable)
-            bool invert_active = atm::ribbon_uses_invert(r.ribbonAlgo);
-            if (!invert_active) ImGui::BeginDisabled();
-            bool invert = r.ribbonInvert;
-            if (ImGui::Checkbox(use_zh ? "反转高光 (Invert)" : "Invert Ribbon", &invert)) {
-                vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
-                    hash, r.ribbonAlgo, r.ribbonAmount, r.ribbonPeriod, r.ribbonShades, invert, r.customRibbonHex, atm::EditPhase::End
-                ));
-            }
-            if (!invert_active) {
-                ImGui::EndDisabled();
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                    ImGui::SetTooltip("%s", use_zh ? "本算法不使用此参数" : "This algorithm cannot be inverted");
-                }
-            }
-
-            // Ribbon Color Overrides Strip
-            if (r.ribbonAlgo != "none") {
-                ImGui::Separator();
-                ImGui::TextDisabled("%s", use_zh ? "花纹配色覆盖 (Ribbon Palette):" : "Ribbon Palette Overrides:");
-                auto used_shades = atm::used_ribbon_shades(r.ribbonAlgo, r.outlineWidth, r.ribbonAmount, r.ribbonShades, r.ribbonPeriod, r.ribbonInvert);
-
-                size_t num_shades = static_cast<size_t>(r.ribbonShades + 1);
-                std::vector<atm::RGB> default_ribbon_colors(num_shades);
-                atm::RGB edge_col = atm::parse_hex_colour(r.roleHex.edge);
-                for (size_t i = 0; i < num_shades; ++i) {
-                    default_ribbon_colors[i] = atm::shade_colour(edge_col, atm::PatternRole::Edge, static_cast<float>(i) / std::max(1, r.ribbonShades));
-                }
-
-                auto custom_ribbon_copy = r.customRibbonHex;
-                ui::draw_sparse_shade_strip("RibbonStrip", num_shades, default_ribbon_colors, used_shades, custom_ribbon_copy, [&](const auto& new_hexes, atm::EditPhase ph) {
-                    vm.execute_command(std::make_unique<atm::UpdateRecipeRibbonCommand>(
-                        hash, r.ribbonAlgo, r.ribbonAmount, r.ribbonPeriod, r.ribbonShades, r.ribbonInvert, new_hexes, ph
-                    ));
-                });
-            }
-        }
-
-        // ---------------- 5. Surface Textures ----------------
-        if (ImGui::CollapsingHeader(use_zh ? "表面纹理 (Surface Textures)" : "Surface Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
-            if (ImGui::BeginTabBar("TerrainTexturesTabBar")) {
-                draw_texture_tab(vm, hash, r, /*is_tab_a=*/true, use_zh);
-                draw_texture_tab(vm, hash, r, /*is_tab_a=*/false, use_zh);
-                ImGui::EndTabBar();
-            }
-        }
+        draw_palette_section(vm, hash, r, use_zh);
+        draw_silhouette_section(vm, hash, r, use_zh);
+        draw_noise_section(vm, hash, r, use_zh);
+        draw_ribbon_section(vm, hash, r, use_zh);
+        draw_textures_section(vm, hash, r, use_zh);
     }
     ImGui::End();
 }

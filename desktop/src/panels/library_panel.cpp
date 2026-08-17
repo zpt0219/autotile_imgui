@@ -9,6 +9,73 @@
 
 namespace atm_desktop {
 
+constexpr float GRID_CARD_MIN_WIDTH = 115.0f;
+constexpr ImVec2 GRID_CARD_SIZE = ImVec2(96.0f, 72.0f);
+
+template <typename ContextMenuFn>
+static void draw_grid_card(
+    ViewModel& vm,
+    atm::RecipeEntry* entry,
+    bool is_selected,
+    const ContextMenuFn& draw_context_menu
+) {
+    ImGui::PushID(entry->hash.c_str());
+
+    // 0 means "not rendered yet"; the request is queued and a later frame will have it.
+    uint32_t thumb_tex = vm.thumbnail_cache().get(entry->hash, entry->recipe);
+
+    ImVec4 bg_col = is_selected ? ImVec4(0.2f, 0.4f, 0.6f, 1.0f) : ImVec4(0.15f, 0.16f, 0.18f, 1.0f);
+    ImVec4 tint_col = ImVec4(1, 1, 1, 1);
+
+    std::string btn_id = "##Card_" + entry->hash;
+    bool clicked = false;
+    if (thumb_tex != 0) {
+        clicked = ImGui::ImageButton(
+            btn_id.c_str(),
+            reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(thumb_tex)),
+            GRID_CARD_SIZE,
+            ImVec2(0, 0), ImVec2(1, 1),
+            bg_col, tint_col
+        );
+    } else {
+        // Placeholder card, same footprint so nothing jumps when the real thumbnail lands.
+        ImGui::PushStyleColor(ImGuiCol_Button, bg_col);
+        clicked = ImGui::Button(btn_id.c_str(), ImVec2(GRID_CARD_SIZE.x + 8, GRID_CARD_SIZE.y + 8));
+        ImGui::PopStyleColor();
+        ImVec2 rmin = ImGui::GetItemRectMin();
+        ImVec2 rmax = ImGui::GetItemRectMax();
+        const char* dots = "...";
+        ImVec2 ts = ImGui::CalcTextSize(dots);
+        ImGui::GetWindowDrawList()->AddText(
+            ImVec2((rmin.x + rmax.x - ts.x) * 0.5f, (rmin.y + rmax.y - ts.y) * 0.5f),
+            ImGui::GetColorU32(ImGuiCol_TextDisabled), dots
+        );
+    }
+    if (clicked) {
+        vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
+    }
+
+    draw_context_menu(entry);
+
+    // Caption & Tooltip
+    ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + GRID_CARD_SIZE.x);
+    ImGui::TextUnformatted(entry->name.c_str());
+    ImGui::PopTextWrapPos();
+
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
+        ImGui::BeginTooltip();
+        ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", entry->name.c_str());
+        ImGui::Separator();
+        ImGui::Text("Pattern: %s", entry->recipe.patternId.c_str());
+        ImGui::Text("Texture A: %s", entry->recipe.textureAlgoA.c_str());
+        ImGui::Text("Texture B: %s", entry->recipe.textureAlgoB.c_str());
+        ImGui::Text("Ribbon: %s", entry->recipe.ribbonAlgo.c_str());
+        ImGui::EndTooltip();
+    }
+
+    ImGui::PopID();
+}
+
 void LibraryPanel::draw(ViewModel& vm) {
     if (!open_) return;
 
@@ -107,11 +174,11 @@ void LibraryPanel::draw(ViewModel& vm) {
             } else {
                 // Grid / Thumbnail View
                 float avail_w = ImGui::GetContentRegionAvail().x;
-                int cols = std::max(1, static_cast<int>(avail_w / 115.0f));
+                int cols = std::max(1, static_cast<int>(avail_w / GRID_CARD_MIN_WIDTH));
 
                 // Card (96x72) + button padding + caption line. Only needs to
                 // be close enough for the clipper to pick the right rows.
-                const float ROW_HEIGHT = 72.0f + 8.0f + ImGui::GetTextLineHeightWithSpacing() + 8.0f;
+                const float row_height = GRID_CARD_SIZE.y + 8.0f + ImGui::GetTextLineHeightWithSpacing() + 8.0f;
 
                 if (ImGui::BeginTable("ThumbGridTable", cols, ImGuiTableFlags_SizingFixedFit)) {
                     // Only the visible rows are walked, so only the visible
@@ -120,81 +187,22 @@ void LibraryPanel::draw(ViewModel& vm) {
                     // moment it opens.
                     const int row_count = (static_cast<int>(filtered_entries.size()) + cols - 1) / cols;
                     ImGuiListClipper clipper;
-                    clipper.Begin(row_count, ROW_HEIGHT);
+                    clipper.Begin(row_count, row_height);
 
                     while (clipper.Step()) {
-                    for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
-                    ImGui::TableNextRow();
-                    for (int col = 0; col < cols; ++col) {
-                        const size_t i = static_cast<size_t>(row) * static_cast<size_t>(cols)
-                                       + static_cast<size_t>(col);
-                        if (i >= filtered_entries.size()) break;
+                        for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
+                            ImGui::TableNextRow();
+                            for (int col = 0; col < cols; ++col) {
+                                const size_t i = static_cast<size_t>(row) * static_cast<size_t>(cols) + static_cast<size_t>(col);
+                                if (i >= filtered_entries.size()) break;
 
-                        auto* entry = filtered_entries[i];
-                        bool is_selected = (selected && selected->hash == entry->hash);
+                                auto* entry = filtered_entries[i];
+                                bool is_selected = (selected && selected->hash == entry->hash);
 
-                        ImGui::TableNextColumn();
-                        ImGui::PushID(entry->hash.c_str());
-
-                        // 0 means "not rendered yet"; the request is queued and
-                        // a later frame will have it.
-                        uint32_t thumb_tex = vm.thumbnail_cache().get(entry->hash, entry->recipe);
-
-                        ImVec2 card_sz(96, 72);
-                        ImVec4 bg_col = is_selected ? ImVec4(0.2f, 0.4f, 0.6f, 1.0f) : ImVec4(0.15f, 0.16f, 0.18f, 1.0f);
-                        ImVec4 tint_col = ImVec4(1, 1, 1, 1);
-
-                        std::string btn_id = "##Card_" + entry->hash;
-                        bool clicked = false;
-                        if (thumb_tex != 0) {
-                            clicked = ImGui::ImageButton(
-                                btn_id.c_str(),
-                                reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(thumb_tex)),
-                                card_sz,
-                                ImVec2(0, 0), ImVec2(1, 1),
-                                bg_col, tint_col
-                            );
-                        } else {
-                            // Placeholder card, same footprint so nothing jumps
-                            // when the real thumbnail lands.
-                            ImGui::PushStyleColor(ImGuiCol_Button, bg_col);
-                            clicked = ImGui::Button(btn_id.c_str(),
-                                                    ImVec2(card_sz.x + 8, card_sz.y + 8));
-                            ImGui::PopStyleColor();
-                            ImVec2 rmin = ImGui::GetItemRectMin();
-                            ImVec2 rmax = ImGui::GetItemRectMax();
-                            const char* dots = "...";
-                            ImVec2 ts = ImGui::CalcTextSize(dots);
-                            ImGui::GetWindowDrawList()->AddText(
-                                ImVec2((rmin.x + rmax.x - ts.x) * 0.5f,
-                                       (rmin.y + rmax.y - ts.y) * 0.5f),
-                                ImGui::GetColorU32(ImGuiCol_TextDisabled), dots);
+                                ImGui::TableNextColumn();
+                                draw_grid_card(vm, entry, is_selected, draw_recipe_context_menu);
+                            }
                         }
-                        if (clicked) {
-                            vm.execute_command(std::make_unique<atm::SelectRecipeCommand>(entry->hash));
-                        }
-
-                        draw_recipe_context_menu(entry);
-
-                        // Caption & Tooltip
-                        ImGui::PushTextWrapPos(ImGui::GetCursorPos().x + 96.0f);
-                        ImGui::TextUnformatted(entry->name.c_str());
-                        ImGui::PopTextWrapPos();
-
-                        if (ImGui::IsItemHovered(ImGuiHoveredFlags_DelayShort)) {
-                            ImGui::BeginTooltip();
-                            ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", entry->name.c_str());
-                            ImGui::Separator();
-                            ImGui::Text("Pattern: %s", entry->recipe.patternId.c_str());
-                            ImGui::Text("Texture A: %s", entry->recipe.textureAlgoA.c_str());
-                            ImGui::Text("Texture B: %s", entry->recipe.textureAlgoB.c_str());
-                            ImGui::Text("Ribbon: %s", entry->recipe.ribbonAlgo.c_str());
-                            ImGui::EndTooltip();
-                        }
-
-                        ImGui::PopID();
-                    }
-                    }
                     }
                     clipper.End();
                     ImGui::EndTable();

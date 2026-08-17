@@ -1,5 +1,9 @@
 #pragma once
 
+// DO NOT EDIT MANUALLY.
+// Distance field string data and decoding tables are verbatim transcriptions
+// from reference/generated.ts. See CLAUDE.md Rule #2.
+
 #include <string>
 #include <array>
 #include <cstdint>

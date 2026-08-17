@@ -172,10 +172,12 @@ void ViewModel::drain_progress_queue() {
     }
 }
 
+constexpr size_t MAX_LOG_ENTRIES = 500;
+
 void ViewModel::log(const std::string& msg, const std::string& level) {
     std::lock_guard<std::mutex> lock(log_mutex_);
     logs_.push_back({ msg, level, current_time_str() });
-    if (logs_.size() > 500) {
+    if (logs_.size() > MAX_LOG_ENTRIES) {
         logs_.erase(logs_.begin());
     }
 }

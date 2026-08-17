@@ -108,6 +108,14 @@ public:
     const PaintOptions& options() const { return opts_; }
 
 private:
+    std::optional<RGB> pick_overlay(
+        int level,
+        int x,
+        int y,
+        int p,
+        const std::optional<BandCoords>& coords
+    ) const;
+
     std::string pattern_;
     RoleColours colours_;
     PaintOptions opts_;
@@ -116,13 +124,13 @@ private:
     FieldParams fp_;
     int solid_ = 0;
     int edge_level_ = -1;
-    int rib_shades_ = 1;
-    bool ribbon_on_ = false;
-    float rib_width_ = 1.0f;
-    int span_ = 0;
-    std::optional<std::vector<RGB>> rib_ramp_;
-    std::optional<std::vector<RGB>> texA_;
-    std::optional<std::vector<RGB>> texB_;
+    int ribbon_shades_ = 1;
+    bool ribbon_enabled_ = false;
+    float ribbon_width_ = 1.0f;
+    int noise_span_ = 0;
+    std::optional<std::vector<RGB>> ribbon_ramp_;
+    std::optional<std::vector<RGB>> texture_ramp_a_;
+    std::optional<std::vector<RGB>> texture_ramp_b_;
     // Indexed by PatternRole, which is a dense 0..2 enum — see the static_assert
     // in the constructor if a fourth role is ever added.
     std::array<bool, 3> noise_targets_lut_{};

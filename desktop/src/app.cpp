@@ -2,6 +2,7 @@
 #include "file_dialog.h"
 #include "command/library_command.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #define GLFW_INCLUDE_NONE
@@ -13,8 +14,14 @@
 #include <GL/gl.h>
 #endif
 #include <iostream>
+#include <filesystem>
+#include <cstdio>
 
 namespace atm_desktop {
+
+static void glfw_error_callback(int err, const char* msg) {
+    std::fprintf(stderr, "GLFW error %d: %s\n", err, msg);
+}
 
 App::App() {
     view_model_.register_panel(&library_panel_);
@@ -79,14 +86,25 @@ void App::set_dark_theme() {
 }
 
 bool App::initialize() {
+    glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
         return false;
     }
 
+#if defined(__APPLE__)
+    const char* glsl_version = "#version 150";
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#else
     const char* glsl_version = "#version 130";
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 
     window_ = glfwCreateWindow(1440, 900, "AutoTile Mixer (Desktop)", nullptr, nullptr);
     if (!window_) {
@@ -103,38 +121,36 @@ bool App::initialize() {
     ImGuiIO& io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    io.IniFilename = "imgui.ini";
 
-    // Load Chinese font support (prioritize bundled NotoSansSC.ttf, then system fallbacks)
-    const char* font_paths[] = {
-        "assets/NotoSansSC.ttf",               // Bundled next to working directory
-        "../assets/NotoSansSC.ttf",            // Bundled relative to build dir
-        "../../assets/NotoSansSC.ttf",
-        "C:/Windows/Fonts/msyh.ttc",            // Microsoft YaHei (Windows fallback)
-        "C:/Windows/Fonts/msyh.ttf",
-        "C:/Windows/Fonts/simhei.ttf",
-        "C:/Windows/Fonts/simsun.ttc",          // SimSun (Windows fallback)
-        "/System/Library/Fonts/PingFang.ttc",  // macOS
-        "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc" // Linux
-    };
-
-    bool font_loaded = false;
-    for (const char* path : font_paths) {
-        FILE* f = fopen(path, "rb");
-        if (f) {
-            fclose(f);
-            ImFontConfig font_cfg;
-            font_cfg.FontDataOwnedByAtlas = true;
-            font_cfg.OversampleH = 2;
-            font_cfg.OversampleV = 2;
-            io.Fonts->AddFontFromFileTTF(path, 17.0f, &font_cfg, io.Fonts->GetGlyphRangesChineseFull());
-            font_loaded = true;
-            break;
-        }
-    }
-
-    if (!font_loaded) {
+    // Load Chinese font support
+#if defined(_WIN32)
+    std::string font_path = "C:\\Windows\\Fonts\\msyh.ttc";
+    if (!std::filesystem::exists(font_path)) font_path = "C:\\Windows\\Fonts\\msyh.ttf";
+    if (!std::filesystem::exists(font_path)) font_path = "C:\\Windows\\Fonts\\simsun.ttc";
+    if (!std::filesystem::exists(font_path)) font_path = "C:\\Windows\\Fonts\\simhei.ttf";
+    if (!std::filesystem::exists(font_path)) font_path = "assets/NotoSansSC.ttf";
+    if (!std::filesystem::exists(font_path)) font_path = "../assets/NotoSansSC.ttf";
+    if (std::filesystem::exists(font_path)) {
+        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 17.0f, nullptr, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    } else {
         io.Fonts->AddFontDefault();
     }
+#elif defined(__APPLE__)
+    std::string font_path = "/System/Library/Fonts/PingFang.ttc";
+    if (std::filesystem::exists(font_path)) {
+        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 17.0f, nullptr, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    } else {
+        io.Fonts->AddFontDefault();
+    }
+#else
+    std::string font_path = "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc";
+    if (std::filesystem::exists(font_path)) {
+        io.Fonts->AddFontFromFileTTF(font_path.c_str(), 17.0f, nullptr, io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    } else {
+        io.Fonts->AddFontDefault();
+    }
+#endif
 
     set_dark_theme();
 
@@ -231,6 +247,11 @@ void App::render_menu_bar() {
             if (ImGui::MenuItem("Activity Log", nullptr, &log_open)) log_panel_.set_open(log_open);
 
             ImGui::Separator();
+            if (ImGui::MenuItem(view_model_.use_zh ? "重置窗口布局" : "Reset Layout")) {
+                first_frame_ = true;
+            }
+
+            ImGui::Separator();
             if (ImGui::BeginMenu("Language / 语言")) {
                 if (ImGui::MenuItem("简体中文 (Chinese)", nullptr, view_model_.use_zh)) {
                     view_model_.use_zh = true;
@@ -277,6 +298,31 @@ void App::setup_dockspace() {
 
     ImGuiID dockspace_id = ImGui::GetID("AutoTileDockSpace");
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
+
+    bool need_layout = first_frame_ && (
+        ImGui::DockBuilderGetNode(dockspace_id) == nullptr ||
+        ImGui::DockBuilderGetNode(dockspace_id)->IsLeafNode());
+    first_frame_ = false;
+
+    if (need_layout) {
+        ImGui::DockBuilderRemoveNode(dockspace_id);
+        ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+        ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
+
+        ImGuiID center = dockspace_id;
+        ImGuiID left = ImGui::DockBuilderSplitNode(center, ImGuiDir_Left, 0.22f, nullptr, &center);
+        ImGuiID right = ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, 0.32f, nullptr, &center);
+        ImGuiID bottom = ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, 0.25f, nullptr, &center);
+
+        ImGui::DockBuilderDockWindow("Recipe Library", left);
+        ImGui::DockBuilderDockWindow("Recipe Inspector", right);
+        ImGui::DockBuilderDockWindow("Sheet Preview", center);
+        ImGui::DockBuilderDockWindow("Variant Matrix", center);
+        ImGui::DockBuilderDockWindow("Batch Export", center);
+        ImGui::DockBuilderDockWindow("Activity Log", bottom);
+        ImGui::DockBuilderFinish(dockspace_id);
+    }
+
     ImGui::End();
 }
 
