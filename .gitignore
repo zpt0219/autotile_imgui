@@ -15,10 +15,7 @@ __pycache__/
 
 # Editor & IDE configs
 .idea/
-.vscode/*
-!.vscode/launch.json
-!.vscode/tasks.json
-!.vscode/settings.json
+.vscode/
 compile_commands.json
 *.swp
 *~
